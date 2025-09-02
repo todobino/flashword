@@ -13,23 +13,6 @@ function createGrid(size: number): Grid {
 }
 
 function isValid(grid: Grid, size: number): boolean {
-    for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-            if (!grid[r][c].isBlack) {
-                // Check for islands created by black squares. This is a simple check.
-                // A more robust check would be to see if a white square is surrounded.
-                if (
-                    (r > 0 && grid[r-1][c].isBlack) &&
-                    (r < size - 1 && grid[r+1][c].isBlack) &&
-                    (c > 0 && grid[r][c-1].isBlack) &&
-                    (c < size - 1 && grid[r][c+1].isBlack)
-                ) {
-                    return false;
-                }
-            }
-        }
-    }
-    
     // Check for runs of white cells shorter than 3
     for (let r = 0; r < size; r++) {
         let count = 0;
@@ -58,7 +41,7 @@ function isValid(grid: Grid, size: number): boolean {
     }
 
 
-    // Check connectivity
+    // Check connectivity of white squares
     const q: [number, number][] = [];
     const visited: boolean[][] = Array(size).fill(0).map(() => Array(size).fill(false));
     let firstWhiteCell: [number, number] | null = null;
@@ -73,7 +56,9 @@ function isValid(grid: Grid, size: number): boolean {
         }
     }
     
-    if(!firstWhiteCell) return true; // all black is valid technically
+    if(!firstWhiteCell) return true; // all black is technically a valid connected component of size 0
+    if (whiteCellCount === 0) return true;
+
 
     q.push(firstWhiteCell);
     visited[firstWhiteCell[0]][firstWhiteCell[1]] = true;
@@ -125,9 +110,13 @@ export function generateGridPatterns(size: number, count: number): Grid[] {
 }
 
 export function generateRandomGrid(size: number): Grid {
-    const patterns = generateGridPatterns(size, 1);
-    if (patterns.length > 0) {
-        return patterns[0];
+    let attempts = 0;
+    while(attempts < 20) {
+        const patterns = generateGridPatterns(size, 1);
+        if (patterns.length > 0) {
+            return patterns[0];
+        }
+        attempts++;
     }
     return createGrid(size); // Fallback to an empty grid
 }
