@@ -62,7 +62,7 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
                   <SelectValue placeholder="Grid size" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[11, 13, 15, 17, 19, 21].map(s => <SelectItem key={s} value={String(s)}>{s} x {s}</SelectItem>)}
+                  {[15, 17, 19, 21].map(s => <SelectItem key={s} value={String(s)}>{s} x {s}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
