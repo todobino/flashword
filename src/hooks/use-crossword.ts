@@ -4,14 +4,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Grid, Cell, Clue, Puzzle } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
+import { generatePattern } from '@/lib/grid-generator';
 
-type Pattern = {
-  id: string;
-  size: number;
-  grid: string[];
-};
-
-const patternCache: Record<number, Pattern[]> = {};
 
 const createGrid = (size: number): Grid => {
   return Array.from({ length: size }, (_, row) =>
@@ -199,33 +193,25 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
     updateClues(newGrid, newSize);
   };
 
-  const randomizeGrid = useCallback(async () => {
+  const randomizeGrid = useCallback(() => {
     try {
-      if (!patternCache[size]) {
-        const response = await fetch(`/patterns/${size}x${size}.json`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        patternCache[size] = data.patterns;
+      if (size !== 15 && size !== 17 && size !== 19 && size !== 21) {
+          toast({ variant: "destructive", title: "Randomization Failed", description: `No generator for size ${size}x${size}.` });
+          return;
       }
-      
-      const patterns = patternCache[size];
-      if (!patterns || patterns.length === 0) {
-        throw new Error('No patterns loaded for this size.');
-      }
-      
-      const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+      const pattern = generatePattern(size);
       const newGrid = createGrid(size);
 
       for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
-          newGrid[r][c].isBlack = randomPattern.grid[r][c] === '#';
+          newGrid[r][c].isBlack = pattern.grid[r][c] === '#';
         }
       }
       updateClues(newGrid, size);
-      toast({ title: "Grid Randomized!", description: `Loaded pattern ${randomPattern.id}.` });
+      toast({ title: "Grid Randomized!", description: `New ${size}x${size} pattern generated.` });
     } catch (error) {
       console.error("Failed to randomize grid:", error);
-      toast({ variant: "destructive", title: "Randomization Failed", description: "Could not load a random pattern." });
+      toast({ variant: "destructive", title: "Randomization Failed", description: "Could not generate a random pattern." });
       updateClues(createGrid(size), size);
     }
   }, [size, toast, updateClues]);
