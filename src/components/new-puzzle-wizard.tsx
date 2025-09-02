@@ -72,7 +72,7 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
     <div className="flex flex-col items-center justify-center h-screen bg-background p-4">
        <div className="absolute top-4 left-4 flex items-center gap-3">
           <LogoIcon className="h-8 w-8 text-primary" />
-          <h1 className="text-xl font-bold tracking-tight text-primary">FlossWord</h1>
+          <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
         </div>
       <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8">
         <div className="flex flex-col justify-center space-y-4">

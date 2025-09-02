@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'FlossWord',
+  title: 'FlashWord',
   description: 'A modern crossword puzzle builder with AI-powered assistance.',
 };
 

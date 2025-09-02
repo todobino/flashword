@@ -73,7 +73,7 @@ export function CrosswordBuilder({ initialSize, initialGrid }: CrosswordBuilderP
       <header className="flex items-center justify-between p-4 border-b shrink-0">
         <div className="flex items-center gap-3">
           <LogoIcon className="h-8 w-8 text-primary" />
-          <h1 className="text-xl font-bold tracking-tight text-primary">FlossWord</h1>
+          <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={crossword.savePuzzle} title="Save Puzzle">
