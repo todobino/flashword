@@ -15,21 +15,29 @@ interface NewPuzzleWizardProps {
   onExit: () => void;
 }
 
-const SIZES = [15, 17, 19, 21];
+const SIZES = [
+    { size: 15, label: 'NYT Standard' },
+    { size: 17, label: 'Common Variant' },
+    { size: 19, label: 'Common Variant' },
+    { size: 21, label: 'NYT Sunday' }
+];
 
-const SizeTile = ({ s, isSelected, onSelect }: { s: number, isSelected: boolean, onSelect: (size: number) => void}) => {
+const SizeTile = ({ s, label, isSelected, onSelect }: { s: number, label: string, isSelected: boolean, onSelect: (size: number) => void}) => {
   return (
     <div
       onClick={() => onSelect(s)}
       className={cn(
-        'border-2 rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors',
+        'border-2 rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors text-center',
         isSelected ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
       )}
     >
       <div className="grid grid-cols-4 gap-0.5 w-8 h-8 bg-muted-foreground/20">
         {Array(16).fill(0).map((_, i) => <div key={i} className="bg-background" />)}
       </div>
-      <span className="font-semibold">{s} x {s}</span>
+      <div className="flex flex-col">
+        <span className="font-semibold">{s} x {s}</span>
+        <span className="text-xs text-muted-foreground">{label}</span>
+      </div>
     </div>
   )
 }
@@ -78,7 +86,7 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
                <p className="text-center text-muted-foreground">How large do you want your puzzle to be?</p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full p-4">
                 {SIZES.map(s => (
-                  <SizeTile key={s} s={s} isSelected={size === s} onSelect={setSize} />
+                  <SizeTile key={s.size} s={s.size} label={s.label} isSelected={size === s.size} onSelect={setSize} />
                 ))}
               </div>
             </div>
