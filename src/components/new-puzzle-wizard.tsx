@@ -3,16 +3,35 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { LogoIcon } from '@/components/icons';
 import { generateGridPatterns } from '@/lib/grid-generator';
 import type { Grid } from '@/lib/types';
 import { CrosswordGrid } from './crossword-grid';
+import { cn } from '@/lib/utils';
 
 interface NewPuzzleWizardProps {
   onPuzzleCreate: (size: number, grid: Grid) => void;
   onExit: () => void;
+}
+
+const SIZES = [15, 17, 19, 21];
+
+const SizeTile = ({ s, isSelected, onSelect }: { s: number, isSelected: boolean, onSelect: (size: number) => void}) => {
+  return (
+    <div
+      onClick={() => onSelect(s)}
+      className={cn(
+        'border-2 rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors',
+        isSelected ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+      )}
+    >
+      <div className="grid grid-cols-4 gap-0.5 w-8 h-8 bg-muted-foreground/20">
+        {Array(16).fill(0).map((_, i) => <div key={i} className="bg-background" />)}
+      </div>
+      <span className="font-semibold">{s} x {s}</span>
+    </div>
+  )
 }
 
 export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps) {
@@ -56,21 +75,18 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
         <CardContent>
           {step === 1 && (
             <div className="flex flex-col gap-4 items-center">
-              <p className="text-center text-muted-foreground">How large do you want your puzzle to be?</p>
-              <Select value={String(size)} onValueChange={(val) => setSize(Number(val))}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Grid size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[15, 17, 19, 21].map(s => <SelectItem key={s} value={String(s)}>{s} x {s}</SelectItem>)}
-                </SelectContent>
-              </Select>
+               <p className="text-center text-muted-foreground">How large do you want your puzzle to be?</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full p-4">
+                {SIZES.map(s => (
+                  <SizeTile key={s} s={s} isSelected={size === s} onSelect={setSize} />
+                ))}
+              </div>
             </div>
           )}
           {step === 2 && (
             <div className="space-y-4">
               <p className="text-center text-muted-foreground">
-                Select one of the generated symmetrical patterns.
+                Select one of the generated symmetrical patterns. You can Cmd/Ctrl+click to create/delete black squares.
               </p>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {patterns.map((pattern, index) => (
