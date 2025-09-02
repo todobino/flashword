@@ -52,33 +52,33 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
         const hasAcrossWord = col + 1 < currentSize && !newGrid[row][col + 1].isBlack;
         const hasDownWord = row + 1 < currentSize && !newGrid[row + 1][col].isBlack;
 
-        if ((isAcrossStart && hasAcrossWord) || (isDownStart && hasDownWord)) {
-          cell.number = clueCounter;
-          if (isAcrossStart && hasAcrossWord) {
+        let isClueStart = false;
+        if (isAcrossStart && hasAcrossWord) {
             let length = 0;
             for (let i = col; i < currentSize && !newGrid[row][i].isBlack; i++) {
               length++;
             }
-            if (length > 1) {
+            if (length > 2) { // Words must be 3+ letters
               newAcrossClues.push({ number: clueCounter, direction: 'across', text: '', row, col, length });
+              isClueStart = true;
             }
-          }
-          if (isDownStart && hasDownWord) {
+        }
+        if (isDownStart && hasDownWord) {
             let length = 0;
             for (let i = row; i < currentSize && !newGrid[i][col].isBlack; i++) {
               length++;
             }
-             if (length > 1) {
+            if (length > 2) { // Words must be 3+ letters
               newDownClues.push({ number: clueCounter, direction: 'down', text: '', row, col, length });
+              isClueStart = true;
             }
-          }
-          if ((isAcrossStart && hasAcrossWord) || (isDownStart && hasDownWord)) {
+        }
+        
+        if (isClueStart) {
+            cell.number = clueCounter;
             clueCounter++;
-          } else {
-            cell.number = null;
-          }
         } else {
-          cell.number = null;
+            cell.number = null;
         }
       }
     }
@@ -204,7 +204,8 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
       if (!patternCache[size]) {
         const response = await fetch(`/patterns/${size}x${size}.json`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        patternCache[size] = await response.json();
+        const data = await response.json();
+        patternCache[size] = data.patterns;
       }
       
       const patterns = patternCache[size];
@@ -225,7 +226,6 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
     } catch (error) {
       console.error("Failed to randomize grid:", error);
       toast({ variant: "destructive", title: "Randomization Failed", description: "Could not load a random pattern." });
-      // Fallback to an empty grid
       updateClues(createGrid(size), size);
     }
   }, [size, toast, updateClues]);
