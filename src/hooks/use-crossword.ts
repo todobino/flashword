@@ -1,0 +1,203 @@
+'use client';
+
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { Grid, Cell, Clue, Puzzle } from '@/lib/types';
+import { useToast } from "@/hooks/use-toast";
+
+const createGrid = (size: number): Grid => {
+  return Array.from({ length: size }, (_, row) =>
+    Array.from({ length: size }, (_, col) => ({
+      row,
+      col,
+      isBlack: false,
+      char: '',
+      number: null,
+    }))
+  );
+};
+
+export const useCrossword = (initialSize = 15) => {
+  const [size, setSize] = useState(initialSize);
+  const [grid, setGrid] = useState<Grid>(() => createGrid(initialSize));
+  const [clues, setClues] = useState<{ across: Clue[], down: Clue[] }>({ across: [], down: [] });
+  const [selectedClue, setSelectedClue] = useState<{ number: number; direction: 'across' | 'down' } | null>(null);
+  const { toast } = useToast();
+
+  const updateClues = useCallback((currentGrid: Grid) => {
+    const newGrid = JSON.parse(JSON.stringify(currentGrid));
+    const newAcrossClues: Clue[] = [];
+    const newDownClues: Clue[] = [];
+    let clueCounter = 1;
+
+    for (let row = 0; row < size; row++) {
+      for (let col = 0; col < size; col++) {
+        const cell = newGrid[row][col];
+        if (cell.isBlack) {
+          cell.number = null;
+          continue;
+        }
+
+        const isAcrossStart = col === 0 || newGrid[row][col - 1].isBlack;
+        const isDownStart = row === 0 || newGrid[row - 1][col].isBlack;
+        const hasAcrossWord = col + 1 < size && !newGrid[row][col + 1].isBlack;
+        const hasDownWord = row + 1 < size && !newGrid[row + 1][col].isBlack;
+
+        if (isAcrossStart && hasAcrossWord || isDownStart && hasDownWord) {
+          cell.number = clueCounter;
+          if (isAcrossStart && hasAcrossWord) {
+            let length = 0;
+            for (let i = col; i < size && !newGrid[row][i].isBlack; i++) {
+              length++;
+            }
+            newAcrossClues.push({ number: clueCounter, direction: 'across', text: '', row, col, length });
+          }
+          if (isDownStart && hasDownWord) {
+            let length = 0;
+            for (let i = row; i < size && !newGrid[i][col].isBlack; i++) {
+              length++;
+            }
+            newDownClues.push({ number: clueCounter, direction: 'down', text: '', row, col, length });
+          }
+          clueCounter++;
+        } else {
+          cell.number = null;
+        }
+      }
+    }
+    setGrid(newGrid);
+    setClues(prevClues => {
+        const updateClueText = (newClues: Clue[], oldClues: Clue[]) => {
+            return newClues.map(nc => {
+                const old = oldClues.find(oc => oc.number === nc.number && oc.direction === nc.direction);
+                return old ? { ...nc, text: old.text } : nc;
+            });
+        };
+        return {
+            across: updateClueText(newAcrossClues, prevClues.across),
+            down: updateClueText(newDownClues, prevClues.down)
+        };
+    });
+  }, [size]);
+
+  useEffect(() => {
+    updateClues(grid);
+  }, [size]);
+
+  const handleSetSize = (newSize: number) => {
+    setSize(newSize);
+    setGrid(createGrid(newSize));
+    setSelectedClue(null);
+  };
+
+  const toggleCellBlack = (row: number, col: number) => {
+    const newGrid = JSON.parse(JSON.stringify(grid));
+    newGrid[row][col].isBlack = !newGrid[row][col].isBlack;
+    newGrid[row][col].char = '';
+    updateClues(newGrid);
+    
+    // Also toggle the symmetric cell
+    const symmetricRow = size - 1 - row;
+    const symmetricCol = size - 1 - col;
+    if (row !== symmetricRow || col !== symmetricCol) {
+      newGrid[symmetricRow][symmetricCol].isBlack = newGrid[row][col].isBlack;
+      newGrid[symmetricRow][symmetricCol].char = '';
+      updateClues(newGrid);
+    }
+  };
+  
+  const updateCellChar = (row: number, col: number, char: string) => {
+    if (grid[row][col].isBlack) return;
+    const newGrid = JSON.parse(JSON.stringify(grid));
+    newGrid[row][col].char = char.toUpperCase();
+    setGrid(newGrid);
+  };
+  
+  const updateClueText = (number: number, direction: 'across' | 'down', text: string) => {
+    setClues(prev => ({
+      ...prev,
+      [direction]: prev[direction].map(clue => 
+        clue.number === number ? { ...clue, text } : clue
+      ),
+    }));
+  };
+
+  const savePuzzle = () => {
+    try {
+      const puzzle: Puzzle = { grid, clues, size };
+      localStorage.setItem('flossyWordPuzzle', JSON.stringify(puzzle));
+      toast({ title: "Puzzle Saved!", description: "Your crossword has been saved to local storage." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Save Failed", description: "Could not save puzzle to local storage." });
+    }
+  };
+
+  const loadPuzzle = () => {
+    try {
+      const saved = localStorage.getItem('flossyWordPuzzle');
+      if (saved) {
+        const puzzle: Puzzle = JSON.parse(saved);
+        setSize(puzzle.size);
+        setGrid(puzzle.grid);
+        setClues(puzzle.clues);
+        setSelectedClue(null);
+        toast({ title: "Puzzle Loaded!", description: "Your crossword has been loaded." });
+      } else {
+        toast({ variant: "destructive", title: "Load Failed", description: "No saved puzzle found." });
+      }
+    } catch (e) {
+      toast({ variant: "destructive", title: "Load Failed", description: "Could not load puzzle from local storage." });
+    }
+  };
+  
+  useEffect(() => {
+    // This effect runs once on mount to check for saved puzzles.
+    // We don't auto-load, just inform the user.
+    const saved = localStorage.getItem('flossyWordPuzzle');
+    if (saved) {
+      toast({
+        title: "Saved Puzzle Found",
+        description: "You have a previously saved puzzle. Use the 'Load' button to open it.",
+      });
+    }
+  }, [toast]);
+
+  const getWordFromGrid = (clue: { number: number; direction: 'across' | 'down' }) => {
+    const clueData = clues[clue.direction].find(c => c.number === clue.number);
+    if (!clueData) return '';
+    
+    let word = '';
+    if (clue.direction === 'across') {
+      for (let i = 0; i < clueData.length; i++) {
+        const cell = grid[clueData.row][clueData.col + i];
+        word += cell.char || '_';
+      }
+    } else {
+      for (let i = 0; i < clueData.length; i++) {
+        const cell = grid[clueData.row + i][clueData.col];
+        word += cell.char || '_';
+      }
+    }
+    return word;
+  };
+
+  const currentClueDetails = useMemo(() => {
+    if (!selectedClue) return null;
+    return clues[selectedClue.direction].find(c => c.number === selectedClue.number);
+  }, [selectedClue, clues]);
+
+  return {
+    size,
+    setSize: handleSetSize,
+    grid,
+    toggleCellBlack,
+    updateCellChar,
+    clues,
+    updateClueText,
+    selectedClue,
+    setSelectedClue,
+    currentClueDetails,
+    savePuzzle,
+    loadPuzzle,
+    getWordFromGrid,
+  };
+};

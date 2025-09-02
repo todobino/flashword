@@ -1,3 +1,9 @@
+import { CrosswordBuilder } from "@/components/crossword-builder";
+
 export default function Home() {
-  return <></>;
+  return (
+    <main>
+      <CrosswordBuilder />
+    </main>
+  );
 }
