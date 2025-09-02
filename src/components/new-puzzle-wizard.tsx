@@ -83,10 +83,19 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
                 </CardDescription>
             </div>
             <div className="text-sm text-muted-foreground p-4">
-              <p>{step === 1 
-                ? "Select a standard crossword size. Larger puzzles are more challenging to create and solve." 
-                : "Click squares to make them black. The grid must be rotationally symmetric and have no word lengths under 3 letters. Or, just randomize it!"}
-              </p>
+              {step === 1 ? (
+                <p>Select a standard crossword size. Larger puzzles are more challenging to create and solve.</p>
+              ) : (
+                <div className="space-y-4">
+                  <p>Click and drag to make squares black. Or, just randomize it! The best patterns follow these rules:</p>
+                  <ul className="space-y-2 list-disc list-inside text-xs">
+                    <li><b>Connectivity:</b> All white squares must be connected.</li>
+                    <li><b>Word Lengths:</b> Words must be at least 3 letters long.</li>
+                    <li><b>Black Squares:</b> Aim for about 16% of the grid to be black squares.</li>
+                    <li><b>Symmetry:</b> The grid must have 180-degree rotational symmetry (this is handled for you automatically).</li>
+                  </ul>
+                </div>
+              )}
             </div>
         </div>
         <Card className="overflow-hidden">
