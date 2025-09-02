@@ -18,6 +18,7 @@ export interface Clue {
 }
 
 export interface Puzzle {
+  title: string;
   grid: Grid;
   clues: {
     across: Clue[];

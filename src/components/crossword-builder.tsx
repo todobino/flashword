@@ -9,16 +9,15 @@ import { Button } from '@/components/ui/button';
 import { LogoIcon } from '@/components/icons';
 import { verifyPuzzleAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import type { Grid } from '@/lib/types';
+import type { Puzzle } from '@/lib/types';
 
 
 interface CrosswordBuilderProps {
-  initialSize: number;
-  initialGrid: Grid;
+  initialPuzzle: Puzzle;
 }
 
-export function CrosswordBuilder({ initialSize, initialGrid }: CrosswordBuilderProps) {
-  const crossword = useCrossword(initialSize, initialGrid);
+export function CrosswordBuilder({ initialPuzzle }: CrosswordBuilderProps) {
+  const crossword = useCrossword(initialPuzzle.size, initialPuzzle.grid, initialPuzzle.clues);
   const [isVerifying, setIsVerifying] = useState(false);
   const { toast } = useToast();
 

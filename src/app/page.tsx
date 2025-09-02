@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { CrosswordBuilder } from "@/components/crossword-builder";
 import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
-import type { Grid } from '@/lib/types';
+import type { Puzzle, Grid } from '@/lib/types';
 
 export default function Home() {
-  const [puzzle, setPuzzle] = useState<{size: number, grid: Grid} | null>(null);
+  const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
 
-  const handlePuzzleCreate = (size: number, grid: Grid) => {
-    setPuzzle({ size, grid });
+  const handlePuzzleCreate = (puzzleData: Puzzle) => {
+    setPuzzle(puzzleData);
   };
 
   const handleExitWizard = () => {
@@ -22,7 +22,7 @@ export default function Home() {
 
   return (
     <main>
-      <CrosswordBuilder initialSize={puzzle.size} initialGrid={puzzle.grid} />
+      <CrosswordBuilder initialPuzzle={puzzle} />
     </main>
   );
 }

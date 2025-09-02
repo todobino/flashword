@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -19,10 +18,10 @@ const createGrid = (size: number): Grid => {
   );
 };
 
-export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
+export const useCrossword = (initialSize = 15, initialGrid?: Grid, initialClues?: { across: Clue[], down: Clue[] }) => {
   const [size, setSize] = useState(initialSize);
   const [grid, setGrid] = useState<Grid>(() => initialGrid || createGrid(initialSize));
-  const [clues, setClues] = useState<{ across: Clue[], down: Clue[] }>({ across: [], down: [] });
+  const [clues, setClues] = useState<{ across: Clue[], down: Clue[] }>(() => initialClues || { across: [], down: [] });
   const [selectedClue, setSelectedClue] = useState<{ number: number; direction: 'across' | 'down' } | null>(null);
   const { toast } = useToast();
 
@@ -126,7 +125,7 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
 
   const savePuzzle = () => {
     try {
-      const puzzle: Puzzle = { grid, clues, size };
+      const puzzle: Puzzle = { grid, clues, size, title: '' }; // title is not managed here
       localStorage.setItem('flossyWordPuzzle', JSON.stringify(puzzle));
       toast({ title: "Puzzle Saved!", description: "Your crossword has been saved to local storage." });
     } catch (e) {
