@@ -16,12 +16,14 @@ function isValid(grid: Grid, size: number): boolean {
     for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
             if (!grid[r][c].isBlack) {
-                // Check for 3-in-a-row horizontally
-                if (c > 0 && c < size - 1 && grid[r][c - 1].isBlack && grid[r][c + 1].isBlack) {
-                    return false;
-                }
-                // Check for 3-in-a-column vertically
-                if (r > 0 && r < size - 1 && grid[r - 1][c].isBlack && grid[r + 1][c].isBlack) {
+                // Check for islands created by black squares. This is a simple check.
+                // A more robust check would be to see if a white square is surrounded.
+                if (
+                    (r > 0 && grid[r-1][c].isBlack) &&
+                    (r < size - 1 && grid[r+1][c].isBlack) &&
+                    (c > 0 && grid[r][c-1].isBlack) &&
+                    (c < size - 1 && grid[r][c+1].isBlack)
+                ) {
                     return false;
                 }
             }
@@ -99,12 +101,14 @@ export function generateGridPatterns(size: number, count: number): Grid[] {
         const grid = createGrid(size);
         const blackSquareCount = Math.floor(size * size * (Math.random() * 0.1 + 0.17)); // 17-27% black squares
 
-        for (let i = 0; i < blackSquareCount; i++) {
+        for (let i = 0; i < blackSquareCount / 2; i++) {
             const r = Math.floor(Math.random() * size);
             const c = Math.floor(Math.random() * size);
 
-            grid[r][c].isBlack = true;
-            grid[size - 1 - r][size - 1 - c].isBlack = true;
+            if (!grid[r][c].isBlack) {
+                 grid[r][c].isBlack = true;
+                 grid[size - 1 - r][size - 1 - c].isBlack = true;
+            }
         }
         
         if (isValid(grid, size)) {

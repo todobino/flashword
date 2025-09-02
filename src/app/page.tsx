@@ -13,10 +13,7 @@ export default function Home() {
   };
 
   const handleExitWizard = () => {
-    // If a puzzle has been created, we don't want to go back to an empty state
-    // but if the user just refreshed and there's no puzzle, we can let them exit.
     // For now, we'll just keep them in the wizard if no puzzle is created.
-    // A more advanced implementation might load a default/saved puzzle.
   }
 
   if (!puzzle) {

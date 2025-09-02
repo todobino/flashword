@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Save, Sparkles, CheckCircle, LoaderCircle } from 'lucide-react';
 import { useCrossword } from '@/hooks/use-crossword';
 import { CrosswordGrid } from '@/components/crossword-grid';
@@ -21,6 +21,10 @@ export function CrosswordBuilder({ initialSize, initialGrid }: CrosswordBuilderP
   const crossword = useCrossword(initialSize, initialGrid);
   const [isVerifying, setIsVerifying] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    crossword.updateClues(crossword.grid, crossword.size);
+  }, [crossword.grid, crossword.size, crossword.updateClues]);
 
   const handleVerify = async () => {
     setIsVerifying(true);

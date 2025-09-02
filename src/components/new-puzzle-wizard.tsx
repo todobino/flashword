@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { LogoIcon } from '@/components/icons';
-import { generateGridPatterns } from '@/lib/grid-generator';
+import { useCrossword } from '@/hooks/use-crossword';
 import type { Grid } from '@/lib/types';
 import { CrosswordGrid } from './crossword-grid';
 import { cn } from '@/lib/utils';
@@ -45,26 +45,19 @@ const SizeTile = ({ s, label, isSelected, onSelect }: { s: number, label: string
 export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps) {
   const [step, setStep] = useState(1);
   const [size, setSize] = useState(15);
-  const [patterns, setPatterns] = useState<Grid[]>([]);
-  const [selectedPattern, setSelectedPattern] = useState<Grid | null>(null);
+  const crossword = useCrossword(size);
 
   const handleSizeNext = () => {
-    const generated = generateGridPatterns(size, 5); // Generate 5 patterns
-    setPatterns(generated);
-    if (generated.length > 0) {
-      setSelectedPattern(generated[0]);
-    }
+    crossword.resetGrid(size);
     setStep(2);
   };
   
-  const handlePatternSelect = (pattern: Grid) => {
-    setSelectedPattern(pattern);
-  }
-
   const handleCreatePuzzle = () => {
-    if (selectedPattern) {
-      onPuzzleCreate(size, selectedPattern);
-    }
+    onPuzzleCreate(size, crossword.grid);
+  };
+
+  const handleSizeSelect = (newSize: number) => {
+    setSize(newSize);
   };
 
   return (
@@ -77,7 +70,7 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
         <CardHeader>
           <CardTitle>Create a New Crossword</CardTitle>
           <CardDescription>
-            Step {step} of 2: {step === 1 ? 'Choose your grid size.' : 'Select a grid pattern.'}
+            Step {step} of 2: {step === 1 ? 'Choose your grid size.' : 'Design your grid pattern.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -86,39 +79,35 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
                <p className="text-center text-muted-foreground">How large do you want your puzzle to be?</p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full p-4">
                 {SIZES.map(s => (
-                  <SizeTile key={s.size} s={s.size} label={s.label} isSelected={size === s.size} onSelect={setSize} />
+                  <SizeTile key={s.size} s={s.size} label={s.label} isSelected={size === s.size} onSelect={handleSizeSelect} />
                 ))}
               </div>
             </div>
           )}
           {step === 2 && (
-            <div className="space-y-4">
-              <p className="text-center text-muted-foreground">
-                Select one of the generated symmetrical patterns. You can Cmd/Ctrl+click to create/delete black squares.
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {patterns.map((pattern, index) => (
-                    <div key={index} onClick={() => handlePatternSelect(pattern)} className="cursor-pointer">
-                        <CrosswordGrid
-                            grid={pattern}
-                            size={size}
-                            onCellClick={() => {}}
-                            onCharChange={() => {}}
-                            selectedClue={null}
-                            currentClueDetails={null}
-                            onSelectClue={() => {}}
-                        />
-                    </div>
-                ))}
-              </div>
-            </div>
+             <div className="space-y-4 flex flex-col items-center">
+             <p className="text-center text-muted-foreground">
+               Click on squares to toggle them black. The grid will maintain rotational symmetry.
+             </p>
+             <div className="w-full max-w-md">
+                <CrosswordGrid
+                    grid={crossword.grid}
+                    size={size}
+                    onCellClick={crossword.toggleCellBlack}
+                    onCharChange={() => {}}
+                    selectedClue={null}
+                    currentClueDetails={null}
+                    onSelectClue={() => {}}
+                />
+             </div>
+           </div>
           )}
         </CardContent>
         <CardFooter className="flex justify-between">
           {step === 1 && <Button variant="ghost" onClick={onExit} disabled>Cancel</Button>}
           {step === 2 && <Button variant="outline" onClick={() => setStep(1)}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>}
           {step === 1 && <Button onClick={handleSizeNext}>Next<ArrowRight className="ml-2 h-4 w-4" /></Button>}
-          {step === 2 && <Button onClick={handleCreatePuzzle} disabled={!selectedPattern}>Create Puzzle</Button>}
+          {step === 2 && <Button onClick={handleCreatePuzzle}>Create Puzzle</Button>}
         </CardFooter>
       </Card>
     </div>

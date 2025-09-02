@@ -23,14 +23,14 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
   const [selectedClue, setSelectedClue] = useState<{ number: number; direction: 'across' | 'down' } | null>(null);
   const { toast } = useToast();
 
-  const updateClues = useCallback((currentGrid: Grid) => {
+  const updateClues = useCallback((currentGrid: Grid, currentSize: number) => {
     const newGrid = JSON.parse(JSON.stringify(currentGrid));
     const newAcrossClues: Clue[] = [];
     const newDownClues: Clue[] = [];
     let clueCounter = 1;
 
-    for (let row = 0; row < size; row++) {
-      for (let col = 0; col < size; col++) {
+    for (let row = 0; row < currentSize; row++) {
+      for (let col = 0; col < currentSize; col++) {
         const cell = newGrid[row][col];
         if (cell.isBlack) {
           cell.number = null;
@@ -39,21 +39,21 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
 
         const isAcrossStart = col === 0 || newGrid[row][col - 1].isBlack;
         const isDownStart = row === 0 || newGrid[row - 1][col].isBlack;
-        const hasAcrossWord = col + 1 < size && !newGrid[row][col + 1].isBlack;
-        const hasDownWord = row + 1 < size && !newGrid[row + 1][col].isBlack;
+        const hasAcrossWord = col + 1 < currentSize && !newGrid[row][col + 1].isBlack;
+        const hasDownWord = row + 1 < currentSize && !newGrid[row + 1][col].isBlack;
 
         if (isAcrossStart && hasAcrossWord || isDownStart && hasDownWord) {
           cell.number = clueCounter;
           if (isAcrossStart && hasAcrossWord) {
             let length = 0;
-            for (let i = col; i < size && !newGrid[row][i].isBlack; i++) {
+            for (let i = col; i < currentSize && !newGrid[row][i].isBlack; i++) {
               length++;
             }
             newAcrossClues.push({ number: clueCounter, direction: 'across', text: '', row, col, length });
           }
           if (isDownStart && hasDownWord) {
             let length = 0;
-            for (let i = row; i < size && !newGrid[i][col].isBlack; i++) {
+            for (let i = row; i < currentSize && !newGrid[i][col].isBlack; i++) {
               length++;
             }
             newDownClues.push({ number: clueCounter, direction: 'down', text: '', row, col, length });
@@ -80,11 +80,11 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
             down: updateClueText(newDownClues, oldDown)
         };
     });
-  }, [size]);
+  }, []);
 
   useEffect(() => {
-    updateClues(grid);
-  }, [size, grid]);
+    updateClues(grid, size);
+  }, [size, grid, updateClues]);
 
   const toggleCellBlack = (row: number, col: number) => {
     const newGrid = JSON.parse(JSON.stringify(grid));
@@ -97,7 +97,7 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
       newGrid[symmetricRow][symmetricCol].isBlack = newGrid[row][col].isBlack;
       newGrid[symmetricRow][symmetricCol].char = '';
     }
-    updateClues(newGrid);
+    setGrid(newGrid); // We intentionally do not call updateClues here for performance in the wizard
   };
   
   const updateCellChar = (row: number, col: number, char: string) => {
@@ -179,6 +179,13 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
     return allClues.find(c => c.number === selectedClue.number && c.direction === selectedClue.direction);
   }, [selectedClue, clues]);
 
+  const resetGrid = (newSize: number) => {
+    setSize(newSize);
+    setGrid(createGrid(newSize));
+    setClues({ across: [], down: [] });
+    setSelectedClue(null);
+  };
+
   return {
     size,
     grid,
@@ -193,5 +200,7 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
     savePuzzle,
     loadPuzzle,
     getWordFromGrid,
+    resetGrid,
+    updateClues,
   };
 };
