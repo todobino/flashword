@@ -16,9 +16,9 @@ const createGrid = (size: number): Grid => {
   );
 };
 
-export const useCrossword = (initialSize = 15) => {
+export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
   const [size, setSize] = useState(initialSize);
-  const [grid, setGrid] = useState<Grid>(() => createGrid(initialSize));
+  const [grid, setGrid] = useState<Grid>(() => initialGrid || createGrid(initialSize));
   const [clues, setClues] = useState<{ across: Clue[], down: Clue[] }>({ across: [], down: [] });
   const [selectedClue, setSelectedClue] = useState<{ number: number; direction: 'across' | 'down' } | null>(null);
   const { toast } = useToast();
@@ -68,41 +68,36 @@ export const useCrossword = (initialSize = 15) => {
     setClues(prevClues => {
         const updateClueText = (newClues: Clue[], oldClues: Clue[]) => {
             return newClues.map(nc => {
-                const old = oldClues.find(oc => oc.number === nc.number && oc.direction === nc.direction);
+                const old = oldClues.find(oc => oc.number === nc.number);
                 return old ? { ...nc, text: old.text } : nc;
             });
         };
+        const oldAcross = prevClues.across.filter(c => c.direction === 'across');
+        const oldDown = prevClues.down.filter(c => c.direction === 'down');
+        
         return {
-            across: updateClueText(newAcrossClues, prevClues.across),
-            down: updateClueText(newDownClues, prevClues.down)
+            across: updateClueText(newAcrossClues, oldAcross),
+            down: updateClueText(newDownClues, oldDown)
         };
     });
   }, [size]);
 
   useEffect(() => {
     updateClues(grid);
-  }, [size]);
-
-  const handleSetSize = (newSize: number) => {
-    setSize(newSize);
-    setGrid(createGrid(newSize));
-    setSelectedClue(null);
-  };
+  }, [size, grid]);
 
   const toggleCellBlack = (row: number, col: number) => {
     const newGrid = JSON.parse(JSON.stringify(grid));
     newGrid[row][col].isBlack = !newGrid[row][col].isBlack;
     newGrid[row][col].char = '';
-    updateClues(newGrid);
     
-    // Also toggle the symmetric cell
     const symmetricRow = size - 1 - row;
     const symmetricCol = size - 1 - col;
     if (row !== symmetricRow || col !== symmetricCol) {
       newGrid[symmetricRow][symmetricCol].isBlack = newGrid[row][col].isBlack;
       newGrid[symmetricRow][symmetricCol].char = '';
-      updateClues(newGrid);
     }
+    updateClues(newGrid);
   };
   
   const updateCellChar = (row: number, col: number, char: string) => {
@@ -150,8 +145,6 @@ export const useCrossword = (initialSize = 15) => {
   };
   
   useEffect(() => {
-    // This effect runs once on mount to check for saved puzzles.
-    // We don't auto-load, just inform the user.
     const saved = localStorage.getItem('flossyWordPuzzle');
     if (saved) {
       toast({
@@ -182,13 +175,14 @@ export const useCrossword = (initialSize = 15) => {
 
   const currentClueDetails = useMemo(() => {
     if (!selectedClue) return null;
-    return clues[selectedClue.direction].find(c => c.number === selectedClue.number);
+    const allClues = [...clues.across, ...clues.down];
+    return allClues.find(c => c.number === selectedClue.number && c.direction === selectedClue.direction);
   }, [selectedClue, clues]);
 
   return {
     size,
-    setSize: handleSetSize,
     grid,
+    setGrid,
     toggleCellBlack,
     updateCellChar,
     clues,

@@ -1,20 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, Grid as GridIcon, Save, Sparkles, CheckCircle, LoaderCircle, Trash2 } from 'lucide-react';
+import { Download, Save, Sparkles, CheckCircle, LoaderCircle } from 'lucide-react';
 import { useCrossword } from '@/hooks/use-crossword';
 import { CrosswordGrid } from '@/components/crossword-grid';
 import { ClueLists } from '@/components/clue-lists';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LogoIcon } from '@/components/icons';
 import { verifyPuzzleAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import type { Grid } from '@/lib/types';
 
 
-export function CrosswordBuilder() {
-  const crossword = useCrossword(15);
+interface CrosswordBuilderProps {
+  initialSize: number;
+  initialGrid: Grid;
+}
+
+export function CrosswordBuilder({ initialSize, initialGrid }: CrosswordBuilderProps) {
+  const crossword = useCrossword(initialSize, initialGrid);
   const [isVerifying, setIsVerifying] = useState(false);
   const { toast } = useToast();
 
@@ -57,10 +61,6 @@ export function CrosswordBuilder() {
       toast({ variant: 'destructive', title: 'Verification Error', description: result.error });
     }
   };
-  
-  const handleNewPuzzle = () => {
-    crossword.setSize(crossword.size);
-  }
 
   return (
     <div className="flex flex-col h-screen font-body text-foreground bg-background">
@@ -70,37 +70,6 @@ export function CrosswordBuilder() {
           <h1 className="text-xl font-bold tracking-tight text-primary">FlossWord</h1>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <GridIcon className="h-5 w-5 text-muted-foreground" />
-            <Select value={String(crossword.size)} onValueChange={(val) => crossword.setSize(Number(val))}>
-              <SelectTrigger className="w-28">
-                <SelectValue placeholder="Grid size" />
-              </SelectTrigger>
-              <SelectContent>
-                {[15, 17, 19, 21].map(s => <SelectItem key={s} value={String(s)}>{s} x {s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" title="New Puzzle">
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will create a new blank puzzle and discard all current changes. This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleNewPuzzle}>Continue</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
           <Button variant="outline" size="sm" onClick={crossword.savePuzzle} title="Save Puzzle">
             <Save className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
