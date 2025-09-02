@@ -28,6 +28,10 @@ export function CrosswordGrid({
   const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawMode, setDrawMode] = useState<'draw' | 'erase' | null>(null);
+  const [startCell, setStartCell] = useState<{ row: number, col: number } | null>(null);
+  const [dragDirection, setDragDirection] = useState<'horizontal' | 'vertical' | null>(null);
+  const [lastPaintedCell, setLastPaintedCell] = useState<{row: number, col: number} | null>(null);
+
 
   useEffect(() => {
     inputRefs.current = Array(size).fill(null).map(() => Array(size).fill(null));
@@ -36,6 +40,8 @@ export function CrosswordGrid({
   const handleMouseDown = (row: number, col: number) => {
     if (!designMode) return;
     setIsDrawing(true);
+    setStartCell({ row, col });
+    setLastPaintedCell({row, col});
     const cellIsBlack = grid[row][col].isBlack;
     setDrawMode(cellIsBlack ? 'erase' : 'draw');
     onCellClick(row, col);
@@ -45,13 +51,36 @@ export function CrosswordGrid({
     if (!designMode) return;
     setIsDrawing(false);
     setDrawMode(null);
+    setStartCell(null);
+    setDragDirection(null);
+    setLastPaintedCell(null);
   };
 
   const handleMouseEnter = (row: number, col: number) => {
-    if (!designMode || !isDrawing) return;
-    const cellIsBlack = grid[row][col].isBlack;
-    if ((drawMode === 'draw' && !cellIsBlack) || (drawMode === 'erase' && cellIsBlack)) {
-      onCellClick(row, col);
+    if (!designMode || !isDrawing || !startCell || (lastPaintedCell?.row === row && lastPaintedCell?.col === col)) return;
+    
+    let currentDragDirection = dragDirection;
+
+    // Determine and lock drag direction
+    if (!currentDragDirection) {
+        const dRow = Math.abs(row - startCell.row);
+        const dCol = Math.abs(col - startCell.col);
+        if (dRow > 0 || dCol > 0) { // Check if there's any movement
+            currentDragDirection = dRow > dCol ? 'vertical' : 'horizontal';
+            setDragDirection(currentDragDirection);
+        }
+    }
+
+    const canPaint = (currentDragDirection === 'horizontal' && row === startCell.row) ||
+                     (currentDragDirection === 'vertical' && col === startCell.col);
+
+
+    if (canPaint) {
+        const cellIsBlack = grid[row][col].isBlack;
+        if ((drawMode === 'draw' && !cellIsBlack) || (drawMode === 'erase' && cellIsBlack)) {
+            onCellClick(row, col);
+            setLastPaintedCell({row, col});
+        }
     }
   };
   
