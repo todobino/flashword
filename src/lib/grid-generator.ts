@@ -123,3 +123,11 @@ export function generateGridPatterns(size: number, count: number): Grid[] {
 
     return patterns;
 }
+
+export function generateRandomGrid(size: number): Grid {
+    const patterns = generateGridPatterns(size, 1);
+    if (patterns.length > 0) {
+        return patterns[0];
+    }
+    return createGrid(size); // Fallback to an empty grid
+}

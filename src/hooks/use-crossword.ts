@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Grid, Cell, Clue, Puzzle } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
+import { generateRandomGrid } from '@/lib/grid-generator';
 
 const createGrid = (size: number): Grid => {
   return Array.from({ length: size }, (_, row) =>
@@ -187,10 +188,14 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
 
   const resetGrid = (newSize: number) => {
     setSize(newSize);
-    setGrid(createGrid(newSize));
-    setClues({ across: [], down: [] });
-    setSelectedClue(null);
+    const newGrid = createGrid(newSize);
+    updateClues(newGrid, newSize);
   };
+
+  const randomizeGrid = () => {
+    const newGrid = generateRandomGrid(size);
+    updateClues(newGrid, size);
+  }
 
   return {
     size,
@@ -208,5 +213,6 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
     getWordFromGrid,
     resetGrid,
     updateClues,
+    randomizeGrid,
   };
 };

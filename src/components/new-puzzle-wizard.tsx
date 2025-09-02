@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RotateCw, Shuffle } from 'lucide-react';
 import { LogoIcon } from '@/components/icons';
 import { useCrossword } from '@/hooks/use-crossword';
 import type { Grid } from '@/lib/types';
@@ -60,6 +60,14 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
     setSize(newSize);
   };
 
+  const handleReset = () => {
+    crossword.resetGrid(size);
+  }
+
+  const handleRandomize = () => {
+    crossword.randomizeGrid();
+  }
+
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-background p-4">
        <div className="absolute top-4 left-4 flex items-center gap-3">
@@ -87,7 +95,7 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
           {step === 2 && (
              <div className="space-y-4 flex flex-col items-center">
              <p className="text-center text-muted-foreground">
-               Click on squares to toggle them black. The grid will maintain rotational symmetry.
+               Click on squares to toggle them black, or generate a random layout. The grid will maintain rotational symmetry.
              </p>
              <div className="w-full max-w-md">
                 <CrosswordGrid
@@ -101,6 +109,10 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
                     designMode={true}
                 />
              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Reset</Button>
+                <Button variant="outline" onClick={handleRandomize}><Shuffle className="mr-2 h-4 w-4" /> Randomize</Button>
+              </div>
            </div>
           )}
         </CardContent>
