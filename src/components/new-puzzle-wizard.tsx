@@ -119,7 +119,16 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
           </div>
         );
       case 3:
-        return <p>Give your puzzle a title and enter the answers for your main "themer" clues. These are usually the longest entries in the puzzle.</p>;
+        return (
+          <div className="space-y-4">
+            <p>A good theme is the heart of a memorable crossword. Here are some tips:</p>
+            <ul className="space-y-2 list-disc list-inside text-xs">
+              <li><b>Themers:</b> These are the longest entries, often symmetrical, that share a common idea.</li>
+              <li><b>The "Revealer":</b> Often, one of the theme answers explains the gimmick. A solver might not get it at first, but it provides an "aha!" moment that helps solve the other themers.</li>
+              <li><b>Wordplay:</b> Themes often rely on puns, shared categories, or other clever wordplay. For example, a theme like "SUPER VEGGIES" might have answers where vegetables are part of superhero names.</li>
+            </ul>
+          </div>
+        );
       case 4:
         return <p>Your puzzle is ready! Fill in the remaining answers and clues, then use the AI tools to help you finish.</p>
       default:
