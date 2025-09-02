@@ -1,4 +1,8 @@
-import type { Grid, Cell } from './types';
+
+import type { Grid } from './types';
+
+// This file is no longer used for on-the-fly generation in the app,
+// but could be kept for reference or future server-side generation tools.
 
 function createGrid(size: number): Grid {
     return Array.from({ length: size }, (_, row) =>
@@ -41,7 +45,7 @@ function isValid(grid: Grid, size: number): boolean {
     }
 
 
-    // Check connectivity of white squares
+    // Check connectivity of white squares using BFS
     const q: [number, number][] = [];
     const visited: boolean[][] = Array(size).fill(0).map(() => Array(size).fill(false));
     let firstWhiteCell: [number, number] | null = null;
@@ -56,9 +60,8 @@ function isValid(grid: Grid, size: number): boolean {
         }
     }
     
-    if(!firstWhiteCell) return true; // all black is technically a valid connected component of size 0
+    if(!firstWhiteCell) return true;
     if (whiteCellCount === 0) return true;
-
 
     q.push(firstWhiteCell);
     visited[firstWhiteCell[0]][firstWhiteCell[1]] = true;
@@ -78,6 +81,8 @@ function isValid(grid: Grid, size: number): boolean {
     return visitedCount === whiteCellCount;
 }
 
+// The following functions are no longer the primary method for randomization.
+// They are kept for reference. The app now uses pre-generated patterns from JSON files.
 export function generateGridPatterns(size: number, count: number): Grid[] {
     const patterns: Grid[] = [];
     let attempts = 0;
@@ -97,7 +102,6 @@ export function generateGridPatterns(size: number, count: number): Grid[] {
         }
         
         if (isValid(grid, size)) {
-           // check if pattern is unique
            const gridString = JSON.stringify(grid);
            if (!patterns.some(p => JSON.stringify(p) === gridString)) {
                patterns.push(grid);
@@ -111,12 +115,13 @@ export function generateGridPatterns(size: number, count: number): Grid[] {
 
 export function generateRandomGrid(size: number): Grid {
     let attempts = 0;
-    while(attempts < 20) {
+    while(attempts < 50) { // Increased attempts
         const patterns = generateGridPatterns(size, 1);
         if (patterns.length > 0) {
             return patterns[0];
         }
         attempts++;
     }
+    console.warn("Failed to generate a valid random grid, returning empty grid.");
     return createGrid(size); // Fallback to an empty grid
 }

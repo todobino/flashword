@@ -1,9 +1,17 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { Grid, Cell, Clue, Puzzle } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
-import { generateRandomGrid } from '@/lib/grid-generator';
+
+type Pattern = {
+  id: string;
+  size: number;
+  grid: string[];
+};
+
+const patternCache: Record<number, Pattern[]> = {};
 
 const createGrid = (size: number): Grid => {
   return Array.from({ length: size }, (_, row) =>
@@ -41,7 +49,6 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
         const isAcrossStart = col === 0 || newGrid[row][col - 1].isBlack;
         const isDownStart = row === 0 || newGrid[row - 1][col].isBlack;
         
-        // A word needs at least 2 letters, so the next square must exist and be white.
         const hasAcrossWord = col + 1 < currentSize && !newGrid[row][col + 1].isBlack;
         const hasDownWord = row + 1 < currentSize && !newGrid[row + 1][col].isBlack;
 
@@ -65,9 +72,10 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
               newDownClues.push({ number: clueCounter, direction: 'down', text: '', row, col, length });
             }
           }
-          // Only increment if we actually added a clue
           if ((isAcrossStart && hasAcrossWord) || (isDownStart && hasDownWord)) {
             clueCounter++;
+          } else {
+            cell.number = null;
           }
         } else {
           cell.number = null;
@@ -103,7 +111,6 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
       newGrid[symmetricRow][symmetricCol].isBlack = newGrid[row][col].isBlack;
       newGrid[symmetricRow][symmetricCol].char = '';
     }
-    // Instead of relying on useEffect, we explicitly call updateClues.
     updateClues(newGrid, size);
   };
   
@@ -192,10 +199,36 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
     updateClues(newGrid, newSize);
   };
 
-  const randomizeGrid = () => {
-    const newGrid = generateRandomGrid(size);
-    updateClues(newGrid, size);
-  }
+  const randomizeGrid = useCallback(async () => {
+    try {
+      if (!patternCache[size]) {
+        const response = await fetch(`/patterns/${size}x${size}.json`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        patternCache[size] = await response.json();
+      }
+      
+      const patterns = patternCache[size];
+      if (!patterns || patterns.length === 0) {
+        throw new Error('No patterns loaded for this size.');
+      }
+      
+      const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+      const newGrid = createGrid(size);
+
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          newGrid[r][c].isBlack = randomPattern.grid[r][c] === '#';
+        }
+      }
+      updateClues(newGrid, size);
+      toast({ title: "Grid Randomized!", description: `Loaded pattern ${randomPattern.id}.` });
+    } catch (error) {
+      console.error("Failed to randomize grid:", error);
+      toast({ variant: "destructive", title: "Randomization Failed", description: "Could not load a random pattern." });
+      // Fallback to an empty grid
+      updateClues(createGrid(size), size);
+    }
+  }, [size, toast, updateClues]);
 
   return {
     size,
