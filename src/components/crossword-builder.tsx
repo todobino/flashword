@@ -23,8 +23,10 @@ export function CrosswordBuilder({ initialSize, initialGrid }: CrosswordBuilderP
   const { toast } = useToast();
 
   useEffect(() => {
+    // Initial clue update when component mounts
     crossword.updateClues(crossword.grid, crossword.size);
-  }, [crossword.grid, crossword.size, crossword.updateClues]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleVerify = async () => {
     setIsVerifying(true);

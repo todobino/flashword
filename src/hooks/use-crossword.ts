@@ -39,26 +39,35 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
 
         const isAcrossStart = col === 0 || newGrid[row][col - 1].isBlack;
         const isDownStart = row === 0 || newGrid[row - 1][col].isBlack;
+        
+        // A word needs at least 2 letters, so the next square must exist and be white.
         const hasAcrossWord = col + 1 < currentSize && !newGrid[row][col + 1].isBlack;
         const hasDownWord = row + 1 < currentSize && !newGrid[row + 1][col].isBlack;
 
-        if (isAcrossStart && hasAcrossWord || isDownStart && hasDownWord) {
+        if ((isAcrossStart && hasAcrossWord) || (isDownStart && hasDownWord)) {
           cell.number = clueCounter;
           if (isAcrossStart && hasAcrossWord) {
             let length = 0;
             for (let i = col; i < currentSize && !newGrid[row][i].isBlack; i++) {
               length++;
             }
-            newAcrossClues.push({ number: clueCounter, direction: 'across', text: '', row, col, length });
+            if (length > 1) {
+              newAcrossClues.push({ number: clueCounter, direction: 'across', text: '', row, col, length });
+            }
           }
           if (isDownStart && hasDownWord) {
             let length = 0;
             for (let i = row; i < currentSize && !newGrid[i][col].isBlack; i++) {
               length++;
             }
-            newDownClues.push({ number: clueCounter, direction: 'down', text: '', row, col, length });
+             if (length > 1) {
+              newDownClues.push({ number: clueCounter, direction: 'down', text: '', row, col, length });
+            }
           }
-          clueCounter++;
+          // Only increment if we actually added a clue
+          if ((isAcrossStart && hasAcrossWord) || (isDownStart && hasDownWord)) {
+            clueCounter++;
+          }
         } else {
           cell.number = null;
         }
@@ -82,10 +91,6 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
     });
   }, []);
 
-  useEffect(() => {
-    updateClues(grid, size);
-  }, [size, grid, updateClues]);
-
   const toggleCellBlack = (row: number, col: number) => {
     const newGrid = JSON.parse(JSON.stringify(grid));
     newGrid[row][col].isBlack = !newGrid[row][col].isBlack;
@@ -97,7 +102,8 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
       newGrid[symmetricRow][symmetricCol].isBlack = newGrid[row][col].isBlack;
       newGrid[symmetricRow][symmetricCol].char = '';
     }
-    setGrid(newGrid); // We intentionally do not call updateClues here for performance in the wizard
+    // Instead of relying on useEffect, we explicitly call updateClues.
+    updateClues(newGrid, size);
   };
   
   const updateCellChar = (row: number, col: number, char: string) => {
