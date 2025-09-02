@@ -201,14 +201,15 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
 
   const randomizeGrid = useCallback(async () => {
     try {
-      if (!patternCache[size]) {
+      let patterns = patternCache[size];
+      if (!patterns) {
         const response = await fetch(`/patterns/${size}x${size}.json`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        patternCache[size] = data.patterns;
+        patterns = data.patterns;
+        patternCache[size] = patterns;
       }
       
-      const patterns = patternCache[size];
       if (!patterns || patterns.length === 0) {
         throw new Error('No patterns loaded for this size.');
       }
