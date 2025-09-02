@@ -12,6 +12,7 @@ interface CrosswordGridProps {
   selectedClue: { number: number; direction: 'across' | 'down' } | null;
   currentClueDetails: Clue | null;
   onSelectClue: (clue: { number: number; direction: 'across' | 'down' } | null) => void;
+  designMode?: boolean;
 }
 
 export function CrosswordGrid({
@@ -22,6 +23,7 @@ export function CrosswordGrid({
   selectedClue,
   currentClueDetails,
   onSelectClue,
+  designMode = false,
 }: CrosswordGridProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
 
@@ -30,6 +32,11 @@ export function CrosswordGrid({
   }, [size]);
 
   const handleCellClick = (row: number, col: number, e: React.MouseEvent<HTMLDivElement>) => {
+    if (designMode) {
+        onCellClick(row, col);
+        return;
+    }
+
     if (e.ctrlKey || e.metaKey) {
       onCellClick(row, col);
       return;
@@ -127,7 +134,10 @@ export function CrosswordGrid({
   };
 
   return (
-    <div className="relative aspect-square w-full max-w-[calc(100vh-12rem)] shadow-lg rounded-md overflow-hidden bg-card">
+    <div className={cn(
+        "relative aspect-square w-full max-w-[calc(100vh-12rem)] rounded-md overflow-hidden bg-card",
+        !designMode && "shadow-lg"
+    )}>
       <div
         className="grid absolute inset-0"
         style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
@@ -154,7 +164,7 @@ export function CrosswordGrid({
                     {cell.number}
                   </span>
                 )}
-                {!cell.isBlack && (
+                {!designMode && !cell.isBlack && (
                   <input
                     ref={(el) => {
                       if (inputRefs.current[rowIndex]) {

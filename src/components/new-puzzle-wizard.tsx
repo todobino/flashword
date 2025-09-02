@@ -98,6 +98,7 @@ export function NewPuzzleWizard({ onPuzzleCreate, onExit }: NewPuzzleWizardProps
                     selectedClue={null}
                     currentClueDetails={null}
                     onSelectClue={() => {}}
+                    designMode={true}
                 />
              </div>
            </div>
