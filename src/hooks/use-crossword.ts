@@ -208,7 +208,6 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid) => {
         }
       }
       updateClues(newGrid, size);
-      toast({ title: "Grid Randomized!", description: `New ${size}x${size} pattern generated.` });
     } catch (error) {
       console.error("Failed to randomize grid:", error);
       toast({ variant: "destructive", title: "Randomization Failed", description: "Could not generate a random pattern." });
