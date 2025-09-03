@@ -289,8 +289,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
             {/* Stepper */}
             <ol className="flex w-full items-center">
               {WIZARD_STEPS.map((s, i) => (
-                <li key={s.step} className="flex flex-1 items-center">
-                   <span
+                <li key={s.step} className="flex items-center">
+                  <span
                     className={cn(
                       "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2",
                       step >= s.step
@@ -304,7 +304,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   {i < WIZARD_STEPS.length - 1 && (
                     <span
                       className={cn(
-                        "mx-3 h-0.5 w-full rounded-full bg-border",
+                        "mx-3 h-0.5 flex-1 rounded-full bg-border",
                         step > s.step && "bg-primary"
                       )}
                     />
