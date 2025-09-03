@@ -188,9 +188,9 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   const renderStepContent = () => {
     return (
       <main className="flex-1 bg-background py-10 lg:py-14 px-2 sm:px-3">
-        <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid gap-8 md:grid-cols-2">
+        <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid gap-8 md:grid-cols-3">
           {/* Left Column */}
-          <div className="flex flex-col justify-start space-y-6">
+          <div className="flex flex-col justify-start space-y-6 md:col-span-1">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold tracking-tight">Create Crossword</h2>
               <div className="flex justify-end gap-2">
@@ -225,7 +225,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
           </div>
 
           {/* Right Column */}
-          <Card className="overflow-hidden shadow-lg w-full max-w-2xl mx-auto md:justify-self-center self-start max-h-[calc(100vh-12rem)] overflow-auto">
+          <Card className="overflow-hidden shadow-lg w-full max-w-2xl mx-auto md:justify-self-center self-start max-h-[calc(100vh-12rem)] overflow-auto md:col-span-2">
               <CardContent className="p-6 flex flex-col items-center">
               {step === 1 && (
                   <div className="flex flex-col gap-4 items-center w-full">
