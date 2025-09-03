@@ -1,14 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -16,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AuthDialogProps {
   open: boolean;
@@ -48,6 +48,53 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       setIsLoading(false);
     }
   };
+  
+  const handleTabChange = () => {
+    setError(null);
+  }
+
+  const renderFormContent = (action: 'login' | 'signup') => (
+      <div className="space-y-4 pt-4">
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor={`email-${action}`} className="text-right">
+            Email
+          </Label>
+          <Input
+            id={`email-${action}`}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="col-span-3"
+            disabled={isLoading}
+          />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor={`password-${action}`} className="text-right">
+            Password
+          </Label>
+          <Input
+            id={`password-${action}`}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="col-span-3"
+            disabled={isLoading}
+          />
+        </div>
+        {error && <p className="text-sm text-destructive text-center col-span-4">{error}</p>}
+         <div className="flex justify-end pt-4">
+            <Button
+              type="button"
+              onClick={() => handleAuth(action)}
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading && <LoaderCircle className="animate-spin" />}
+              {action === 'login' ? 'Login' : 'Sign Up'}
+            </Button>
+          </div>
+      </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -58,52 +105,18 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
             Log in or create an account to save your progress.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email" className="text-right">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="col-span-3"
-              disabled={isLoading}
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="password" className="text-right">
-              Password
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="col-span-3"
-              disabled={isLoading}
-            />
-          </div>
-          {error && <p className="text-sm text-destructive text-center col-span-4">{error}</p>}
-        </div>
-        <DialogFooter>
-          <div className="w-full flex justify-between">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => handleAuth('signup')}
-              disabled={isLoading}
-            >
-              {isLoading && <LoaderCircle className="animate-spin" />}
-              Sign Up
-            </Button>
-            <Button type="button" onClick={() => handleAuth('login')} disabled={isLoading}>
-              {isLoading && <LoaderCircle className="animate-spin" />}
-              Login
-            </Button>
-          </div>
-        </DialogFooter>
+        <Tabs defaultValue="login" className="w-full" onValueChange={handleTabChange}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Login</TabsTrigger>
+            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          </TabsList>
+          <TabsContent value="login">
+            {renderFormContent('login')}
+          </TabsContent>
+          <TabsContent value="signup">
+            {renderFormContent('signup')}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
