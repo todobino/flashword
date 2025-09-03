@@ -219,7 +219,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
 
           {/* Right Column */}
           <Card className="overflow-hidden shadow-lg">
-              <CardContent className="p-6 h-full flex items-center justify-center">
+              <CardContent className="p-6 h-full">
               {step === 1 && (
                   <div className="flex flex-col gap-4 items-center w-full">
                       <div className="grid grid-cols-2 md:grid-cols-2 gap-4 w-full p-4">
@@ -320,5 +320,3 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
     </div>
   )
 }
-
-    
