@@ -328,20 +328,6 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
         <div className="flex items-center gap-3">
           <LogoIcon className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
-          {user ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
-              <Button variant="outline" size="sm" onClick={handleLogout} title="Logout">
-                <LogOut className="h-4 w-4" />
-                 <span className="sr-only sm:not-sr-only sm:ml-2">Logout</span>
-              </Button>
-            </div>
-          ) : (
-            <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login / Sign Up" variant="default" className="ml-4">
-                <LogIn className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">Login / Sign Up</span>
-            </Button>
-          )}
         </div>
         <div className="flex items-center gap-2">
            <Button variant="outline" size="sm" onClick={() => setStep(1)} title="New Puzzle">
@@ -356,14 +342,28 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
             <FolderOpen className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
           </Button>
+           <Button size="sm" onClick={handleVerify} disabled={isVerifying} title="Verify Puzzle">
+            {isVerifying ? <LoaderCircle className="animate-spin" /> : <CheckCircle />}
+             <span className="sr-only sm:not-sr-only sm:ml-2">Verify</span>
+          </Button>
           <Button variant="outline" size="sm" title="Export to PDF (coming soon)" disabled>
             <Download className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Export</span>
           </Button>
-          <Button size="sm" onClick={handleVerify} disabled={isVerifying} title="Verify Puzzle">
-            {isVerifying ? <LoaderCircle className="animate-spin" /> : <CheckCircle />}
-             <span className="sr-only sm:not-sr-only sm:ml-2">Verify</span>
-          </Button>
+          {user ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
+              <Button variant="outline" size="sm" onClick={handleLogout} title="Logout">
+                <LogOut className="h-4 w-4" />
+                 <span className="sr-only sm:not-sr-only sm:ml-2">Logout</span>
+              </Button>
+            </div>
+          ) : (
+            <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login" variant="default">
+                <LogIn className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:ml-2">Login</span>
+            </Button>
+          )}
         </div>
       </header>
 
