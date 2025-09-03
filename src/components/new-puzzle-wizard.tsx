@@ -29,17 +29,13 @@ interface NewPuzzleWizardProps {
   onLoad: (puzzle: Puzzle) => void;
 }
 
-const STANDARD_SIZES = [
+const SIZES = [
     { size: 15, label: 'NYT Standard' },
+    { size: 21, label: 'NYT Sunday' },
     { size: 5, label: 'NYT Mini' },
+    { size: 7, label: 'NYT Mini Saturday' },
 ];
 
-const COMMON_VARIANTS = [
-    { size: 21, label: 'NYT Sunday' },
-    { size: 7, label: 'NYT Mini Saturday' },
-    { size: 17, label: 'Common Variant' },
-    { size: 19, label: 'Common Variant' },
-];
 
 const TEMPLATES = [
     { name: 'Classic', description: 'A standard, widely-used symmetric pattern.'},
@@ -244,24 +240,10 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
               <CardContent className="p-6">
               {step === 1 && (
                   <div className="flex flex-col gap-6 w-full">
-                      <div>
-                          <h4 className="text-lg font-semibold mb-1">Standard Sizes</h4>
-                          <p className="text-sm text-muted-foreground mb-4">The most common sizes for daily and mini puzzles.</p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {STANDARD_SIZES.map(s => (
-                                <SizeTile key={s.size} s={s.size} label={s.label} isSelected={size === s.size} onSelect={handleSizeSelect} />
-                              ))}
-                          </div>
-                      </div>
-                      <Separator />
-                      <div>
-                          <h4 className="text-lg font-semibold mb-1">Common Variants</h4>
-                          <p className="text-sm text-muted-foreground mb-4">Larger formats and other common variations.</p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {COMMON_VARIANTS.map(s => (
-                                <SizeTile key={s.size} s={s.size} label={s.label} isSelected={size === s.size} onSelect={handleSizeSelect} />
-                              ))}
-                          </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                          {SIZES.map(s => (
+                            <SizeTile key={s.size} s={s.size} label={s.label} isSelected={size === s.size} onSelect={handleSizeSelect} />
+                          ))}
                       </div>
                   </div>
               )}
@@ -374,3 +356,5 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
