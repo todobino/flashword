@@ -181,12 +181,13 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
       case 2:
         return (
           <div className="space-y-4">
-            <p>Click and drag to make squares black. Or, select a template or randomize it! The best patterns follow these rules:</p>
+            <p>Click and drag to make squares black. Or, select a template to generate a pattern! The best patterns follow these rules:</p>
             <ul className="space-y-2 list-disc list-inside">
                <li><b>Connectivity:</b> All white squares must be connected (no isolated sections).</li>
                <li><b>Word Lengths:</b> Minimum 3 letters per word (no 2-letter entries).</li>
                <li><b>Balance:</b> Roughly equal Across and Down entries.</li>
-               <li><b>Black Squares:</b> Usually ≤ 1/6 of total grid; should not split the puzzle into disjoint regions.</li>
+               <li><b>Black Squares:</b> Usually around 20% of the total grid; should not split the puzzle into disjoint regions.</li>
+               <li><b>Difficulty & Theming:</b> Fewer black squares and longer words generally make a puzzle harder. The longest words are often used for the theme, which you can set on the next step.</li>
             </ul>
           </div>
         );
@@ -410,3 +411,5 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
