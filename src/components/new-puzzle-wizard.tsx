@@ -22,6 +22,7 @@ import { app, db } from '@/lib/firebase';
 import type { Puzzle } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
+import { Slider } from './ui/slider';
 
 
 interface NewPuzzleWizardProps {
@@ -148,7 +149,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   const CurrentStepDescription = () => {
     switch (step) {
       case 1:
-        return <p>Select a standard crossword size. Larger puzzles are more challenging to create and solve.</p>;
+        return <p>Select a standard crossword size or use the slider for a custom dimension. Larger puzzles are more challenging to create and solve.</p>;
       case 2:
         return (
           <div className="space-y-4">
@@ -240,10 +241,30 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
               <CardContent className="p-6">
               {step === 1 && (
                   <div className="flex flex-col gap-6 w-full">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                          {SIZES.map(s => (
-                            <SizeTile key={s.size} s={s.size} label={s.label} isSelected={size === s.size} onSelect={handleSizeSelect} />
-                          ))}
+                      <div>
+                        <Label className="text-base font-semibold">Standard Sizes</Label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+                            {SIZES.map(s => (
+                              <SizeTile key={s.size} s={s.size} label={s.label} isSelected={size === s.size} onSelect={handleSizeSelect} />
+                            ))}
+                        </div>
+                      </div>
+                      <Separator />
+                      <div>
+                        <Label className="text-base font-semibold">Custom Size</Label>
+                        <div className="flex items-center gap-4 mt-4">
+                          <Slider
+                            value={[size]}
+                            onValueChange={(value) => handleSizeSelect(value[0])}
+                            min={5}
+                            max={25}
+                            step={1}
+                            className="flex-1"
+                          />
+                          <div className="font-mono text-lg font-semibold w-24 text-center border rounded-md p-2">
+                            {size} x {size}
+                          </div>
+                        </div>
                       </div>
                   </div>
               )}
@@ -356,5 +377,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
 
     
