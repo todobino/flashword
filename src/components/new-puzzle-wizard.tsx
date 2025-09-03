@@ -118,7 +118,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
         return (
           <div className="space-y-4">
             <p>Click and drag to make squares black. Or, just randomize it! The best patterns follow these rules:</p>
-            <ul className="space-y-2 list-disc list-inside text-xs">
+            <ul className="space-y-2 list-disc list-inside">
                <li><b>Connectivity:</b> All white squares must be connected (no isolated sections).</li>
                <li><b>Word Lengths:</b> Minimum 3 letters per word (no 2-letter entries).</li>
                <li><b>Balance:</b> Roughly equal Across and Down entries.</li>
@@ -130,7 +130,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
         return (
            <div className="space-y-4">
             <p>A good theme is the heart of a memorable crossword. Here are some tips:</p>
-            <ul className="space-y-2 list-disc list-inside text-xs">
+            <ul className="space-y-2 list-disc list-inside">
               <li><b>Themers:</b> These are the longest entries, often symmetrical, that share a common idea.</li>
               <li><b>The "Revealer":</b> Often, one of the theme answers explains the gimmick. A solver might not get it at first, but it provides an "aha!" moment that helps solve the other themers.</li>
               <li><b>Wordplay:</b> Themes often rely on puns, shared categories, or other clever wordplay. For example, a theme like "SUPER VEGGIES" might have answers where vegetables are part of superhero names.</li>
