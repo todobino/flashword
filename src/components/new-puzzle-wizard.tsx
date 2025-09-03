@@ -154,7 +154,8 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
   const renderStepContent = () => {
     if (step === 4) {
       return (
-        <main className="flex-1 grid md:grid-cols-2 lg:grid-cols-5 gap-6 p-4 md:p-6 overflow-hidden">
+        <main className="flex-1 bg-background py-10 lg:py-14 px-2 sm:px-3">
+           <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid md:grid-cols-2 lg:grid-cols-5 gap-6 overflow-hidden">
           <div className="lg:col-span-3 md:col-span-1 h-full flex items-center justify-center">
             <CrosswordGrid
               grid={crossword.grid}
@@ -175,13 +176,14 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
               getWordFromGrid={crossword.getWordFromGrid}
             />
           </div>
+          </div>
         </main>
       );
     }
 
     return (
-      <main className="flex-1 flex flex-col items-center justify-start bg-background py-6 px-2 md:py-8">
-        <div className="w-full max-w-7xl grid gap-8 md:grid-cols-2">
+      <main className="flex-1 bg-background py-10 lg:py-14 px-2 sm:px-3">
+        <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid gap-8 md:grid-cols-2">
           {/* Left Column */}
           <div className="flex flex-col justify-start space-y-6">
             <div>
