@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
-import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Shuffle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Shuffle, Save } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,9 +17,10 @@ import { CrosswordGrid } from './crossword-grid';
 import { cn } from '@/lib/utils';
 import { ClueLists } from './clue-lists';
 import { useToast } from '@/hooks/use-toast';
-import { AuthDialog } from '@/components/auth-dialog';
+import { AuthDialog } from './auth-dialog';
 import { app, db } from '@/lib/firebase';
 import type { Puzzle } from '@/lib/types';
+import { ScrollArea } from './ui/scroll-area';
 
 
 interface NewPuzzleWizardProps {
@@ -33,6 +34,14 @@ const SIZES = [
     { size: 19, label: 'Common Variant' },
     { size: 21, label: 'NYT Sunday' }
 ];
+
+const TEMPLATES = [
+    { name: 'Classic', description: 'A standard, widely-used symmetric pattern.'},
+    { name: 'Freestyle', description: 'More open, with fewer black squares.'},
+    { name: 'Blocked', description: 'Higher density of black squares, easier to fill.'},
+    { name: 'Wide Open', description: 'Very few black squares, for a challenging construction.' },
+];
+
 
 const SizeTile = ({ s, label, isSelected, onSelect }: { s: number, label: string, isSelected: boolean, onSelect: (size: number) => void}) => {
   return (
@@ -142,7 +151,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
       case 2:
         return (
           <div className="space-y-4">
-            <p>Click and drag to make squares black. Or, just randomize it! The best patterns follow these rules:</p>
+            <p>Click and drag to make squares black. Or, select a template or randomize it! The best patterns follow these rules:</p>
             <ul className="space-y-2 list-disc list-inside">
                <li><b>Connectivity:</b> All white squares must be connected (no isolated sections).</li>
                <li><b>Word Lengths:</b> Minimum 3 letters per word (no 2-letter entries).</li>
@@ -226,8 +235,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
           </div>
 
           {/* Right Column */}
-          <Card className="overflow-hidden shadow-lg w-full self-start max-h-[calc(100vh-12rem)] overflow-auto md:col-span-2">
-              <CardContent className="p-6 flex flex-col items-center">
+          <Card className="overflow-hidden shadow-lg w-full self-start md:col-span-2">
+              <CardContent className="p-6">
               {step === 1 && (
                   <div className="flex flex-col gap-4 items-center w-full">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full p-4">
@@ -238,18 +247,9 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   </div>
               )}
               {step === 2 && (
-                   <div className="space-y-4 flex flex-col items-center w-full">
-                     {/* The inner box is a perfect square whose side is:
-                         min(720px, viewport height minus copy/buttons/padding, full width) */}
-                     <div className="w-full flex justify-center">
-                       <div
-                         className="aspect-square"
-                         style={{
-                           width: 'min(720px, calc(100vh - 20rem), 100%)',
-                           height: 'min(720px, calc(100vh - 20rem), 100%)',
-                         }}
-                       >
-                         <CrosswordGrid
+                   <div className="grid grid-cols-3 gap-6 h-full">
+                     <div className="col-span-2">
+                        <CrosswordGrid
                            grid={crossword.grid}
                            size={size}
                            onCellClick={crossword.toggleCellBlack}
@@ -259,12 +259,30 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                            onSelectClue={() => {}}
                            designMode={true}
                          />
-                       </div>
                      </div>
-                     <div className="flex gap-2 justify-center">
-                       <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Reset</Button>
-                       <Button variant="outline" onClick={handleRandomize}><Shuffle className="mr-2 h-4 w-4" /> Randomize</Button>
-                     </div>
+                      <div className="col-span-1 flex flex-col gap-4">
+                          <div className="space-y-2">
+                            <Label>Actions</Label>
+                             <div className="flex flex-col gap-2">
+                               <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Reset</Button>
+                               <Button variant="outline" onClick={handleRandomize}><Shuffle className="mr-2 h-4 w-4" /> Randomize</Button>
+                             </div>
+                          </div>
+                         <div className="space-y-2 flex-1 flex flex-col min-h-0">
+                            <Label>Templates</Label>
+                            <ScrollArea className="border rounded-md flex-1">
+                                <div className="p-2 space-y-1">
+                                    {TEMPLATES.map(template => (
+                                        <div key={template.name} className="p-2 rounded-md hover:bg-muted cursor-pointer" onClick={handleRandomize}>
+                                            <h4 className="font-semibold">{template.name}</h4>
+                                            <p className="text-xs text-muted-foreground">{template.description}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </ScrollArea>
+                         </div>
+                          <Button variant="outline" disabled><Save className="mr-2 h-4 w-4" /> Save Template</Button>
+                      </div>
                    </div>
                  )}
               {step === 3 && (
