@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { LoaderCircle } from 'lucide-react';
+import { LoaderCircle, User } from 'lucide-react';
 
 interface AuthDialogProps {
   open: boolean;
@@ -64,7 +64,11 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       }
       onOpenChange(false);
     } catch (err: any) {
-        setError(err.message);
+        if (err.code === 'auth/invalid-credential') {
+            setError('Invalid credentials. Please check your password.');
+        } else {
+            setError(err.message);
+        }
     } finally {
       setIsLoading(false);
     }
@@ -99,10 +103,13 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
         <div className="space-y-4 pt-4">
            <DialogHeader className="text-center">
             <DialogTitle>{step === 'login' ? 'Welcome Back!' : 'Welcome!'}</DialogTitle>
-            <DialogDescription>{email}</DialogDescription>
+            <DialogDescription className="flex items-center justify-center gap-2">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span>{email}</span>
+            </DialogDescription>
           </DialogHeader>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="password" className="text-right">
+           <div className="space-y-2">
+            <Label htmlFor="password">
               Password
             </Label>
             <Input
@@ -110,7 +117,6 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="col-span-3"
               disabled={isLoading}
               autoFocus
             />
@@ -134,8 +140,8 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     // Initial step
     return (
         <div className="space-y-4 pt-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email-initial" className="text-right">
+          <div className="space-y-2">
+            <Label htmlFor="email-initial">
               Email
             </Label>
             <Input
@@ -143,7 +149,6 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="col-span-3"
               disabled={isLoading}
               placeholder="you@example.com"
               autoFocus
