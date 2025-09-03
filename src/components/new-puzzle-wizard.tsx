@@ -43,7 +43,7 @@ const SizeTile = ({ s, label, isSelected, onSelect }: { s: number, label: string
         isSelected ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
       )}
     >
-      <div className="grid grid-cols-4 gap-0.5 w-8 h-8 bg-muted-foreground/20 shrink-0">
+      <div className="grid grid-cols-4 gap-0.5 w-12 h-12 bg-muted-foreground/20 shrink-0">
         {Array(16).fill(0).map((_, i) => <div key={i} className="bg-background" />)}
       </div>
       <div className="flex flex-col">
