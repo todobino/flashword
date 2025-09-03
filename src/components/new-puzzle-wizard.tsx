@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Fragment } from 'react';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
@@ -289,27 +289,32 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
             {/* Stepper */}
             <ol className="flex w-full items-center">
               {WIZARD_STEPS.map((s, i) => (
-                <li key={s.step} className="flex items-center">
-                  <span
-                    className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2",
-                      step >= s.step
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-muted text-muted-foreground"
-                    )}
-                  >
-                    {s.step}
-                  </span>
-
-                  {i < WIZARD_STEPS.length - 1 && (
+                <Fragment key={s.step}>
+                  {/* circle */}
+                  <li className="shrink-0">
                     <span
+                      className={cn(
+                        "flex h-10 w-10 items-center justify-center rounded-full border-2",
+                        step >= s.step
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {s.step}
+                    </span>
+                  </li>
+
+                  {/* connector between circles */}
+                  {i < WIZARD_STEPS.length - 1 && (
+                    <li
                       className={cn(
                         "mx-3 h-0.5 flex-1 rounded-full bg-border",
                         step > s.step && "bg-primary"
                       )}
+                      aria-hidden
                     />
                   )}
-                </li>
+                </Fragment>
               ))}
             </ol>
             
