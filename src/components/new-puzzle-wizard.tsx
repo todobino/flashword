@@ -186,8 +186,16 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
         <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid gap-8 md:grid-cols-2">
           {/* Left Column */}
           <div className="flex flex-col justify-start space-y-6">
-            <div>
+            <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold tracking-tight">Create Crossword</h2>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={handleBack} disabled={step === 1}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />Back
+                </Button>
+                <Button onClick={handleNext}>
+                    {step === 3 ? 'Finish & Build' : 'Next'}<ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             {/* Stepper */}
@@ -209,14 +217,6 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={handleBack} disabled={step === 1}>
-                  <ArrowLeft className="mr-2 h-4 w-4" />Back
-              </Button>
-              <Button onClick={handleNext}>
-                  {step === 3 ? 'Finish & Build' : 'Next'}<ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
           </div>
 
           {/* Right Column */}
