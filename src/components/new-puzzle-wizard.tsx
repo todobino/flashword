@@ -211,7 +211,17 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   const CurrentStepDescription = () => {
     switch (step) {
       case 1:
-        return <p>Select a standard crossword size or use the slider for a custom dimension. Larger puzzles are more challenging to create and solve.</p>;
+        return (
+          <div className="space-y-4">
+            <p>Welcome to the FlashWord puzzle builder! This wizard will guide you through the initial setup of your crossword. Here's what to expect:</p>
+            <ul className="space-y-2 list-disc list-inside">
+                <li><b>Step 1: Choose Grid Size.</b> Select a standard or custom size for your puzzle.</li>
+                <li><b>Step 2: Design Pattern.</b> Create the layout of black and white squares for your grid.</li>
+                <li><b>Step 3: Choose Puzzle Theme.</b> Set a title and generate AI-powered theme answers.</li>
+                <li><b>Step 4: Build Puzzle.</b> Once you're done, you'll move to the main builder to write clues and fill in answers.</li>
+            </ul>
+          </div>
+        );
       case 2:
         return (
           <div className="space-y-4">
