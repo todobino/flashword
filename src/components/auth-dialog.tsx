@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,26 +15,47 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+type AuthStep = 'initial' | 'loading' | 'login' | 'signup';
+
 export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<AuthStep>('initial');
   const { toast } = useToast();
   const auth = getAuth(app);
 
-  const handleAuth = async (action: 'login' | 'signup') => {
+  const handleEmailCheck = async () => {
+    setIsLoading(true);
+    setError(null);
+    setStep('loading');
+    try {
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      if (methods.length > 0) {
+        setStep('login');
+      } else {
+        setStep('signup');
+      }
+    } catch (err: any) {
+       setError(err.message);
+       setStep('initial');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleAuth = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      if (action === 'signup') {
+      if (step === 'signup') {
         await createUserWithEmailAndPassword(auth, email, password);
         toast({ title: 'Account created!', description: 'You have been logged in.' });
       } else {
@@ -43,84 +64,119 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       }
       onOpenChange(false);
     } catch (err: any) {
-      if (action === 'login' && err.code === 'auth/invalid-credential') {
-        setError('No Account Found. Please Sign Up.');
-      } else {
         setError(err.message);
-      }
     } finally {
       setIsLoading(false);
     }
   };
   
-  const handleTabChange = () => {
-    setError(null);
+  const resetFlow = () => {
+      setEmail('');
+      setPassword('');
+      setError(null);
+      setStep('initial');
+  }
+  
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      resetFlow();
+    }
+    onOpenChange(isOpen);
   }
 
-  const renderFormContent = (action: 'login' | 'signup') => (
-      <div className="space-y-4 pt-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor={`email-${action}`} className="text-right">
-            Email
-          </Label>
-          <Input
-            id={`email-${action}`}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="col-span-3"
-            disabled={isLoading}
-          />
+  const renderContent = () => {
+    if (step === 'loading') {
+      return (
+        <div className="flex flex-col items-center justify-center space-y-4 pt-4 min-h-[150px]">
+          <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-lg font-medium">Finding Account...</p>
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor={`password-${action}`} className="text-right">
-            Password
-          </Label>
-          <Input
-            id={`password-${action}`}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="col-span-3"
-            disabled={isLoading}
-          />
-        </div>
-        {error && <p className="text-sm text-destructive text-center col-span-4">{error}</p>}
-         <div className="flex justify-end pt-4">
-            <Button
-              type="button"
-              onClick={() => handleAuth(action)}
+      );
+    }
+
+    if (step === 'login' || step === 'signup') {
+      return (
+        <div className="space-y-4 pt-4">
+           <DialogHeader className="text-center">
+            <DialogTitle>{step === 'login' ? 'Welcome Back!' : 'Welcome!'}</DialogTitle>
+            <DialogDescription>{email}</DialogDescription>
+          </DialogHeader>
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="password" className="text-right">
+              Password
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="col-span-3"
               disabled={isLoading}
-              className="w-full"
-            >
-              {isLoading && <LoaderCircle className="animate-spin" />}
-              {action === 'login' ? 'Login' : 'Sign Up'}
-            </Button>
+              autoFocus
+            />
           </div>
-      </div>
-  );
+          {error && <p className="text-sm text-destructive text-center col-span-4">{error}</p>}
+           <div className="flex justify-end pt-4">
+              <Button
+                type="button"
+                onClick={handleAuth}
+                disabled={isLoading}
+                className="w-full"
+              >
+                {isLoading && <LoaderCircle className="animate-spin" />}
+                {step === 'login' ? 'Login' : 'Register'}
+              </Button>
+            </div>
+        </div>
+      );
+    }
+
+    // Initial step
+    return (
+        <div className="space-y-4 pt-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="email-initial" className="text-right">
+              Email
+            </Label>
+            <Input
+              id="email-initial"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="col-span-3"
+              disabled={isLoading}
+              placeholder="you@example.com"
+              autoFocus
+            />
+          </div>
+          {error && <p className="text-sm text-destructive text-center col-span-4">{error}</p>}
+          <div className="flex justify-end pt-4">
+              <Button
+                type="button"
+                onClick={handleEmailCheck}
+                disabled={isLoading || !email}
+                className="w-full"
+              >
+                {isLoading && <LoaderCircle className="animate-spin" />}
+                Check Email
+              </Button>
+            </div>
+        </div>
+    );
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Authenticate</DialogTitle>
-          <DialogDescription>
-            Log in or create an account to save your progress.
-          </DialogDescription>
-        </DialogHeader>
-        <Tabs defaultValue="login" className="w-full" onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-          </TabsList>
-          <TabsContent value="login">
-            {renderFormContent('login')}
-          </TabsContent>
-          <TabsContent value="signup">
-            {renderFormContent('signup')}
-          </TabsContent>
-        </Tabs>
+        {step === 'initial' && (
+            <DialogHeader>
+            <DialogTitle>Authenticate</DialogTitle>
+            <DialogDescription>
+                Enter your email to log in or create an account.
+            </DialogDescription>
+            </DialogHeader>
+        )}
+        {renderContent()}
       </DialogContent>
     </Dialog>
   );
