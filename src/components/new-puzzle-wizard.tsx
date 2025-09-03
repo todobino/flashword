@@ -368,22 +368,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   </div>
               )}
               {step === 2 && (
-                <div className="grid gap-6 md:grid-cols-[minmax(340px,1fr)_16rem] h-full">
-                  {/* LEFT: GRID */}
-                  <div className="w-full min-w-[340px] shrink-0">
-                    <CrosswordGrid
-                      grid={crossword.grid}
-                      size={size}
-                      onCellClick={crossword.toggleCellBlack}
-                      onCharChange={() => {}}
-                      selectedClue={null}
-                      currentClueDetails={null}
-                      onSelectClue={() => {}}
-                      designMode={true}
-                    />
-                  </div>
-
-                  {/* RIGHT: CONTROLS */}
+                <div className="grid gap-6 md:grid-cols-[16rem_minmax(340px,1fr)] h-full">
+                  {/* LEFT: CONTROLS */}
                   <div className="flex flex-col gap-4 w-64">
                     <div className="space-y-2">
                       <Label>Randomizers</Label>
@@ -416,6 +402,20 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                     <div className="flex flex-col gap-2 mt-auto">
                         <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Reset</Button>
                     </div>
+                  </div>
+
+                  {/* RIGHT: GRID */}
+                  <div className="w-full min-w-[340px] shrink-0">
+                    <CrosswordGrid
+                      grid={crossword.grid}
+                      size={size}
+                      onCellClick={crossword.toggleCellBlack}
+                      onCharChange={() => {}}
+                      selectedClue={null}
+                      currentClueDetails={null}
+                      onSelectClue={() => {}}
+                      designMode={true}
+                    />
                   </div>
                 </div>
               )}
