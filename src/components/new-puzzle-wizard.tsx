@@ -283,8 +283,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   </div>
               )}
               {step === 2 && (
-                   <div className="grid md:grid-cols-[auto_16rem] gap-4 sm:gap-5 h-full content-start justify-items-start items-start">
-                     <div className="justify-self-start self-start">
+                   <div className="grid md:grid-cols-[1fr_auto] gap-4 sm:gap-5 h-full content-start justify-items-start items-start">
+                     <div className="w-full">
                         <CrosswordGrid
                            grid={crossword.grid}
                            size={size}
@@ -396,9 +396,3 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
-
-    
-
-    
-
-    
