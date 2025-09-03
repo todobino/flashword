@@ -149,13 +149,27 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     const totalSquares = crossword.size * crossword.size;
     const blackSquares = crossword.grid.flat().filter(cell => cell.isBlack).length;
     const totalWords = crossword.clues.across.length + crossword.clues.down.length;
-    const totalWordLetters = crossword.clues.across.reduce((sum, clue) => sum + clue.length, 0) + crossword.clues.down.reduce((sum, clue) => sum + clue.length, 0);
+    const allClues = [...crossword.clues.across, ...crossword.clues.down];
+    const totalWordLetters = allClues.reduce((sum, clue) => sum + clue.length, 0);
+    const totalLongWords = allClues.filter(c => c.length >= 8).length;
+
+    const blackSquarePercentage = totalSquares > 0 ? (blackSquares / totalSquares) : 0;
+    const averageWordLength = totalWords > 0 ? totalWordLetters / totalWords : 0;
+
+    let difficulty = 'Medium';
+    if (averageWordLength > 5.5 && blackSquarePercentage < 0.17) {
+        difficulty = 'Hard';
+    } else if (averageWordLength > 5.0 && blackSquarePercentage < 0.20) {
+        difficulty = 'Challenging';
+    } else if (averageWordLength < 4.5 || blackSquarePercentage > 0.25) {
+        difficulty = 'Easy';
+    }
 
     return {
-      blackSquarePercentage: totalSquares > 0 ? (blackSquares / totalSquares) * 100 : 0,
+      blackSquarePercentage: blackSquarePercentage * 100,
       totalWords: totalWords,
-      averageWordLength: totalWords > 0 ? totalWordLetters / totalWords : 0,
-      wordDensity: totalWords > 0 ? ((totalSquares - blackSquares) / totalWords) : 0,
+      totalLongWords: totalLongWords,
+      difficulty: difficulty,
     };
   }, [crossword.grid, crossword.clues, crossword.size]);
 
@@ -213,7 +227,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   const renderStepContent = () => {
     return (
       <main className="flex-1 bg-background py-6 lg:py-8 px-2 sm:px-3">
-        <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid gap-8 md:grid-cols-3">
+        <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid gap-8 md:grid-cols-2">
           {/* Left Column */}
           <div className="flex flex-col justify-start space-y-6 md:col-span-1">
             <div className="flex justify-between items-center">
@@ -251,7 +265,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
           </div>
 
           {/* Right Column */}
-          <Card className="overflow-hidden shadow-lg w-full self-start md:col-span-2">
+          <Card className="overflow-hidden shadow-lg w-full self-start md:col-span-1">
               <CardContent className="p-4 sm:p-5">
               {step === 1 && (
                   <div className="flex flex-col gap-6 w-full">
@@ -283,7 +297,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   </div>
               )}
               {step === 2 && (
-                   <div className="grid md:grid-cols-[1fr_auto] gap-4 sm:gap-5 h-full content-start justify-items-start items-start">
+                   <div className="grid md:grid-cols-[1fr_auto] gap-6 h-full">
                      <div className="w-full">
                         <CrosswordGrid
                            grid={crossword.grid}
@@ -296,7 +310,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                            designMode={true}
                          />
                      </div>
-                      <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-4 md:w-64">
                         <div className="space-y-2">
                             <Label>Randomizers</Label>
                             <ScrollArea className="border rounded-md flex-1">
@@ -314,9 +328,9 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                              <Label>Analysis</Label>
                              <div className="text-sm text-muted-foreground border rounded-md p-3 space-y-2">
                                  <div className="flex justify-between"><span>Total Words:</span> <span className="font-medium text-foreground">{gridAnalysis.totalWords}</span></div>
+                                 <div className="flex justify-between"><span>Total Long Words:</span> <span className="font-medium text-foreground">{gridAnalysis.totalLongWords}</span></div>
                                  <div className="flex justify-between"><span>Black Square %:</span> <span className="font-medium text-foreground">{gridAnalysis.blackSquarePercentage.toFixed(1)}%</span></div>
-                                 <div className="flex justify-between"><span>Word Density:</span> <span className="font-medium text-foreground">{gridAnalysis.wordDensity.toFixed(2)}</span></div>
-                                 <div className="flex justify-between"><span>Avg Word Length:</span> <span className="font-medium text-foreground">{gridAnalysis.averageWordLength.toFixed(2)}</span></div>
+                                 <div className="flex justify-between"><span>Difficulty:</span> <span className="font-medium text-foreground">{gridAnalysis.difficulty}</span></div>
                              </div>
                          </div>
                           <div className="flex flex-col gap-2 mt-auto">
@@ -396,3 +410,5 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
