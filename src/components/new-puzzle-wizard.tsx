@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
-import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Shuffle, Save } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Shuffle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +37,6 @@ const SIZES = [
 
 const TEMPLATES = [
     { name: 'Classic', description: 'A standard, widely-used symmetric pattern.'},
-    { name: 'Freestyle', description: 'More open, with fewer black squares.'},
     { name: 'Blocked', description: 'Higher density of black squares, easier to fill.'},
     { name: 'Wide Open', description: 'Very few black squares, for a challenging construction.' },
 ];
@@ -355,5 +354,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
 
     
