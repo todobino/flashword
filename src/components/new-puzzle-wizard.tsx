@@ -196,7 +196,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
 
   const renderStepContent = () => {
     return (
-      <main className="flex-1 bg-background py-10 lg:py-14 px-2 sm:px-3">
+      <main className="flex-1 bg-background py-6 lg:py-8 px-2 sm:px-3">
         <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid gap-8 md:grid-cols-3">
           {/* Left Column */}
           <div className="flex flex-col justify-start space-y-6 md:col-span-1">
