@@ -359,48 +359,57 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   </div>
               )}
               {step === 2 && (
-                   <div className="grid md:grid-cols-[auto_1fr] gap-6 h-full">
-                     <div className="justify-self-start self-start">
-                        <CrosswordGrid
-                           grid={crossword.grid}
-                           size={size}
-                           onCellClick={crossword.toggleCellBlack}
-                           onCharChange={() => {}}
-                           selectedClue={null}
-                           currentClueDetails={null}
-                           onSelectClue={() => {}}
-                           designMode={true}
-                         />
-                     </div>
-                      <div className="flex flex-col gap-4 md:w-64">
-                        <div className="space-y-2">
-                            <Label>Randomizers</Label>
-                            <ScrollArea className="border rounded-md flex-1">
-                                <div className="p-2 space-y-1">
-                                    {TEMPLATES.map(template => (
-                                        <div key={template.name} className="p-2 rounded-md hover:bg-muted cursor-pointer" onClick={() => handleRandomize(template.name)}>
-                                            <h4 className="font-semibold">{template.name}</h4>
-                                            <p className="text-xs text-muted-foreground">{template.description}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </ScrollArea>
+                <div className="grid gap-6 md:grid-cols-[minmax(340px,1fr)_16rem] h-full">
+                  {/* LEFT: GRID */}
+                  <div className="w-full min-w-[340px] shrink-0">
+                    <CrosswordGrid
+                      grid={crossword.grid}
+                      size={size}
+                      onCellClick={crossword.toggleCellBlack}
+                      onCharChange={() => {}}
+                      selectedClue={null}
+                      currentClueDetails={null}
+                      onSelectClue={() => {}}
+                      designMode={true}
+                    />
+                  </div>
+
+                  {/* RIGHT: CONTROLS */}
+                  <div className="flex flex-col gap-4 w-64">
+                    <div className="space-y-2">
+                      <Label>Randomizers</Label>
+                      <ScrollArea className="border rounded-md flex-1">
+                        <div className="p-2 space-y-1">
+                          {TEMPLATES.map(template => (
+                            <div
+                              key={template.name}
+                              className="p-2 rounded-md hover:bg-muted cursor-pointer"
+                              onClick={() => handleRandomize(template.name)}
+                            >
+                              <h4 className="font-semibold">{template.name}</h4>
+                              <p className="text-xs text-muted-foreground">{template.description}</p>
+                            </div>
+                          ))}
                         </div>
-                         <div className="space-y-2">
-                             <Label>Analysis</Label>
-                             <div className="text-sm text-muted-foreground border rounded-md p-3 space-y-2">
-                                 <div className="flex justify-between"><span>Total Words:</span> <span className="font-medium text-foreground">{gridAnalysis.totalWords}</span></div>
-                                 <div className="flex justify-between"><span>Total Long Words:</span> <span className="font-medium text-foreground">{gridAnalysis.totalLongWords}</span></div>
-                                 <div className="flex justify-between"><span>Black Square %:</span> <span className="font-medium text-foreground">{gridAnalysis.blackSquarePercentage.toFixed(1)}%</span></div>
-                                 <div className="flex justify-between"><span>Difficulty:</span> <span className="font-medium text-foreground">{gridAnalysis.difficulty}</span></div>
-                             </div>
-                         </div>
-                          <div className="flex flex-col gap-2 mt-auto">
-                            <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Reset</Button>
-                          </div>
+                      </ScrollArea>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Analysis</Label>
+                      <div className="text-sm text-muted-foreground border rounded-md p-3 space-y-2">
+                        <div className="flex justify-between"><span>Total Words:</span> <span className="font-medium text-foreground">{gridAnalysis.totalWords}</span></div>
+                        <div className="flex justify-between"><span>Total Long Words:</span> <span className="font-medium text-foreground">{gridAnalysis.totalLongWords}</span></div>
+                        <div className="flex justify-between"><span>Black Square %:</span> <span className="font-medium text-foreground">{gridAnalysis.blackSquarePercentage.toFixed(1)}%</span></div>
+                        <div className="flex justify-between"><span>Difficulty:</span> <span className="font-medium text-foreground">{gridAnalysis.difficulty}</span></div>
                       </div>
-                   </div>
-                 )}
+                    </div>
+
+                    <div className="flex flex-col gap-2 mt-auto">
+                        <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Reset</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
               {step === 3 && (
                    <div className="grid md:grid-cols-2 gap-8 w-full">
                       <div className="space-y-6">
@@ -492,3 +501,4 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     
 
     
+
