@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Download, Save, Sparkles, CheckCircle, LoaderCircle } from 'lucide-react';
+import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { Download, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut } from 'lucide-react';
 import { useCrossword } from '@/hooks/use-crossword';
 import { CrosswordGrid } from '@/components/crossword-grid';
 import { ClueLists } from '@/components/clue-lists';
@@ -10,7 +11,8 @@ import { LogoIcon } from '@/components/icons';
 import { verifyPuzzleAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { Puzzle } from '@/lib/types';
-
+import { AuthDialog } from '@/components/auth-dialog';
+import { app } from '@/lib/firebase';
 
 interface CrosswordBuilderProps {
   initialPuzzle: Puzzle;
@@ -19,7 +21,17 @@ interface CrosswordBuilderProps {
 export function CrosswordBuilder({ initialPuzzle }: CrosswordBuilderProps) {
   const crossword = useCrossword(initialPuzzle.size, initialPuzzle.grid, initialPuzzle.clues);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const auth = getAuth(app);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     // Initial clue update when component mounts
@@ -27,6 +39,12 @@ export function CrosswordBuilder({ initialPuzzle }: CrosswordBuilderProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleLogout = async () => {
+    const auth = getAuth(app);
+    await signOut(auth);
+    toast({ title: 'Logged out successfully.' });
+  };
+  
   const handleVerify = async () => {
     setIsVerifying(true);
     toast({ title: 'Verifying puzzle...', description: 'AI is checking your clues and answers.' });
@@ -75,6 +93,20 @@ export function CrosswordBuilder({ initialPuzzle }: CrosswordBuilderProps) {
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
         </div>
         <div className="flex items-center gap-2">
+           {user ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
+              <Button variant="outline" size="sm" onClick={handleLogout} title="Logout">
+                <LogOut className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:ml-2">Logout</span>
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login">
+              <LogIn className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only sm:ml-2">Login</span>
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={crossword.savePuzzle} title="Save Puzzle">
             <Save className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
@@ -116,6 +148,7 @@ export function CrosswordBuilder({ initialPuzzle }: CrosswordBuilderProps) {
           />
         </div>
       </main>
+      <AuthDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen} />
     </div>
   );
 }
