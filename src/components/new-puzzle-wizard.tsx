@@ -17,7 +17,6 @@ import { ClueLists } from './clue-lists';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from '@/components/auth-dialog';
 import { app } from '@/lib/firebase';
-import { verifyPuzzleAction } from '@/app/actions';
 
 
 interface NewPuzzleWizardProps {
@@ -64,7 +63,6 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
   const [title, setTitle] = useState('');
   const crossword = useCrossword(size);
 
-  const [isVerifying, setIsVerifying] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -152,45 +150,6 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
     toast({ title: 'Logged out successfully.' });
   };
   
-  const handleVerify = async () => {
-    setIsVerifying(true);
-    toast({ title: 'Verifying puzzle...', description: 'AI is checking your clues and answers.' });
-    
-    const acrossClues = Object.fromEntries(crossword.clues.across.map(c => [c.number, c.text]));
-    const downClues = Object.fromEntries(crossword.clues.down.map(c => [c.number, c.text]));
-    const answers = [...crossword.clues.across, ...crossword.clues.down].reduce((acc, clue) => {
-      const word = crossword.getWordFromGrid(clue).replace(/_/g, ' ');
-      acc[`${clue.number} ${clue.direction}`] = word;
-      return acc;
-    }, {} as Record<string, string>);
-
-    const puzzleGrid = crossword.grid.map(row => row.map(cell => cell.isBlack ? '.' : (cell.char || ' ')));
-
-    const result = await verifyPuzzleAction({ puzzleGrid, acrossClues, downClues, answers });
-    setIsVerifying(false);
-
-    if (result.success && result.data) {
-      if (result.data.isValid) {
-        toast({ title: 'Verification Complete!', description: 'Your puzzle is valid.', variant: 'default' });
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Verification Failed',
-          description: (
-            <div>
-              <p>Found {result.data.errors.length} errors:</p>
-              <ul className="mt-2 list-disc list-inside">
-                {result.data.errors.map((error, i) => <li key={i}>{error}</li>)}
-              </ul>
-            </div>
-          ),
-          duration: 9000,
-        });
-      }
-    } else {
-      toast({ variant: 'destructive', title: 'Verification Error', description: result.error });
-    }
-  };
 
   const renderStepContent = () => {
     if (step === 4) {
@@ -334,21 +293,9 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
             <FilePlus className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={crossword.savePuzzle} title="Save Puzzle">
-            <Save className="h-4 w-4" />
-             <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
-          </Button>
           <Button variant="outline" size="sm" onClick={() => crossword.loadPuzzle(() => setStep(4))} title="Load Puzzle">
             <FolderOpen className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
-          </Button>
-           <Button size="sm" onClick={handleVerify} disabled={isVerifying} title="Verify Puzzle">
-            {isVerifying ? <LoaderCircle className="animate-spin" /> : <CheckCircle />}
-             <span className="sr-only sm:not-sr-only sm:ml-2">Verify</span>
-          </Button>
-          <Button variant="outline" size="sm" title="Export to PDF (coming soon)" disabled>
-            <Download className="h-4 w-4" />
-             <span className="sr-only sm:not-sr-only sm:ml-2">Export</span>
           </Button>
           {user ? (
             <div className="flex items-center gap-2">
