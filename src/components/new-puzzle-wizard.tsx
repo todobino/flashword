@@ -192,7 +192,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
             <ol className="flex items-center w-full">
               {WIZARD_STEPS.map((s, index) => (
                 <li key={s.step} className={cn("flex w-full items-center", { "text-primary": step >= s.step }, { "after:content-[''] after:w-full after:h-1 after:border-b after:border-4 after:inline-block": index < WIZARD_STEPS.length - 1 }, { 'after:border-primary': step > s.step }, { 'after:border-border': step <= s.step })}>
-                  <span className={cn("flex items-center justify-center w-10 h-10 rounded-full shrink-0", step >= s.step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                  <span className={cn("flex items-center justify-center w-10 h-10 rounded-full shrink-0 border-2", step >= s.step ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border")}>
                     {s.step}
                   </span>
                 </li>
