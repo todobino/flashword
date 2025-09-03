@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { Download, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut } from 'lucide-react';
+import { Download, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut, FilePlus, FolderOpen } from 'lucide-react';
 import { useCrossword } from '@/hooks/use-crossword';
 import { CrosswordGrid } from '@/components/crossword-grid';
 import { ClueLists } from '@/components/clue-lists';
@@ -15,11 +15,12 @@ import { AuthDialog } from '@/components/auth-dialog';
 import { app } from '@/lib/firebase';
 
 interface CrosswordBuilderProps {
-  initialPuzzle: Puzzle;
+  puzzle: Puzzle;
+  onNew: () => void;
 }
 
-export function CrosswordBuilder({ initialPuzzle }: CrosswordBuilderProps) {
-  const crossword = useCrossword(initialPuzzle.size, initialPuzzle.grid, initialPuzzle.clues);
+export function CrosswordBuilder({ puzzle, onNew }: CrosswordBuilderProps) {
+  const crossword = useCrossword(puzzle.size, puzzle.grid, puzzle.clues);
   const [isVerifying, setIsVerifying] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
@@ -34,11 +35,12 @@ export function CrosswordBuilder({ initialPuzzle }: CrosswordBuilderProps) {
   }, []);
 
   useEffect(() => {
-    // Initial clue update when component mounts
-    crossword.updateClues(crossword.grid, crossword.size);
+    // This effect runs when the puzzle prop changes
+    crossword.resetGrid(puzzle.size, puzzle.grid, puzzle.clues);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [puzzle]);
 
+  
   const handleLogout = async () => {
     const auth = getAuth(app);
     await signOut(auth);
@@ -100,19 +102,23 @@ export function CrosswordBuilder({ initialPuzzle }: CrosswordBuilderProps) {
               </Button>
             </div>
           ) : (
-            <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login">
+            <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login" variant="default" className="ml-4">
               <LogIn className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:ml-2">Login</span>
+              <span className="sr-only sm:not-sr-only sm:ml-2">Login / Sign Up</span>
             </Button>
           )}
         </div>
         <div className="flex items-center gap-2">
+           <Button variant="outline" size="sm" onClick={onNew} title="New Puzzle">
+            <FilePlus className="h-4 w-4" />
+             <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
+          </Button>
           <Button variant="outline" size="sm" onClick={crossword.savePuzzle} title="Save Puzzle">
             <Save className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
           </Button>
           <Button variant="outline" size="sm" onClick={crossword.loadPuzzle} title="Load Puzzle">
-            <Sparkles className="h-4 w-4" />
+            <FolderOpen className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
           </Button>
           <Button variant="outline" size="sm" title="Export to PDF (coming soon)" disabled>

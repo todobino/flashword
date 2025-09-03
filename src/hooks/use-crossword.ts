@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { Grid, Cell, Clue, Puzzle } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { generatePattern } from '@/lib/grid-generator';
@@ -25,7 +25,7 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid, initialClues?
   const [selectedClue, setSelectedClue] = useState<{ number: number; direction: 'across' | 'down' } | null>(null);
   const { toast } = useToast();
 
-  const updateClues = useCallback((currentGrid: Grid, currentSize: number) => {
+  const updateClues = useCallback((currentGrid: Grid, currentSize: number, currentClues?: { across: Clue[], down: Clue[] }) => {
     const newGrid = JSON.parse(JSON.stringify(currentGrid));
     const newAcrossClues: Clue[] = [];
     const newDownClues: Clue[] = [];
@@ -76,22 +76,21 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid, initialClues?
       }
     }
     setGrid(newGrid);
-    setClues(prevClues => {
-        const updateClueText = (newClues: Clue[], oldClues: Clue[]) => {
-            return newClues.map(nc => {
-                const old = oldClues.find(oc => oc.number === nc.number);
-                return old ? { ...nc, text: old.text } : nc;
-            });
-        };
-        const oldAcross = prevClues.across.filter(c => c.direction === 'across');
-        const oldDown = prevClues.down.filter(c => c.direction === 'down');
-        
-        return {
-            across: updateClueText(newAcrossClues, oldAcross),
-            down: updateClueText(newDownClues, oldDown)
-        };
+
+    const oldClues = currentClues || clues;
+    
+    const updateClueText = (newClues: Clue[], oldClues: Clue[]) => {
+      return newClues.map(nc => {
+        const old = oldClues.find(oc => oc.number === nc.number && oc.direction === nc.direction);
+        return old ? { ...nc, text: old.text } : nc;
+      });
+    };
+
+    setClues({
+      across: updateClueText(newAcrossClues, oldClues.across),
+      down: updateClueText(newDownClues, oldClues.down),
     });
-  }, []);
+  }, [clues]);
 
   const toggleCellBlack = (row: number, col: number) => {
     const newGrid = JSON.parse(JSON.stringify(grid));
@@ -133,7 +132,7 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid, initialClues?
     }
   };
 
-  const loadPuzzle = () => {
+  const loadPuzzle = (callback?: () => void) => {
     try {
       const saved = localStorage.getItem('flossyWordPuzzle');
       if (saved) {
@@ -143,6 +142,7 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid, initialClues?
         setClues(puzzle.clues);
         setSelectedClue(null);
         toast({ title: "Puzzle Loaded!", description: "Your crossword has been loaded." });
+        if(callback) callback();
       } else {
         toast({ variant: "destructive", title: "Load Failed", description: "No saved puzzle found." });
       }
@@ -150,16 +150,6 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid, initialClues?
       toast({ variant: "destructive", title: "Load Failed", description: "Could not load puzzle from local storage." });
     }
   };
-  
-  useEffect(() => {
-    const saved = localStorage.getItem('flossyWordPuzzle');
-    if (saved) {
-      toast({
-        title: "Saved Puzzle Found",
-        description: "You have a previously saved puzzle. Use the 'Load' button to open it.",
-      });
-    }
-  }, [toast]);
 
   const getWordFromGrid = (clue: { number: number; direction: 'across' | 'down' }) => {
     const clueData = clues[clue.direction].find(c => c.number === clue.number);
@@ -180,24 +170,40 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid, initialClues?
     return word;
   };
 
+  const fillWord = (clue: Clue, word: string) => {
+    const newGrid = JSON.parse(JSON.stringify(grid));
+    const normalizedWord = word.toUpperCase().padEnd(clue.length, ' ');
+    if (clue.direction === 'across') {
+        for (let i = 0; i < clue.length; i++) {
+            newGrid[clue.row][clue.col + i].char = normalizedWord[i] || '';
+        }
+    } else {
+        for (let i = 0; i < clue.length; i++) {
+            newGrid[clue.row + i][clue.col].char = normalizedWord[i] || '';
+        }
+    }
+    setGrid(newGrid);
+  };
+
+
   const currentClueDetails = useMemo(() => {
     if (!selectedClue) return null;
     const allClues = [...clues.across, ...clues.down];
     return allClues.find(c => c.number === selectedClue.number && c.direction === selectedClue.direction);
   }, [selectedClue, clues]);
 
-  const resetGrid = (newSize: number) => {
+  const resetGrid = (newSize: number, newGrid?: Grid, newClues?: {across: Clue[], down: Clue[]}) => {
     setSize(newSize);
-    const newGrid = createGrid(newSize);
-    updateClues(newGrid, newSize);
+    const gridToUpdate = newGrid || createGrid(newSize);
+    updateClues(gridToUpdate, newSize, newClues);
   };
 
   const randomizeGrid = useCallback(() => {
+    if (size !== 15 && size !== 17 && size !== 19 && size !== 21) {
+        toast({ variant: "destructive", title: "Randomization Failed", description: `No generator for size ${size}x${size}.` });
+        return;
+    }
     try {
-      if (size !== 15 && size !== 17 && size !== 19 && size !== 21) {
-          toast({ variant: "destructive", title: "Randomization Failed", description: `No generator for size ${size}x${size}.` });
-          return;
-      }
       const pattern = generatePattern(size);
       const newGrid = createGrid(size);
 
@@ -231,5 +237,6 @@ export const useCrossword = (initialSize = 15, initialGrid?: Grid, initialClues?
     resetGrid,
     updateClues,
     randomizeGrid,
+    fillWord,
   };
 };
