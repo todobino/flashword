@@ -281,7 +281,6 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                                 </div>
                             </ScrollArea>
                          </div>
-                          <Button variant="outline" disabled><Save className="mr-2 h-4 w-4" /> Save Template</Button>
                       </div>
                    </div>
                  )}
