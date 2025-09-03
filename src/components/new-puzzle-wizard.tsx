@@ -428,7 +428,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                    <div className="grid md:grid-cols-2 gap-8 w-full">
                       <div className="space-y-6">
                         <div className="space-y-2">
-                            <Label htmlFor="puzzle-title">Puzzle Title</Label>
+                            <Label htmlFor="puzzle-title">Puzzle Title (Required)</Label>
                             <Input id="puzzle-title" placeholder="e.g., Sunday Special" value={crossword.title} onChange={(e) => crossword.setTitle(e.target.value)} />
                         </div>
                          <div className="space-y-4">
