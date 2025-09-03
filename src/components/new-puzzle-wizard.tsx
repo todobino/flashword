@@ -39,11 +39,11 @@ const SizeTile = ({ s, label, isSelected, onSelect }: { s: number, label: string
     <div
       onClick={() => onSelect(s)}
       className={cn(
-        'border-2 rounded-lg p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors text-center',
+        'border-2 rounded-lg p-4 flex flex-row items-center justify-start gap-4 cursor-pointer transition-colors',
         isSelected ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
       )}
     >
-      <div className="grid grid-cols-4 gap-0.5 w-8 h-8 bg-muted-foreground/20">
+      <div className="grid grid-cols-4 gap-0.5 w-8 h-8 bg-muted-foreground/20 shrink-0">
         {Array(16).fill(0).map((_, i) => <div key={i} className="bg-background" />)}
       </div>
       <div className="flex flex-col">
@@ -194,7 +194,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold tracking-tight">Create Crossword</h2>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={handleBack} disabled={step === 1}>
+                <Button variant="outline" size="icon" onClick={handleBack} disabled={step === 1}>
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <Button onClick={handleNext}>
@@ -230,7 +230,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
               <CardContent className="p-6 flex flex-col items-center">
               {step === 1 && (
                   <div className="flex flex-col gap-4 items-center w-full">
-                      <div className="grid grid-cols-2 md:grid-cols-2 gap-4 w-full p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full p-4">
                           {SIZES.map(s => (
                           <SizeTile key={s.size} s={s.size} label={s.label} isSelected={size === s.size} onSelect={handleSizeSelect} />
                           ))}
