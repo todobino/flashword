@@ -218,6 +218,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                 <li><b>Step 1: Choose Grid Size.</b> Select a standard or custom size for your puzzle.</li>
                 <li><b>Step 2: Design Pattern.</b> Create the layout of black and white squares for your grid.</li>
                 <li><b>Step 3: Choose Puzzle Theme.</b> Set a title and generate AI-powered theme answers.</li>
+                 <li><b>Step 4: Build Puzzle.</b> Once the setup is complete, you'll move to the main builder to write clues and fill in the answers.</li>
             </ul>
           </div>
         );
@@ -291,7 +292,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
             {/* Stepper */}
             <ol className="flex items-center w-full">
               {WIZARD_STEPS.map((s, index) => (
-                <li key={s.step} className={cn("flex w-full items-center", { "text-primary": step >= s.step }, "after:content-[''] after:w-full after:h-1 after:border-b after:border-border after:border-4 after:inline-block", { 'after:border-primary': step > s.step }, { 'last:after:hidden': index === WIZARD_STEPS.length - 1 })}>
+                <li key={s.step} className={cn("flex w-full items-center", { "text-primary": step >= s.step }, index !== WIZARD_STEPS.length - 1 && "after:content-[''] after:w-full after:h-1 after:border-b after:border-border after:border-4 after:inline-block", { 'after:border-primary': step > s.step })}>
                   <span className={cn("flex items-center justify-center w-10 h-10 rounded-full shrink-0 border-2", step >= s.step ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border")}>
                     {s.step}
                   </span>
@@ -471,3 +472,5 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
