@@ -104,7 +104,9 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
 
   const handleNext = () => {
     if (step === 1) { // Move from Size to Design
-      crossword.resetGrid(size);
+        if (size !== crossword.size) {
+            crossword.resetGrid(size);
+        }
     }
     if (step < WIZARD_STEPS.length) {
       setStep(s => s + 1);
@@ -411,6 +413,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
 
     
 
