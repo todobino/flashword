@@ -283,7 +283,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
 
   return (
     <div className="flex flex-col h-screen font-body text-foreground bg-background">
-      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-background">
+      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-card">
         <div className="flex items-center gap-3">
           <LogoIcon className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
