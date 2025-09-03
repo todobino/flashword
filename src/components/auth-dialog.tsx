@@ -43,7 +43,11 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       }
       onOpenChange(false);
     } catch (err: any) {
-      setError(err.message);
+      if (action === 'login' && err.code === 'auth/user-not-found') {
+        setError('No Account Found. Please Sign Up.');
+      } else {
+        setError(err.message);
+      }
     } finally {
       setIsLoading(false);
     }
