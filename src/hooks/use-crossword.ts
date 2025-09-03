@@ -270,10 +270,6 @@ export const useCrossword = (
   };
 
   const randomizeGrid = useCallback((templateName: TemplateName = 'Classic') => {
-    if (size !== 15 && size !== 17 && size !== 19 && size !== 21) {
-        toast({ variant: "destructive", title: "Manual Design Required", description: `Automatic patterns aren't available for ${size}x${size} grids. Please design it manually.` });
-        return;
-    }
     try {
       let blackSquareTarget: number;
       switch (templateName) {
@@ -290,7 +286,7 @@ export const useCrossword = (
           blackSquareTarget = 0.16; // Default case
       }
 
-      const pattern = generatePattern(size as 15 | 17 | 19 | 21, blackSquareTarget);
+      const pattern = generatePattern(size, blackSquareTarget);
       const newGrid = createGrid(size);
 
       for (let r = 0; r < size; r++) {
