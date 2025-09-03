@@ -102,7 +102,7 @@ export function CrosswordBuilder({ puzzle, onNew }: CrosswordBuilderProps) {
               </Button>
             </div>
           ) : (
-            <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login" variant="default" className="ml-4">
+            <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login / Sign Up" variant="default" className="ml-4">
               <LogIn className="h-4 w-4" />
               <span className="sr-only sm:not-sr-only sm:ml-2">Login / Sign Up</span>
             </Button>
@@ -117,7 +117,7 @@ export function CrosswordBuilder({ puzzle, onNew }: CrosswordBuilderProps) {
             <Save className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={crossword.loadPuzzle} title="Load Puzzle">
+          <Button variant="outline" size="sm" onClick={() => crossword.loadPuzzle()} title="Load Puzzle">
             <FolderOpen className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
           </Button>
