@@ -225,7 +225,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
           </div>
 
           {/* Right Column */}
-          <Card className="overflow-hidden shadow-lg w-full max-w-2xl mx-auto md:justify-self-center self-start max-h-[calc(100vh-12rem)] overflow-auto md:col-span-2">
+          <Card className="overflow-hidden shadow-lg w-full self-start max-h-[calc(100vh-12rem)] overflow-auto md:col-span-2">
               <CardContent className="p-6 flex flex-col items-center">
               {step === 1 && (
                   <div className="flex flex-col gap-4 items-center w-full">
