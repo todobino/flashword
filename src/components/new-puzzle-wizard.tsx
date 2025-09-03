@@ -276,19 +276,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
         <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid gap-8 md:grid-cols-5">
           {/* Left Column */}
           <div className="flex flex-col justify-start space-y-6 md:col-span-2">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold tracking-tight">Create Crossword</h2>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" size="icon" onClick={handleBack} disabled={step === 1}>
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <Button onClick={handleNext}>
-                    <span>{step === WIZARD_STEPS.length ? 'Start Building' : 'Next'}</span>
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
+            
             {/* Stepper */}
             <ol className="flex w-full items-center justify-between gap-3">
               {WIZARD_STEPS.map((s, i) => (
@@ -316,12 +304,24 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
               ))}
             </ol>
             
-            <div>
-              <p className="text-sm text-muted-foreground">Step {step} of {WIZARD_STEPS.length}</p>
-              <h3 className="text-xl font-semibold mt-1">{WIZARD_STEPS[step - 1].title}</h3>
-              <div className="text-sm text-muted-foreground mt-4">
+            <div className="flex justify-between items-center">
+                <div>
+                    <p className="text-sm text-muted-foreground">Step {step} of {WIZARD_STEPS.length}</p>
+                    <h3 className="text-xl font-semibold mt-1">{WIZARD_STEPS[step - 1].title}</h3>
+                </div>
+                <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="icon" onClick={handleBack} disabled={step === 1}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <Button onClick={handleNext}>
+                        <span>{step === WIZARD_STEPS.length ? 'Start Building' : 'Next'}</span>
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+
+            <div className="text-sm text-muted-foreground mt-4">
                 <CurrentStepDescription />
-              </div>
             </div>
 
           </div>
@@ -359,8 +359,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   </div>
               )}
               {step === 2 && (
-                   <div className="grid md:grid-cols-[1fr_auto] gap-6 h-full">
-                     <div className="w-full">
+                   <div className="grid md:grid-cols-[auto_1fr] gap-6 h-full">
+                     <div className="justify-self-start self-start">
                         <CrosswordGrid
                            grid={crossword.grid}
                            size={size}
@@ -488,5 +488,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
 
     
