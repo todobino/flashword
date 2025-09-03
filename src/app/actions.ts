@@ -2,6 +2,8 @@
 
 import { suggestClue as suggestClueFlow, type ClueSuggestionInput } from '@/ai/flows/clue-suggestion';
 import { verifyPuzzle as verifyPuzzleFlow, type VerifyPuzzleInput } from '@/ai/flows/puzzle-verification';
+import { generateTheme as generateThemeFlow, type ThemeGenerationInput } from '@/ai/flows/theme-generation';
+
 
 export async function suggestClueAction(input: ClueSuggestionInput) {
   try {
@@ -21,4 +23,14 @@ export async function verifyPuzzleAction(input: VerifyPuzzleInput) {
     console.error('Error verifying puzzle:', error);
     return { success: false, error: 'Failed to verify the puzzle due to a server error.' };
   }
+}
+
+export async function generateThemeAction(input: ThemeGenerationInput) {
+    try {
+      const result = await generateThemeFlow(input);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Error generating theme:', error);
+      return { success: false, error: 'Failed to generate a theme due to a server error.' };
+    }
 }

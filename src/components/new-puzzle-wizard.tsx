@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
-import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,8 @@ import type { Puzzle, TemplateName } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { Slider } from './ui/slider';
+import { generateThemeAction } from '@/app/actions';
+import { Textarea } from './ui/textarea';
 
 
 interface NewPuzzleWizardProps {
@@ -75,6 +77,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   const [step, setStep] = useState(1);
   const [size, setSize] = useState(15);
   const [title, setTitle] = useState('');
+  const [themeDescription, setThemeDescription] = useState('');
+  const [isGeneratingTheme, setIsGeneratingTheme] = useState(false);
   
   const [user, setUser] = useState<User | null>(null);
   const crossword = useCrossword(size, undefined, undefined, title, undefined, user);
@@ -146,6 +150,34 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     const longest = allClues.length > 0 ? allClues[0].length : 0;
     return allClues.filter(c => c.length >= Math.max(7, longest - 2));
   }, [crossword.clues, step]);
+
+  const handleGenerateTheme = async () => {
+    setIsGeneratingTheme(true);
+    toast({ title: 'Generating Theme...', description: 'AI is crafting a title and theme answers for you.' });
+    
+    const themeAnswerSlots = themers.map(clue => ({
+        number: clue.number,
+        direction: clue.direction,
+        length: clue.length,
+    }));
+
+    const result = await generateThemeAction({ description: themeDescription, answers: themeAnswerSlots });
+    
+    if (result.success && result.data) {
+        crossword.setTitle(result.data.title);
+        result.data.themeAnswers.forEach(answer => {
+            const clueToFill = themers.find(t => t.number === answer.number && t.direction === answer.direction);
+            if (clueToFill) {
+                crossword.fillWord(clueToFill, answer.word);
+            }
+        });
+        toast({ title: 'Theme Generated!', description: `"${result.data.title}" and theme answers have been populated.` });
+    } else {
+        toast({ variant: 'destructive', title: 'Theme Generation Failed', description: result.error });
+    }
+    
+    setIsGeneratingTheme(false);
+  };
   
   const gridAnalysis = useMemo(() => {
     const totalSquares = crossword.size * crossword.size;
@@ -200,7 +232,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
             <ul className="space-y-2 list-disc list-inside">
               <li><b>Themers:</b> These are the longest entries, often symmetrical, that share a common idea.</li>
               <li><b>The "Revealer":</b> Often, one of the theme answers explains the gimmick. A solver might not get it at first, but it provides an "aha!" moment that helps solve the other themers.</li>
-              <li><b>Wordplay:</b> Themes often rely on puns, shared categories, or other clever wordplay. For example, a theme like "SUPER VEGGIES" might have a nswers where vegetables are part of superhero names.</li>
+              <li><b>Wordplay:</b> Themes often rely on puns, shared categories, or other clever wordplay. For example, a theme like "SUPER VEGGIES" might have answers where vegetables are part of superhero names.</li>
+              <li><b>Smart Theme:</b> Use the AI-powered "Smart Theme" tool to get a head start. Provide a simple description, and it will generate a creative title and theme answers that fit your grid's constraints.</li>
             </ul>
           </div>
         );
@@ -343,27 +376,43 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                    </div>
                  )}
               {step === 3 && (
-                   <div className="space-y-6 w-full">
-                      <div className="space-y-2">
-                          <Label htmlFor="puzzle-title">Puzzle Title</Label>
-                          <Input id="puzzle-title" placeholder="e.g., Sunday Special" value={crossword.title} onChange={(e) => crossword.setTitle(e.target.value)} />
+                   <div className="grid md:grid-cols-2 gap-8 w-full">
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="puzzle-title">Puzzle Title</Label>
+                            <Input id="puzzle-title" placeholder="e.g., Sunday Special" value={crossword.title} onChange={(e) => crossword.setTitle(e.target.value)} />
+                        </div>
+                         <div className="space-y-4">
+                            <Label>Theme Answers</Label>
+                            <div className="space-y-3">
+                            {themers.map(clue => (
+                                <div key={`${clue.number}-${clue.direction}`} className="flex items-center gap-4">
+                                    <span className="font-mono text-sm text-muted-foreground w-20">{clue.number} {clue.direction}</span>
+                                    <Input 
+                                        placeholder={`Enter ${clue.length}-letter answer...`} 
+                                        maxLength={clue.length}
+                                        value={crossword.getWordFromGrid(clue).replace(/_/g, '')}
+                                        onChange={(e) => crossword.fillWord(clue, e.target.value)}
+                                        className="font-mono uppercase tracking-widest"
+                                    />
+                                </div>
+                            ))}
+                            {themers.length === 0 && <p className="text-sm text-muted-foreground text-center p-4">No theme-length answers found in this grid.</p>}
+                            </div>
+                         </div>
                       </div>
-                       <div className="space-y-4">
-                          <Label>Theme Answers</Label>
-                          <div className="space-y-3">
-                          {themers.map(clue => (
-                              <div key={`${clue.number}-${clue.direction}`} className="flex items-center gap-4">
-                                  <span className="font-mono text-sm text-muted-foreground w-20">{clue.number} {clue.direction}</span>
-                                  <Input 
-                                      placeholder={`Enter ${clue.length}-letter answer...`} 
-                                      maxLength={clue.length}
-                                      value={crossword.getWordFromGrid(clue).replace(/_/g, '')}
-                                      onChange={(e) => crossword.fillWord(clue, e.target.value)}
-                                      className="font-mono uppercase tracking-widest"
-                                  />
-                              </div>
-                          ))}
-                          </div>
+                       <div className="space-y-4 rounded-lg border bg-background p-4">
+                           <Label className="font-semibold text-base">Smart Theme</Label>
+                           <Textarea
+                               placeholder="Describe your theme idea. e.g., 'Things that can be found in a park' or 'Puns about vegetables'."
+                               value={themeDescription}
+                               onChange={(e) => setThemeDescription(e.target.value)}
+                               rows={5}
+                            />
+                            <Button onClick={handleGenerateTheme} disabled={isGeneratingTheme || !themeDescription || themers.length === 0} className="w-full">
+                                {isGeneratingTheme ? <LoaderCircle className="animate-spin" /> : <Sparkles />}
+                                <span>Generate</span>
+                            </Button>
                        </div>
                    </div>
               )}
@@ -413,9 +462,3 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
-
-    
-
-    
-
-    
