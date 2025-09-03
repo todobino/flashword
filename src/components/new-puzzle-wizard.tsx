@@ -180,7 +180,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
     }
 
     return (
-      <main className="flex-1 flex flex-col items-center justify-start bg-background p-4">
+      <main className="flex-1 flex flex-col items-center justify-start bg-background py-6 px-2 md:py-8">
         <div className="w-full max-w-7xl grid gap-8 md:grid-cols-2">
           {/* Left Column */}
           <div className="flex flex-col justify-start space-y-6">
@@ -307,7 +307,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
             <FolderOpen className="h-4 w-4" />
             <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
           </Button>
-          {user ? (
+           {user ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
               <Button variant="outline" size="sm" onClick={handleLogout} title="Logout">
@@ -330,3 +330,5 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
     </div>
   )
 }
+
+    
