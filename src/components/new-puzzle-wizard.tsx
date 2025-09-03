@@ -231,7 +231,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
               )}
               {step === 2 && (
                   <div className="space-y-4 flex flex-col items-center">
-                      <div className="w-full max-w-md">
+                      <div className="w-full max-w-2xl">
                           <CrosswordGrid
                               grid={crossword.grid}
                               size={size}
@@ -320,3 +320,5 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
     </div>
   )
 }
+
+    
