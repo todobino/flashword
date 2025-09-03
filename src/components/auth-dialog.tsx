@@ -101,9 +101,9 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     if (step === 'login' || step === 'signup') {
       return (
         <div className="space-y-4 pt-4">
-           <DialogHeader className="text-center">
+           <DialogHeader>
             <DialogTitle>{step === 'login' ? 'Welcome Back!' : 'Welcome!'}</DialogTitle>
-            <DialogDescription className="flex items-center justify-center gap-2">
+            <DialogDescription className="flex items-center justify-start gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span>{email}</span>
             </DialogDescription>
