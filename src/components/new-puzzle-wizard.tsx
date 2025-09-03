@@ -187,7 +187,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
           {/* Left Column */}
           <div className="flex flex-col justify-start space-y-6">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight">Create a New Crossword</h2>
+              <h2 className="text-2xl font-bold tracking-tight">Create Crossword</h2>
             </div>
 
             {/* Stepper */}
@@ -209,7 +209,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
               </div>
             </div>
 
-            <div className="flex justify-between pt-4">
+            <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={handleBack} disabled={step === 1}>
                   <ArrowLeft className="mr-2 h-4 w-4" />Back
               </Button>
