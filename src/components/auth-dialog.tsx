@@ -102,7 +102,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       return (
         <div className="space-y-4 pt-4">
            <DialogHeader>
-            <DialogTitle>{step === 'login' ? 'Welcome Back!' : 'Welcome!'}</DialogTitle>
+            <DialogTitle>{step === 'login' ? 'Welcome Back!' : 'Welcome to FlashWord!'}</DialogTitle>
             <DialogDescription className="flex items-center justify-start gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span>{email}</span>
@@ -110,7 +110,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
           </DialogHeader>
            <div className="space-y-2">
             <Label htmlFor="password">
-              Password
+              {step === 'login' ? 'Password' : 'Choose Password'}
             </Label>
             <Input
               id="password"
