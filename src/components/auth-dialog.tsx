@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+import { app, db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -56,7 +57,10 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     setError(null);
     try {
       if (step === 'signup') {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "Users", userCredential.user.uid), {
+            email: userCredential.user.email,
+        });
         toast({ title: 'Account created!', description: 'You have been logged in.' });
       } else {
         await signInWithEmailAndPassword(auth, email, password);
