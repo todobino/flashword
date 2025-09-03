@@ -156,7 +156,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
       blackSquarePercentage: totalSquares > 0 ? (blackSquares / totalSquares) * 100 : 0,
       totalWords: totalWords,
       averageWordLength: totalWords > 0 ? totalWordLetters / totalWords : 0,
-      wordDensity: totalSquares > 0 ? ((totalSquares - blackSquares) / totalWords) : 0,
+      wordDensity: totalWords > 0 ? ((totalSquares - blackSquares) / totalWords) : 0,
     };
   }, [crossword.grid, crossword.clues, crossword.size]);
 
@@ -298,7 +298,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                          />
                      </div>
                       <div className="col-span-1 flex flex-col gap-4">
-                         <div className="space-y-2 flex-1 flex flex-col min-h-0">
+                        <div className="space-y-2">
+                            <Label>Randomizers</Label>
                             <ScrollArea className="border rounded-md flex-1">
                                 <div className="p-2 space-y-1">
                                     {TEMPLATES.map(template => (
@@ -309,7 +310,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                                     ))}
                                 </div>
                             </ScrollArea>
-                         </div>
+                        </div>
                          <div className="space-y-2">
                              <Label>Analysis</Label>
                              <div className="text-sm text-muted-foreground border rounded-md p-3 space-y-2">
@@ -319,7 +320,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                                  <div className="flex justify-between"><span>Avg Word Length:</span> <span className="font-medium text-foreground">{gridAnalysis.averageWordLength.toFixed(2)}</span></div>
                              </div>
                          </div>
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-2 mt-auto">
                             <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Reset</Button>
                           </div>
                       </div>
