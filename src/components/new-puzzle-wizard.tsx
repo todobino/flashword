@@ -330,5 +330,3 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
     </div>
   )
 }
-
-    
