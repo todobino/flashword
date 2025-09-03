@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 
-import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Shuffle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,6 @@ import { LogoIcon } from '@/components/icons';
 import { useCrossword } from '@/hooks/use-crossword';
 import { CrosswordGrid } from './crossword-grid';
 import { cn } from '@/lib/utils';
-import { ClueLists } from './clue-lists';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from './auth-dialog';
 import { app, db } from '@/lib/firebase';
@@ -284,8 +283,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   </div>
               )}
               {step === 2 && (
-                   <div className="grid grid-cols-3 gap-4 h-full">
-                     <div className="col-span-2">
+                   <div className="grid md:grid-cols-[1fr_auto] gap-6 h-full">
+                     <div className="w-full">
                         <CrosswordGrid
                            grid={crossword.grid}
                            size={size}
@@ -297,7 +296,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                            designMode={true}
                          />
                      </div>
-                      <div className="col-span-1 flex flex-col gap-4">
+                      <div className="w-full md:w-64 flex flex-col gap-4">
                         <div className="space-y-2">
                             <Label>Randomizers</Label>
                             <ScrollArea className="border rounded-md flex-1">
