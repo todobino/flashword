@@ -30,13 +30,13 @@ interface NewPuzzleWizardProps {
 }
 
 const STANDARD_SIZES = [
-    { size: 5, label: 'NYT Mini' },
     { size: 15, label: 'NYT Standard' },
+    { size: 5, label: 'NYT Mini' },
 ];
 
 const COMMON_VARIANTS = [
-    { size: 7, label: 'NYT Mini Saturday' },
     { size: 21, label: 'NYT Sunday' },
+    { size: 7, label: 'NYT Mini Saturday' },
     { size: 17, label: 'Common Variant' },
     { size: 19, label: 'Common Variant' },
 ];
