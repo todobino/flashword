@@ -29,6 +29,8 @@ interface NewPuzzleWizardProps {
 }
 
 const SIZES = [
+    { size: 5, label: 'NYT Mini' },
+    { size: 7, label: 'NYT Mini Saturday' },
     { size: 15, label: 'NYT Standard' },
     { size: 17, label: 'Common Variant' },
     { size: 19, label: 'Common Variant' },
@@ -166,7 +168,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
             <ul className="space-y-2 list-disc list-inside">
               <li><b>Themers:</b> These are the longest entries, often symmetrical, that share a common idea.</li>
               <li><b>The "Revealer":</b> Often, one of the theme answers explains the gimmick. A solver might not get it at first, but it provides an "aha!" moment that helps solve the other themers.</li>
-              <li><b>Wordplay:</b> Themes often rely on puns, shared categories, or other clever wordplay. For example, a theme like "SUPER VEGGIES" might have answers where vegetables are part of superhero names.</li>
+              <li><b>Wordplay:</b> Themes often rely on puns, shared categories, or other clever wordplay. For example, a theme like "SUPER VEGGIES" might have a nswers where vegetables are part of superhero names.</li>
             </ul>
           </div>
         );
@@ -358,3 +360,4 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     
 
     
+

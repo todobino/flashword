@@ -53,7 +53,7 @@ export const useCrossword = (
         }
 
         const isAcrossStart = col === 0 || newGrid[row][col - 1].isBlack;
-        const isDownStart = row === 0 || newGrid[row - 1].isBlack;
+        const isDownStart = row === 0 || newGrid[row - 1][col].isBlack;
         
         const hasAcrossWord = col + 1 < currentSize && !newGrid[row][col + 1].isBlack;
         const hasDownWord = row + 1 < currentSize && !newGrid[row + 1][col].isBlack;
@@ -270,7 +270,7 @@ export const useCrossword = (
 
   const randomizeGrid = useCallback(() => {
     if (size !== 15 && size !== 17 && size !== 19 && size !== 21) {
-        toast({ variant: "destructive", title: "Randomization Failed", description: `No generator for size ${size}x${size}.` });
+        toast({ variant: "destructive", title: "Manual Design Required", description: `Automatic patterns aren't available for ${size}x${size} grids. Please design it manually.` });
         return;
     }
     try {
