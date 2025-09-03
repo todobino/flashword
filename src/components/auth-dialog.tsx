@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { app, db } from '@/lib/firebase';
+import { app } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -57,10 +56,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     setError(null);
     try {
       if (step === 'signup') {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "Users", userCredential.user.uid), {
-            email: userCredential.user.email,
-        });
+        await createUserWithEmailAndPassword(auth, email, password);
         toast({ title: 'Account created!', description: 'You have been logged in.' });
       } else {
         await signInWithEmailAndPassword(auth, email, password);
@@ -69,7 +65,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       onOpenChange(false);
     } catch (err: any) {
         if (err.code === 'auth/invalid-credential') {
-            setError('Invalid credentials. Please check your password.');
+            setError('Invalid credentials. Please check your email or password.');
         } else {
             setError(err.message);
         }

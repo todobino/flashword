@@ -3,6 +3,8 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+
 import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Shuffle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -16,10 +18,13 @@ import { cn } from '@/lib/utils';
 import { ClueLists } from './clue-lists';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from '@/components/auth-dialog';
-import { app } from '@/lib/firebase';
+import { app, db } from '@/lib/firebase';
+import type { Puzzle } from '@/lib/types';
 
 
 interface NewPuzzleWizardProps {
+  onStartBuilder: (puzzle: Puzzle) => void;
+  onLoad: (puzzle: Puzzle) => void;
 }
 
 const SIZES = [
@@ -53,24 +58,36 @@ const WIZARD_STEPS = [
   { step: 1, title: 'Choose Grid Size' },
   { step: 2, title: 'Design Pattern' },
   { step: 3, title: 'Choose Puzzle Theme' },
-  { step: 4, title: 'Fill Clues & Answers' }
 ];
 
 
-export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
+export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps) {
   const [step, setStep] = useState(1);
   const [size, setSize] = useState(15);
   const [title, setTitle] = useState('');
-  const crossword = useCrossword(size);
-
+  
   const [user, setUser] = useState<User | null>(null);
+  const crossword = useCrossword(size, undefined, undefined, title, undefined, user);
+
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const auth = getAuth(app);
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+      if (!user) return;
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        await setDoc(ref, {
+          email: user.email,
+          displayName: user.displayName ?? null,
+          photoURL: user.photoURL ?? null,
+          puzzleIds: [],
+          createdAt: serverTimestamp(),
+        });
+      }
     });
     return () => unsubscribe();
   }, []);
@@ -79,8 +96,16 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
     if (step === 1) { // Move from Size to Design
       crossword.resetGrid(size);
     }
-    if (step < 4) {
+    if (step < WIZARD_STEPS.length) {
       setStep(s => s + 1);
+    } else { // Finish
+      onStartBuilder({
+          id: undefined,
+          title: crossword.title,
+          size: crossword.size,
+          grid: crossword.grid,
+          clues: crossword.clues,
+      })
     }
   };
 
@@ -137,8 +162,6 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
             </ul>
           </div>
         );
-       case 4:
-         return <p>Fill in the remaining answers and clues. Use the AI tools to help you finish, then save or export your puzzle.</p>
       default:
         return null;
     }
@@ -150,37 +173,19 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
     toast({ title: 'Logged out successfully.' });
   };
   
+  const handleLoadPuzzle = async () => {
+    if (!user) {
+        toast({ variant: "destructive", title: "Login Required", description: "You must be logged in to load a puzzle." });
+        return;
+    }
+    const loadedPuzzle = await crossword.loadPuzzle();
+    if (loadedPuzzle) {
+        onLoad(loadedPuzzle);
+    }
+  }
+
 
   const renderStepContent = () => {
-    if (step === 4) {
-      return (
-        <main className="flex-1 bg-background py-10 lg:py-14 px-2 sm:px-3">
-           <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid md:grid-cols-2 lg:grid-cols-5 gap-6 overflow-hidden">
-          <div className="lg:col-span-3 md:col-span-1 h-full flex items-center justify-center">
-            <CrosswordGrid
-              grid={crossword.grid}
-              size={crossword.size}
-              onCellClick={crossword.toggleCellBlack}
-              onCharChange={crossword.updateCellChar}
-              selectedClue={crossword.selectedClue}
-              currentClueDetails={crossword.currentClueDetails}
-              onSelectClue={crossword.setSelectedClue}
-            />
-          </div>
-          <div className="lg:col-span-2 md:col-span-1 h-full">
-            <ClueLists
-              clues={crossword.clues}
-              selectedClue={crossword.selectedClue}
-              onSelectClue={crossword.setSelectedClue}
-              onClueTextChange={crossword.updateClueText}
-              getWordFromGrid={crossword.getWordFromGrid}
-            />
-          </div>
-          </div>
-        </main>
-      );
-    }
-
     return (
       <main className="flex-1 bg-background py-10 lg:py-14 px-2 sm:px-3">
         <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid gap-8 md:grid-cols-2">
@@ -193,7 +198,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
                     <ArrowLeft className="mr-2 h-4 w-4" />Back
                 </Button>
                 <Button onClick={handleNext}>
-                    {step === 3 ? 'Finish & Build' : 'Next'}<ArrowRight className="ml-2 h-4 w-4" />
+                    {step === WIZARD_STEPS.length ? 'Start Building' : 'Next'}<ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -210,7 +215,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
             </ol>
             
             <div>
-              <p className="text-sm text-muted-foreground">Step {step} of 4</p>
+              <p className="text-sm text-muted-foreground">Step {step} of {WIZARD_STEPS.length}</p>
               <h3 className="text-xl font-semibold mt-1">{WIZARD_STEPS[step - 1].title}</h3>
               <div className="text-sm text-muted-foreground mt-4">
                 <CurrentStepDescription />
@@ -265,7 +270,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
                    <div className="space-y-6 w-full">
                       <div className="space-y-2">
                           <Label htmlFor="puzzle-title">Puzzle Title</Label>
-                          <Input id="puzzle-title" placeholder="e.g., Sunday Special" value={title} onChange={(e) => setTitle(e.target.value)} />
+                          <Input id="puzzle-title" placeholder="e.g., Sunday Special" value={crossword.title} onChange={(e) => crossword.setTitle(e.target.value)} />
                       </div>
                        <div className="space-y-4">
                           <Label>Theme Answers</Label>
@@ -305,7 +310,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
             <FilePlus className="h-4 w-4" />
             <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => crossword.loadPuzzle(() => setStep(4))} title="Load Puzzle">
+          <Button variant="outline" size="sm" onClick={handleLoadPuzzle} disabled={!user} title="Load Puzzle">
             <FolderOpen className="h-4 w-4" />
             <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
           </Button>

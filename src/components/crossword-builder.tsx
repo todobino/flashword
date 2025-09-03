@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { Download, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut, FilePlus, FolderOpen } from 'lucide-react';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { Download, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut, FilePlus, FolderOpen, Copy } from 'lucide-react';
 import { useCrossword } from '@/hooks/use-crossword';
 import { CrosswordGrid } from '@/components/crossword-grid';
 import { ClueLists } from '@/components/clue-lists';
@@ -12,31 +13,45 @@ import { verifyPuzzleAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { Puzzle } from '@/lib/types';
 import { AuthDialog } from '@/components/auth-dialog';
-import { app } from '@/lib/firebase';
+import { app, db } from '@/lib/firebase';
 
 interface CrosswordBuilderProps {
   puzzle: Puzzle;
   onNew: () => void;
+  onLoad: (puzzle: Puzzle) => void;
 }
 
-export function CrosswordBuilder({ puzzle, onNew }: CrosswordBuilderProps) {
-  const crossword = useCrossword(puzzle.size, puzzle.grid, puzzle.clues);
-  const [isVerifying, setIsVerifying] = useState(false);
+export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProps) {
   const [user, setUser] = useState<User | null>(null);
+  const crossword = useCrossword(puzzle.size, puzzle.grid, puzzle.clues, puzzle.title, puzzle.id, user);
+
+  const [isVerifying, setIsVerifying] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const auth = getAuth(app);
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+      if (!user) return;
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        await setDoc(ref, {
+          email: user.email,
+          displayName: user.displayName ?? null,
+          photoURL: user.photoURL ?? null,
+          puzzleIds: [],
+          createdAt: serverTimestamp(),
+        });
+      }
     });
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
     // This effect runs when the puzzle prop changes
-    crossword.resetGrid(puzzle.size, puzzle.grid, puzzle.clues);
+    crossword.resetGrid(puzzle.size, puzzle.grid, puzzle.clues, puzzle.title, puzzle.id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzle]);
 
@@ -87,6 +102,17 @@ export function CrosswordBuilder({ puzzle, onNew }: CrosswordBuilderProps) {
     }
   };
 
+  const handleLoadPuzzle = async () => {
+    if (!user) {
+        toast({ variant: "destructive", title: "Login Required", description: "You must be logged in to load a puzzle." });
+        return;
+    }
+    const loadedPuzzle = await crossword.loadPuzzle();
+    if (loadedPuzzle) {
+        onLoad(loadedPuzzle);
+    }
+  }
+
   return (
     <div className="flex flex-col h-screen font-body text-foreground bg-background">
       <header className="flex items-center justify-between p-4 border-b shrink-0">
@@ -113,11 +139,15 @@ export function CrosswordBuilder({ puzzle, onNew }: CrosswordBuilderProps) {
             <FilePlus className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={crossword.savePuzzle} title="Save Puzzle">
+          <Button variant="outline" size="sm" onClick={crossword.savePuzzle} disabled={!user} title="Save Puzzle">
             <Save className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={() => crossword.loadPuzzle()} title="Load Puzzle">
+          <Button variant="outline" size="sm" onClick={crossword.savePuzzleAs} disabled={!user} title="Save as New Puzzle">
+            <Copy className="h-4 w-4" />
+             <span className="sr-only sm:not-sr-only sm:ml-2">Save As</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleLoadPuzzle} disabled={!user} title="Load Puzzle">
             <FolderOpen className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
           </Button>
