@@ -181,10 +181,10 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
     }
 
     return (
-      <main className="flex-1 flex flex-col items-center justify-center bg-background p-4">
+      <main className="flex-1 flex flex-col items-center justify-start bg-background p-4">
         <div className="w-full max-w-7xl grid gap-8 md:grid-cols-2">
           {/* Left Column */}
-          <div className="flex flex-col justify-center space-y-6">
+          <div className="flex flex-col justify-start space-y-6">
             <div>
               <h2 className="text-2xl font-bold tracking-tight">Create a New Crossword</h2>
             </div>
@@ -219,8 +219,8 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
           </div>
 
           {/* Right Column */}
-          <Card className="overflow-hidden shadow-lg">
-              <CardContent className="p-6 h-full">
+          <Card className="overflow-hidden shadow-lg w-full max-w-lg mx-auto md:justify-self-center self-start max-h-[calc(100vh-12rem)] overflow-auto">
+              <CardContent className="p-6 flex flex-col items-center">
               {step === 1 && (
                   <div className="flex flex-col gap-4 items-center w-full">
                       <div className="grid grid-cols-2 md:grid-cols-2 gap-4 w-full p-4">
