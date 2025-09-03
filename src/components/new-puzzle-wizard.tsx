@@ -52,8 +52,8 @@ const SizeTile = ({ s, label, isSelected, onSelect }: { s: number, label: string
 const WIZARD_STEPS = [
   { step: 1, title: 'Choose Grid Size' },
   { step: 2, title: 'Design Pattern' },
-  { step: 3, title: 'Define Theme' },
-  { step: 4, title: 'Build Puzzle' }
+  { step: 3, title: 'Choose Puzzle Theme' },
+  { step: 4, title: 'Fill Clues & Answers' }
 ];
 
 
@@ -128,7 +128,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
         );
       case 3:
         return (
-          <div className="space-y-4">
+           <div className="space-y-4">
             <p>A good theme is the heart of a memorable crossword. Here are some tips:</p>
             <ul className="space-y-2 list-disc list-inside text-xs">
               <li><b>Themers:</b> These are the longest entries, often symmetrical, that share a common idea.</li>
@@ -192,7 +192,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
             <ol className="flex items-center w-full">
               {WIZARD_STEPS.map((s, index) => (
                 <li key={s.step} className={cn("flex w-full items-center", { "text-primary": step >= s.step }, { "after:content-[''] after:w-full after:h-1 after:border-b after:border-4 after:inline-block": index < WIZARD_STEPS.length - 1 }, { 'after:border-primary': step > s.step }, { 'after:border-border': step <= s.step })}>
-                  <span className={cn("flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0", step >= s.step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                  <span className={cn("flex items-center justify-center w-10 h-10 rounded-full shrink-0", step >= s.step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
                     {s.step}
                   </span>
                 </li>
