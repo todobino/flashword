@@ -70,6 +70,7 @@ const WIZARD_STEPS = [
   { step: 1, title: 'Choose Grid Size' },
   { step: 2, title: 'Design Pattern' },
   { step: 3, title: 'Choose Puzzle Theme' },
+  { step: 4, title: 'Review & Confirm' },
 ];
 
 
@@ -144,7 +145,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   }
   
   const themers = useMemo(() => {
-    if (step !== 3) return [];
+    if (step !== 3 && step !== 4) return [];
     const allClues = [...crossword.clues.across, ...crossword.clues.down];
     allClues.sort((a,b) => b.length - a.length);
     const longest = allClues.length > 0 ? allClues[0].length : 0;
@@ -218,7 +219,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                 <li><b>Step 1: Choose Grid Size.</b> Select a standard or custom size for your puzzle.</li>
                 <li><b>Step 2: Design Pattern.</b> Create the layout of black and white squares for your grid.</li>
                 <li><b>Step 3: Choose Puzzle Theme.</b> Set a title and generate AI-powered theme answers.</li>
-                 <li><b>Step 4: Build Puzzle.</b> Once the setup is complete, you'll move to the main builder to write clues and fill in the answers.</li>
+                 <li><b>Step 4: Review & Confirm.</b> Once the setup is complete, you'll move to the main builder to write clues and fill in the answers.</li>
             </ul>
           </div>
         );
@@ -246,6 +247,14 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
               <li><b>Smart Theme:</b> Use the AI-powered "Smart Theme" tool to get a head start. Provide a simple description, and it will generate a creative title and theme answers that fit your grid's constraints.</li>
             </ul>
           </div>
+        );
+       case 4:
+        return (
+          <p>
+            You're almost there! Please review your puzzle's configuration below. If everything looks correct,
+            click "Start Building" to proceed to the main editor where you can write clues and finalize your puzzle.
+            You can still go back to previous steps to make changes.
+          </p>
         );
       default:
         return null;
@@ -278,10 +287,10 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
           <div className="flex flex-col justify-start space-y-6 md:col-span-2">
             
             {/* Stepper */}
-            <ol className="flex w-full items-center justify-between gap-3">
+            <ol className="flex w-full items-center">
               {WIZARD_STEPS.map((s, i) => (
                 <li key={s.step} className="flex flex-1 items-center">
-                  <span
+                   <span
                     className={cn(
                       "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2",
                       step >= s.step
@@ -295,7 +304,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   {i < WIZARD_STEPS.length - 1 && (
                     <span
                       className={cn(
-                        "ml-3 h-0.5 w-full rounded-full bg-border",
+                        "mx-3 h-0.5 w-full rounded-full bg-border",
                         step > s.step && "bg-primary"
                       )}
                     />
@@ -451,6 +460,61 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                        </div>
                    </div>
               )}
+               {step === 4 && (
+                <div className="grid gap-8 md:grid-cols-2">
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label className="text-base font-semibold">Summary</Label>
+                      <div className="space-y-3 rounded-md border p-4 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Title:</span>
+                          <span className="font-semibold">{crossword.title || 'Untitled'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Size:</span>
+                          <span className="font-semibold">{crossword.size} x {crossword.size}</span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Total Words:</span>
+                          <span className="font-semibold">{gridAnalysis.totalWords}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Theme Answers:</span>
+                          <span className="font-semibold">{themers.length}</span>
+                        </div>
+                      </div>
+                    </div>
+                     <div className="space-y-2">
+                        <Label className="text-base font-semibold">Theme Answers</Label>
+                         <div className="space-y-2">
+                            {themers.map(clue => (
+                                <div key={`${clue.number}-${clue.direction}`} className="flex items-center gap-4 rounded-md border p-2 bg-muted/30">
+                                    <span className="font-mono text-sm text-muted-foreground w-24">{clue.number} {clue.direction} ({clue.length})</span>
+                                    <span className="font-mono uppercase tracking-widest text-sm font-medium">{crossword.getWordFromGrid(clue).replace(/_/g, ' ')}</span>
+                                </div>
+                            ))}
+                            {themers.length === 0 && <p className="text-sm text-muted-foreground text-center p-4">No theme answers provided.</p>}
+                        </div>
+                    </div>
+                  </div>
+                  <div>
+                     <Label className="text-base font-semibold">Final Grid</Label>
+                     <div className="mt-2">
+                        <CrosswordGrid
+                          grid={crossword.grid}
+                          size={size}
+                          onCellClick={() => {}}
+                          onCharChange={() => {}}
+                          selectedClue={null}
+                          currentClueDetails={null}
+                          onSelectClue={() => {}}
+                          designMode={true} // Read-only view
+                        />
+                     </div>
+                  </div>
+                </div>
+              )}
               </CardContent>
           </Card>
         </div>
@@ -497,8 +561,3 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
-
-    
-
-    
-
