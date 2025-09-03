@@ -145,6 +145,21 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     const longest = allClues.length > 0 ? allClues[0].length : 0;
     return allClues.filter(c => c.length >= Math.max(7, longest - 2));
   }, [crossword.clues, step]);
+  
+  const gridAnalysis = useMemo(() => {
+    const totalSquares = crossword.size * crossword.size;
+    const blackSquares = crossword.grid.flat().filter(cell => cell.isBlack).length;
+    const totalWords = crossword.clues.across.length + crossword.clues.down.length;
+    const totalWordLetters = crossword.clues.across.reduce((sum, clue) => sum + clue.length, 0) + crossword.clues.down.reduce((sum, clue) => sum + clue.length, 0);
+
+    return {
+      blackSquarePercentage: totalSquares > 0 ? (blackSquares / totalSquares) * 100 : 0,
+      totalWords: totalWords,
+      averageWordLength: totalWords > 0 ? totalWordLetters / totalWords : 0,
+      wordDensity: totalSquares > 0 ? ((totalSquares - blackSquares) / totalWords) : 0,
+    };
+  }, [crossword.grid, crossword.clues, crossword.size]);
+
 
   const CurrentStepDescription = () => {
     switch (step) {
@@ -284,7 +299,6 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                      </div>
                       <div className="col-span-1 flex flex-col gap-4">
                          <div className="space-y-2 flex-1 flex flex-col min-h-0">
-                            <Label>Randomizers</Label>
                             <ScrollArea className="border rounded-md flex-1">
                                 <div className="p-2 space-y-1">
                                     {TEMPLATES.map(template => (
@@ -295,6 +309,15 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                                     ))}
                                 </div>
                             </ScrollArea>
+                         </div>
+                         <div className="space-y-2">
+                             <Label>Analysis</Label>
+                             <div className="text-sm text-muted-foreground border rounded-md p-3 space-y-2">
+                                 <div className="flex justify-between"><span>Total Words:</span> <span className="font-medium text-foreground">{gridAnalysis.totalWords}</span></div>
+                                 <div className="flex justify-between"><span>Black Square %:</span> <span className="font-medium text-foreground">{gridAnalysis.blackSquarePercentage.toFixed(1)}%</span></div>
+                                 <div className="flex justify-between"><span>Word Density:</span> <span className="font-medium text-foreground">{gridAnalysis.wordDensity.toFixed(2)}</span></div>
+                                 <div className="flex justify-between"><span>Avg Word Length:</span> <span className="font-medium text-foreground">{gridAnalysis.averageWordLength.toFixed(2)}</span></div>
+                             </div>
                          </div>
                           <div className="flex flex-col gap-2">
                             <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Reset</Button>
@@ -373,7 +396,5 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
-
-    
 
     
