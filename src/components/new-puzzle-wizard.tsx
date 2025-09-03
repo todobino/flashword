@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -231,7 +232,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
               )}
               {step === 2 && (
                   <div className="space-y-4 flex flex-col items-center">
-                      <div className="w-full max-w-2xl">
+                      <div className="w-full max-w-xl">
                           <CrosswordGrid
                               grid={crossword.grid}
                               size={size}
@@ -243,7 +244,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
                               designMode={true}
                           />
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 justify-center">
                           <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Reset</Button>
                           <Button variant="outline" onClick={handleRandomize}><Shuffle className="mr-2 h-4 w-4" /> Randomize</Button>
                       </div>
