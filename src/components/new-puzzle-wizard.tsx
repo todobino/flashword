@@ -49,14 +49,14 @@ const SizeTile = ({ s, label, isSelected, onSelect }: { s: number, label: string
     <div
       onClick={() => onSelect(s)}
       className={cn(
-        'border-2 rounded-lg p-4 flex flex-row items-center justify-start gap-4 cursor-pointer transition-colors',
+        'border-2 rounded-lg p-4 flex flex-col items-center justify-center gap-4 cursor-pointer transition-colors',
         isSelected ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
       )}
     >
       <div className="grid grid-cols-4 gap-0.5 w-12 h-12 bg-muted-foreground/20 shrink-0">
         {Array(16).fill(0).map((_, i) => <div key={i} className="bg-background" />)}
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col text-center">
         <span className="font-semibold">{s} x {s}</span>
         <span className="text-xs text-muted-foreground">{label}</span>
       </div>
@@ -411,5 +411,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
 
     
