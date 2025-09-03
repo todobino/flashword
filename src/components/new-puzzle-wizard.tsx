@@ -290,12 +290,28 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
             </div>
 
             {/* Stepper */}
-            <ol className="flex items-center w-full">
-              {WIZARD_STEPS.map((s, index) => (
-                <li key={s.step} className={cn("flex w-full items-center", { "text-primary": step >= s.step }, index !== WIZARD_STEPS.length - 1 && "after:content-[''] after:w-full after:h-1 after:border-b after:border-border after:border-4 after:inline-block", { 'after:border-primary': step > s.step })}>
-                  <span className={cn("flex items-center justify-center w-10 h-10 rounded-full shrink-0 border-2", step >= s.step ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-border")}>
+            <ol className="flex w-full items-center justify-between gap-3">
+              {WIZARD_STEPS.map((s, i) => (
+                <li key={s.step} className="flex flex-1 items-center">
+                  <span
+                    className={cn(
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2",
+                      step >= s.step
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-muted text-muted-foreground"
+                    )}
+                  >
                     {s.step}
                   </span>
+
+                  {i < WIZARD_STEPS.length - 1 && (
+                    <span
+                      className={cn(
+                        "ml-3 h-0.5 w-full rounded-full bg-border",
+                        step > s.step && "bg-primary"
+                      )}
+                    />
+                  )}
                 </li>
               ))}
             </ol>
