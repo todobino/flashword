@@ -327,7 +327,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                     <Button variant="outline" size="icon" onClick={handleBack} disabled={step === 1}>
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
-                    <Button onClick={handleNext}>
+                    <Button onClick={handleNext} disabled={step === 3 && !crossword.title}>
                         <span>{step === WIZARD_STEPS.length ? 'Start Building' : 'Next'}</span>
                         <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
