@@ -51,10 +51,10 @@ const SizeTile = ({ s, label, isSelected, onSelect }: { s: number, label: string
 }
 
 const WIZARD_STEPS = [
-  { step: 1, title: 'Choose your grid size.' },
-  { step: 2, title: 'Design your grid pattern.' },
-  { step: 3, title: 'Define your puzzle theme.' },
-  { step: 4, title: 'Build your puzzle.' }
+  { step: 1, title: 'Choose Grid Size' },
+  { step: 2, title: 'Design Pattern' },
+  { step: 3, title: 'Define Theme' },
+  { step: 4, title: 'Build Puzzle' }
 ];
 
 
@@ -223,21 +223,46 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center bg-background p-4">
         <div className="w-full max-w-7xl grid gap-8 md:grid-cols-2">
-          <div className="flex-col justify-center space-y-4 hidden md:flex">
-              <div className="bg-card border rounded-lg p-6">
-                  <CardTitle className="mb-2">Create a New Crossword</CardTitle>
-                  <CardDescription>
-                      Step {step} of 4: {WIZARD_STEPS[step - 1].title}
-                  </CardDescription>
-              </div>
-              <div className="text-sm text-muted-foreground p-4">
+          {/* Left Column */}
+          <div className="flex flex-col justify-center space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight">Create a New Crossword</h2>
+            </div>
+
+            {/* Stepper */}
+            <ol className="flex items-center w-full">
+              {WIZARD_STEPS.map((s, index) => (
+                <li key={s.step} className={cn("flex w-full items-center", { "text-primary": step >= s.step }, { "after:content-[''] after:w-full after:h-1 after:border-b after:border-4 after:inline-block": index < WIZARD_STEPS.length - 1 }, { 'after:border-primary': step > s.step }, { 'after:border-border': step <= s.step })}>
+                  <span className={cn("flex items-center justify-center w-10 h-10 rounded-full lg:h-12 lg:w-12 shrink-0", step >= s.step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                    {s.step}
+                  </span>
+                </li>
+              ))}
+            </ol>
+            
+            <div>
+              <p className="text-sm text-muted-foreground">Step {step} of 4</p>
+              <h3 className="text-xl font-semibold mt-1">{WIZARD_STEPS[step - 1].title}</h3>
+              <div className="text-sm text-muted-foreground mt-4">
                 <CurrentStepDescription />
               </div>
+            </div>
+
+            <div className="flex justify-between pt-4">
+              <Button variant="outline" onClick={handleBack} disabled={step === 1}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />Back
+              </Button>
+              <Button onClick={handleNext}>
+                  {step === 3 ? 'Finish & Build' : 'Next'}<ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <Card className="overflow-hidden">
-              <CardContent className="p-6">
+
+          {/* Right Column */}
+          <Card className="overflow-hidden shadow-lg">
+              <CardContent className="p-6 h-full flex items-center justify-center">
               {step === 1 && (
-                  <div className="flex flex-col gap-4 items-center">
+                  <div className="flex flex-col gap-4 items-center w-full">
                       <div className="grid grid-cols-2 md:grid-cols-2 gap-4 w-full p-4">
                           {SIZES.map(s => (
                           <SizeTile key={s.size} s={s.size} label={s.label} isSelected={size === s.size} onSelect={handleSizeSelect} />
@@ -266,7 +291,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
                   </div>
               )}
               {step === 3 && (
-                   <div className="space-y-6">
+                   <div className="space-y-6 w-full">
                       <div className="space-y-2">
                           <Label htmlFor="puzzle-title">Puzzle Title</Label>
                           <Input id="puzzle-title" placeholder="e.g., Sunday Special" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -291,14 +316,6 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
                    </div>
               )}
               </CardContent>
-              <CardFooter className={cn("flex justify-between bg-muted/50 p-4 border-t")}>
-                  <Button variant="outline" onClick={handleBack} disabled={step === 1}>
-                      <ArrowLeft className="mr-2 h-4 w-4" />Back
-                  </Button>
-                  <Button onClick={handleNext}>
-                      {step === 3 ? 'Finish & Build' : 'Next'}<ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-              </CardFooter>
           </Card>
         </div>
       </main>
@@ -341,7 +358,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
           </Button>
           <Button variant="outline" size="sm" title="Export to PDF (coming soon)" disabled>
             <Download className="h-4 w-4" />
-             <span className="sr-only sm:not-sr-only sm-ml-2">Export</span>
+             <span className="sr-only sm:not-sr-only sm:ml-2">Export</span>
           </Button>
           <Button size="sm" onClick={handleVerify} disabled={isVerifying} title="Verify Puzzle">
             {isVerifying ? <LoaderCircle className="animate-spin" /> : <CheckCircle />}
