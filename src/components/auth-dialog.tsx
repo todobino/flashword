@@ -43,7 +43,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       }
       onOpenChange(false);
     } catch (err: any) {
-      if (action === 'login' && err.code === 'auth/user-not-found') {
+      if (action === 'login' && err.code === 'auth/invalid-credential') {
         setError('No Account Found. Please Sign Up.');
       } else {
         setError(err.message);
