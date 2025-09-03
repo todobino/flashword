@@ -17,8 +17,8 @@ export const useCrosswordStore = create<CrosswordState>()(
       clearPuzzle: () => set({ puzzle: null }),
     }),
     {
-      name: 'crossword-storage', // name of the item in the storage (must be unique)
-      storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
+      name: 'crossword-storage', 
+      storage: createJSONStorage(() => localStorage), 
     }
   )
 );

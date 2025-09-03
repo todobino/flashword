@@ -12,12 +12,12 @@ export default function NewPuzzlePage() {
 
     const handleStartBuilder = (puzzle: Puzzle) => {
         setPuzzle(puzzle);
-        router.push('/');
+        router.push('/builder');
     };
 
     const handleLoad = (puzzle: Puzzle) => {
         setPuzzle(puzzle);
-        router.push('/');
+        router.push('/builder');
     };
     
     return (

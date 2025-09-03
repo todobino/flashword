@@ -2,9 +2,10 @@
 'use client';
 
 import { useState, useMemo, useEffect, Fragment } from 'react';
-import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle, Check } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -86,22 +87,14 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
 
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const auth = getAuth(app);
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      if (!user) return;
-      const ref = doc(db, "users", user.uid);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
-        await setDoc(ref, {
-          email: user.email,
-          displayName: user.displayName ?? null,
-          photoURL: user.photoURL ?? null,
-          puzzleIds: [],
-          createdAt: serverTimestamp(),
-        });
+      if (user) {
+        setIsAuthDialogOpen(false);
       }
     });
     return () => unsubscribe();
@@ -261,12 +254,6 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     }
   }
 
-  const handleLogout = async () => {
-    const auth = getAuth(app);
-    await signOut(auth);
-    toast({ title: 'Logged out successfully.' });
-  };
-  
   const handleLoadPuzzle = async () => {
     if (!user) {
         toast({ variant: "destructive", title: "Login Required", description: "You must be logged in to load a puzzle." });
@@ -503,7 +490,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                         </div>
                     </div>
                   </div>
-                  <div>
+                  <div className="w-full min-w-0">
                      <Label className="text-base font-semibold">Final Grid</Label>
                      <div className="mt-2">
                         <CrosswordGrid
@@ -535,22 +522,10 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setStep(1)} title="New Puzzle">
-            <FilePlus className="h-4 w-4" />
-            <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleLoadPuzzle} disabled={!user} title="Load Puzzle">
-            <FolderOpen className="h-4 w-4" />
-            <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
-          </Button>
-           {user ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
-              <Button variant="outline" size="sm" onClick={handleLogout} title="Logout">
-                <LogOut className="h-4 w-4" />
-                 <span className="sr-only sm:not-sr-only sm:ml-2">Logout</span>
-              </Button>
-            </div>
+          {user ? (
+            <Button variant="outline" size="sm" asChild>
+                <Link href="/home">My Puzzles</Link>
+            </Button>
           ) : (
             <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login" variant="default">
                 <LogIn className="h-4 w-4" />
@@ -566,5 +541,3 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
-
-    

@@ -1,9 +1,11 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Download, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut, FilePlus, FolderOpen, Copy } from 'lucide-react';
+import { Download, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut, FilePlus, FolderOpen, Copy, Home } from 'lucide-react';
 import { useCrossword } from '@/hooks/use-crossword';
 import { CrosswordGrid } from '@/components/crossword-grid';
 import { ClueLists } from '@/components/clue-lists';
@@ -14,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Puzzle } from '@/lib/types';
 import { AuthDialog } from '@/components/auth-dialog';
 import { app, db } from '@/lib/firebase';
+import { useRouter } from 'next/navigation';
 
 interface CrosswordBuilderProps {
   puzzle: Puzzle;
@@ -28,23 +31,12 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
   const [isVerifying, setIsVerifying] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const auth = getAuth(app);
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
-      if (!user) return;
-      const ref = doc(db, "users", user.uid);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) {
-        await setDoc(ref, {
-          email: user.email,
-          displayName: user.displayName ?? null,
-          photoURL: user.photoURL ?? null,
-          puzzleIds: [],
-          createdAt: serverTimestamp(),
-        });
-      }
     });
     return () => unsubscribe();
   }, []);
@@ -60,6 +52,7 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
     const auth = getAuth(app);
     await signOut(auth);
     toast({ title: 'Logged out successfully.' });
+    router.push('/');
   };
   
   const handleVerify = async () => {
@@ -120,8 +113,13 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
           <LogoIcon className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
            {user ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
+            <div className="flex items-center gap-2 ml-4">
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/home">
+                  <Home className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only sm:ml-2">My Puzzles</span>
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" onClick={handleLogout} title="Logout">
                 <LogOut className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:ml-2">Logout</span>
@@ -139,7 +137,7 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
             <FilePlus className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={crossword.savePuzzle} disabled={!user} title="Save Puzzle">
+          <Button variant="outline" size="sm" onClick={() => crossword.savePuzzle(false)} disabled={!user} title="Save Puzzle">
             <Save className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
           </Button>

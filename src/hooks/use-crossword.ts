@@ -168,8 +168,11 @@ export const useCrossword = (
             };
             const puzzleRef = await addDoc(collection(db, "puzzles"), puzzleWithCreateTime);
             setPuzzleId(puzzleRef.id);
+            
+            // This might be the first time the user is saved, so use set with merge
             const userRef = doc(db, "users", user.uid);
-            await updateDoc(userRef, { puzzleIds: arrayUnion(puzzleRef.id) });
+            await setDoc(userRef, { puzzleIds: arrayUnion(puzzleRef.id) }, { merge: true });
+            
             toast({ title: "Puzzle Saved!", description: "Your crossword has been saved to Firestore." });
         }
     } catch (e) {
@@ -283,7 +286,7 @@ export const useCrossword = (
           blackSquareTarget = 0.15;
           break;
         default:
-          blackSquareTarget = 0.16; // Default case
+          blackSquareTarget = 0.20; 
       }
 
       const pattern = generatePattern(size, blackSquareTarget);
@@ -326,5 +329,3 @@ export const useCrossword = (
     fillWord,
   };
 };
-
-    
