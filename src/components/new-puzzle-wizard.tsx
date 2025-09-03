@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from './auth-dialog';
 import { app, db } from '@/lib/firebase';
-import type { Puzzle } from '@/lib/types';
+import type { Puzzle, TemplateName } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { Slider } from './ui/slider';
@@ -37,7 +37,7 @@ const SIZES = [
 ];
 
 
-const TEMPLATES = [
+const TEMPLATES: { name: TemplateName, description: string }[] = [
     { name: 'Classic', description: 'A standard, widely-used symmetric pattern.'},
     { name: 'Blocked', description: 'Higher density of black squares, easier to fill.'},
     { name: 'Wide Open', description: 'Very few black squares, for a challenging construction.' },
@@ -133,8 +133,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     crossword.resetGrid(size);
   }
 
-  const handleRandomize = () => {
-    crossword.randomizeGrid();
+  const handleRandomize = (templateName: TemplateName) => {
+    crossword.randomizeGrid(templateName);
   }
   
   const themers = useMemo(() => {
@@ -283,8 +283,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   </div>
               )}
               {step === 2 && (
-                   <div className="grid md:grid-cols-[minmax(0,1fr)_16rem] gap-4 sm:gap-5 h-full justify-items-start items-start">
-                     <div className="w-full">
+                   <div className="grid md:grid-cols-[auto_16rem] gap-4 sm:gap-5 h-full content-start justify-items-start items-start">
+                     <div className="justify-self-start self-start">
                         <CrosswordGrid
                            grid={crossword.grid}
                            size={size}
@@ -302,7 +302,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                             <ScrollArea className="border rounded-md flex-1">
                                 <div className="p-2 space-y-1">
                                     {TEMPLATES.map(template => (
-                                        <div key={template.name} className="p-2 rounded-md hover:bg-muted cursor-pointer" onClick={handleRandomize}>
+                                        <div key={template.name} className="p-2 rounded-md hover:bg-muted cursor-pointer" onClick={() => handleRandomize(template.name)}>
                                             <h4 className="font-semibold">{template.name}</h4>
                                             <p className="text-xs text-muted-foreground">{template.description}</p>
                                         </div>
@@ -396,6 +396,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
 
     
 

@@ -1,3 +1,4 @@
+
 // --- PRNG (seedable) ---
 function mulberry32(a: number) {
   return function() {
@@ -80,12 +81,13 @@ function whitesConnected(n:number, g:Grid): boolean {
 
 export type Pattern = { grid: string[], blackPct: number };
 
-export function generatePattern(n: 15|17|19|21, seed?: number): Pattern {
+export function generatePattern(n: 15|17|19|21, blackSquareTarget = 0.16, seed?: number): Pattern {
   const rng = seed!==undefined ? mulberry32(seed>>>0) : mulberry32((Math.random()*1e9)|0);
   let g: Grid = new Uint8Array(n*n); // start all white
   const total = n*n;
-  const window = { lo: Math.round(total*0.14), hi: Math.round(total*0.18) };
-  let target = Math.round(total*0.16);
+  const window = { lo: Math.round(total * (blackSquareTarget - 0.02)), hi: Math.round(total * (blackSquareTarget + 0.02)) };
+  let target = Math.round(total * blackSquareTarget);
+
   if (target % 2) target += 1;
 
   // candidate positions (unique half, to respect symmetry)
@@ -133,3 +135,5 @@ export function generatePattern(n: 15|17|19|21, seed?: number): Pattern {
 
   return { grid: toStrings(n,g), blackPct: bCount/total };
 }
+
+    

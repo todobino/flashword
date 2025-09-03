@@ -1,3 +1,4 @@
+
 export interface Cell {
   row: number;
   col: number;
@@ -17,6 +18,8 @@ export interface Clue {
   length: number;
 }
 
+export type TemplateName = 'Classic' | 'Blocked' | 'Wide Open';
+
 export interface Puzzle {
   id?: string;
   title: string;
@@ -27,3 +30,5 @@ export interface Puzzle {
   };
   size: number;
 }
+
+    
