@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useEffect, KeyboardEvent, useState } from 'react';
@@ -188,7 +189,7 @@ export function CrosswordGrid({
 
   return (
     <div className={cn(
-        "relative aspect-square w-full max-w-[calc(100vh-12rem)] rounded-md overflow-hidden bg-card",
+        "relative aspect-square w-full max-w-[calc(100vh-12rem)] overflow-hidden bg-card",
         !designMode && "shadow-lg"
     )} onMouseLeave={handleMouseUp}>
       <div
