@@ -221,6 +221,11 @@ export function CrosswordGrid({
                     {cell.number}
                   </span>
                 )}
+                {designMode && !cell.isBlack && cell.char && (
+                    <span className="text-base md:text-lg font-semibold uppercase text-foreground select-none">
+                        {cell.char}
+                    </span>
+                )}
                 {!designMode && !cell.isBlack && (
                   <input
                     ref={(el) => {
