@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { Download, Save, CheckCircle, LoaderCircle, LogIn, LogOut, ArrowLeft, ArrowRight, RotateCw, Shuffle, FilePlus, FolderOpen } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Shuffle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LogoIcon } from '@/components/icons';
 import { useCrossword } from '@/hooks/use-crossword';
-import type { Clue } from '@/lib/types';
 import { CrosswordGrid } from './crossword-grid';
 import { cn } from '@/lib/utils';
 import { ClueLists } from './clue-lists';
@@ -219,7 +218,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
           </div>
 
           {/* Right Column */}
-          <Card className="overflow-hidden shadow-lg w-full max-w-lg mx-auto md:justify-self-center self-start max-h-[calc(100vh-12rem)] overflow-auto">
+          <Card className="overflow-hidden shadow-lg w-full max-w-2xl mx-auto md:justify-self-center self-start max-h-[calc(100vh-12rem)] overflow-auto">
               <CardContent className="p-6 flex flex-col items-center">
               {step === 1 && (
                   <div className="flex flex-col gap-4 items-center w-full">
@@ -231,25 +230,35 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
                   </div>
               )}
               {step === 2 && (
-                  <div className="space-y-4 flex flex-col items-center">
-                      <div className="w-full max-w-xl">
-                          <CrosswordGrid
-                              grid={crossword.grid}
-                              size={size}
-                              onCellClick={crossword.toggleCellBlack}
-                              onCharChange={() => {}}
-                              selectedClue={null}
-                              currentClueDetails={null}
-                              onSelectClue={() => {}}
-                              designMode={true}
-                          />
-                      </div>
-                      <div className="flex gap-2 justify-center">
-                          <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Reset</Button>
-                          <Button variant="outline" onClick={handleRandomize}><Shuffle className="mr-2 h-4 w-4" /> Randomize</Button>
-                      </div>
-                  </div>
-              )}
+                   <div className="space-y-4 flex flex-col items-center w-full">
+                     {/* The inner box is a perfect square whose side is:
+                         min(720px, viewport height minus copy/buttons/padding, full width) */}
+                     <div className="w-full flex justify-center">
+                       <div
+                         className="aspect-square"
+                         style={{
+                           width: 'min(720px, calc(100vh - 20rem), 100%)',
+                           height: 'min(720px, calc(100vh - 20rem), 100%)',
+                         }}
+                       >
+                         <CrosswordGrid
+                           grid={crossword.grid}
+                           size={size}
+                           onCellClick={crossword.toggleCellBlack}
+                           onCharChange={() => {}}
+                           selectedClue={null}
+                           currentClueDetails={null}
+                           onSelectClue={() => {}}
+                           designMode={true}
+                         />
+                       </div>
+                     </div>
+                     <div className="flex gap-2 justify-center">
+                       <Button variant="outline" onClick={handleReset}><RotateCw className="mr-2 h-4 w-4" /> Reset</Button>
+                       <Button variant="outline" onClick={handleRandomize}><Shuffle className="mr-2 h-4 w-4" /> Randomize</Button>
+                     </div>
+                   </div>
+                 )}
               {step === 3 && (
                    <div className="space-y-6 w-full">
                       <div className="space-y-2">
@@ -290,13 +299,13 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
         </div>
         <div className="flex items-center gap-2">
-           <Button variant="outline" size="sm" onClick={() => setStep(1)} title="New Puzzle">
+          <Button variant="outline" size="sm" onClick={() => setStep(1)} title="New Puzzle">
             <FilePlus className="h-4 w-4" />
-             <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
+            <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
           </Button>
           <Button variant="outline" size="sm" onClick={() => crossword.loadPuzzle(() => setStep(4))} title="Load Puzzle">
             <FolderOpen className="h-4 w-4" />
-             <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
+            <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
           </Button>
           {user ? (
             <div className="flex items-center gap-2">
