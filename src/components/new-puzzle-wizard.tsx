@@ -466,7 +466,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                    </div>
               )}
                {step === 4 && (
-                <div className="grid gap-8 md:grid-cols-2">
+                <div className="grid gap-6 md:grid-cols-[16rem_minmax(340px,1fr)]">
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <Label className="text-base font-semibold">Summary</Label>
@@ -566,3 +566,5 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
