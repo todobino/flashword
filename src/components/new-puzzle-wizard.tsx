@@ -307,7 +307,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
 
   return (
     <div className="flex flex-col h-screen font-body text-foreground bg-background">
-      <header className="flex items-center justify-between p-4 border-b shrink-0">
+      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-background">
         <div className="flex items-center gap-3">
           <LogoIcon className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
@@ -341,7 +341,7 @@ export function NewPuzzleWizard({}: NewPuzzleWizardProps) {
           </Button>
           <Button variant="outline" size="sm" title="Export to PDF (coming soon)" disabled>
             <Download className="h-4 w-4" />
-             <span className="sr-only sm:not-sr-only sm:ml-2">Export</span>
+             <span className="sr-only sm:not-sr-only sm-ml-2">Export</span>
           </Button>
           <Button size="sm" onClick={handleVerify} disabled={isVerifying} title="Verify Puzzle">
             {isVerifying ? <LoaderCircle className="animate-spin" /> : <CheckCircle />}
