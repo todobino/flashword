@@ -284,7 +284,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
       <main className="flex-1 bg-background py-6 lg:py-8 px-2 sm:px-3">
         <div className="w-full max-w-[min(95vw,1600px)] mx-auto grid gap-8 md:grid-cols-5">
           {/* Left Column */}
-          <div className="flex flex-col justify-start space-y-6 md:col-span-2">
+          <div className="flex flex-col justify-start space-y-6 md:col-span-2 md:sticky md:top-6 md:self-start">
             
             {/* Stepper */}
             <ol className="flex w-full items-center">
