@@ -252,7 +252,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
 
           {/* Right Column */}
           <Card className="overflow-hidden shadow-lg w-full self-start md:col-span-2">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-5">
               {step === 1 && (
                   <div className="flex flex-col gap-6 w-full">
                       <div>
@@ -283,7 +283,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   </div>
               )}
               {step === 2 && (
-                   <div className="grid md:grid-cols-[1fr_auto] gap-6 h-full">
+                   <div className="grid md:grid-cols-[minmax(0,1fr)_16rem] gap-4 sm:gap-5 h-full justify-items-start items-start">
                      <div className="w-full">
                         <CrosswordGrid
                            grid={crossword.grid}
@@ -296,7 +296,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                            designMode={true}
                          />
                      </div>
-                      <div className="w-full md:w-64 flex flex-col gap-4">
+                      <div className="flex flex-col gap-4">
                         <div className="space-y-2">
                             <Label>Randomizers</Label>
                             <ScrollArea className="border rounded-md flex-1">
@@ -396,5 +396,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
 
     
