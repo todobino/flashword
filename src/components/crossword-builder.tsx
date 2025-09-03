@@ -91,8 +91,6 @@ export function CrosswordBuilder({ initialPuzzle }: CrosswordBuilderProps) {
         <div className="flex items-center gap-3">
           <LogoIcon className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
-        </div>
-        <div className="flex items-center gap-2">
            {user ? (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
@@ -102,11 +100,13 @@ export function CrosswordBuilder({ initialPuzzle }: CrosswordBuilderProps) {
               </Button>
             </div>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login">
+            <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login">
               <LogIn className="h-4 w-4" />
               <span className="sr-only sm:not-sr-only sm:ml-2">Login</span>
             </Button>
           )}
+        </div>
+        <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={crossword.savePuzzle} title="Save Puzzle">
             <Save className="h-4 w-4" />
              <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
