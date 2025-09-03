@@ -195,10 +195,11 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
               <h2 className="text-2xl font-bold tracking-tight">Create Crossword</h2>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={handleBack} disabled={step === 1}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />Back
+                    <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <Button onClick={handleNext}>
-                    {step === WIZARD_STEPS.length ? 'Start Building' : 'Next'}<ArrowRight className="ml-2 h-4 w-4" />
+                    <span>{step === WIZARD_STEPS.length ? 'Start Building' : 'Next'}</span>
+                    <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -337,3 +338,5 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
