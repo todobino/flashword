@@ -46,7 +46,11 @@ export function PuzzlePreviewDialog({ isOpen, onOpenChange, puzzle }: PuzzlePrev
                             ))}
                             </ol>
                         </div>
-                        <div>
+                    </div>
+
+                    <div className="col-span-1 space-y-6">
+                        <CrosswordGridPreview grid={puzzle.grid} size={puzzle.size} />
+                        <div className="text-sm leading-relaxed">
                             <h3 className="text-base font-bold tracking-wider uppercase border-b pb-2 mb-2">Down</h3>
                             <ol className="space-y-1.5 column-count-2 column-gap-6">
                             {puzzle.clues.down.map(clue => (
@@ -57,10 +61,6 @@ export function PuzzlePreviewDialog({ isOpen, onOpenChange, puzzle }: PuzzlePrev
                             ))}
                             </ol>
                         </div>
-                    </div>
-
-                    <div className="col-span-1">
-                        <CrosswordGridPreview grid={puzzle.grid} size={puzzle.size} />
                     </div>
                 </div>
             </div>
