@@ -6,7 +6,7 @@ import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle, Check, LayoutGrid, Blocks, Feather } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,10 +40,10 @@ const SIZES = [
 ];
 
 
-const TEMPLATES: { name: TemplateName, description: string }[] = [
-    { name: 'Classic', description: 'A standard, widely-used symmetric pattern.'},
-    { name: 'Blocked', description: 'Higher density of black squares, easier to fill.'},
-    { name: 'Wide Open', description: 'Very few black squares, for a challenging construction.' },
+const TEMPLATES: { name: TemplateName, description: string, icon: React.ElementType }[] = [
+    { name: 'Classic', description: 'A standard, widely-used symmetric pattern.', icon: LayoutGrid},
+    { name: 'Blocked', description: 'Higher density of black squares, easier to fill.', icon: Blocks},
+    { name: 'Wide Open', description: 'Very few black squares, for a challenging construction.', icon: Feather },
 ];
 
 
@@ -371,11 +371,14 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                           {TEMPLATES.map(template => (
                             <div
                               key={template.name}
-                              className="p-2 rounded-md hover:bg-muted cursor-pointer"
+                              className="p-2 rounded-md hover:bg-muted cursor-pointer flex items-center gap-3"
                               onClick={() => handleRandomize(template.name)}
                             >
-                              <h4 className="font-semibold">{template.name}</h4>
-                              <p className="text-xs text-muted-foreground">{template.description}</p>
+                               <template.icon className="h-6 w-6 text-primary shrink-0" />
+                               <div>
+                                <h4 className="font-semibold">{template.name}</h4>
+                                <p className="text-xs text-muted-foreground">{template.description}</p>
+                               </div>
                             </div>
                           ))}
                         </div>
@@ -542,3 +545,5 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
