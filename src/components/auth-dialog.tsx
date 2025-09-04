@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,203 +14,145 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { LoaderCircle, User } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 
 interface AuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-type AuthStep = 'initial' | 'loading' | 'login' | 'signup';
-
 export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [step, setStep] = useState<AuthStep>('initial');
+  const [activeTab, setActiveTab] = useState('login');
   const { toast } = useToast();
   const auth = getAuth(app);
 
-  const handleEmailCheck = async () => {
-    const normalized = email.trim().toLowerCase();
-    setEmail(normalized);
-
+  const handleLogin = async () => {
     setIsLoading(true);
     setError(null);
-    setStep('loading');
-
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, normalized);
-
-      // 🔎 Prove what project/env you’re using and what Firebase returns
-      // eslint-disable-next-line no-console
-      console.table({
-        email: normalized,
-        methods: JSON.stringify(methods),
-        projectId: auth.app.options?.projectId,
-        authDomain: (auth.app.options as any)?.authDomain,
-        apiKey: (auth.app.options as any)?.apiKey?.slice?.(0, 6) + '…',
-      });
-
-      if (methods.includes('password')) {
-        setStep('login');            // existing email+password account
-      } else if (methods.length > 0) {
-        setError(`This email is registered with: ${methods.join(', ')}. Use that method.`);
-        setStep('initial');
-      } else {
-        setStep('signup');           // no account found in THIS project/env
-      }
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({ title: 'Login successful!', description: 'Welcome back.' });
+      onOpenChange(false);
     } catch (err: any) {
-      setError(err?.code === 'auth/invalid-email'
-        ? 'Please enter a valid email address.'
-        : 'Could not verify email. Please try again.'
-      );
-      setStep('initial');
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+        setError('Invalid credentials. Please check your email or password.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email. Please register instead.');
+      } else {
+        setError(err.message || 'An unexpected error occurred.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAuth = async () => {
+  const handleRegister = async () => {
     setIsLoading(true);
     setError(null);
-    
-    if (step !== 'login' && step !== 'signup') {
-      setError('Please check your email first.');
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      if (step === 'signup') {
-        await createUserWithEmailAndPassword(auth, email, password);
-        toast({ title: 'Account created!', description: 'You have been logged in.' });
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        toast({ title: 'Login successful!', description: 'Welcome back.' });
-      }
+      await createUserWithEmailAndPassword(auth, email, password);
+      toast({ title: 'Account created!', description: 'You have been successfully registered and logged in.' });
       onOpenChange(false);
     } catch (err: any) {
-        if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
-            setError('Invalid credentials. Please check your email or password.');
-        } else {
-            setError(err.message);
-        }
+      if (err.code === 'auth/email-already-in-use') {
+        setError('An account with this email already exists. Please log in instead.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password is too weak. It should be at least 6 characters long.');
+      } else {
+        setError(err.message || 'An unexpected error occurred during registration.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
   
-  const resetFlow = () => {
+  const resetForm = () => {
       setEmail('');
       setPassword('');
       setError(null);
-      setStep('initial');
-  }
+      setIsLoading(false);
+  };
   
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
-      resetFlow();
+      resetForm();
     }
     onOpenChange(isOpen);
+  };
+  
+  const handleTabChange = (tab: string) => {
+      setActiveTab(tab);
+      resetForm();
   }
 
-  const renderContent = () => {
-    if (step === 'loading') {
-      return (
-        <div className="flex flex-col items-center justify-center space-y-4 pt-4 min-h-[150px]">
-          <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-lg font-medium">Finding Account...</p>
-        </div>
-      );
-    }
-
-    if (step === 'login' || step === 'signup') {
-      return (
-        <div className="space-y-4 pt-4">
-           <DialogHeader>
-            <DialogTitle>{step === 'login' ? 'Welcome Back!' : 'Welcome to FlashWord!'}</DialogTitle>
-            <DialogDescription className="flex items-center justify-start gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span>{email}</span>
-            </DialogDescription>
-          </DialogHeader>
-           <div className="space-y-2">
-            <Label htmlFor="password">
-              {step === 'login' ? 'Password' : 'Choose Password'}
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-              autoFocus
-            />
-          </div>
-          {error && <p className="text-sm text-destructive text-center col-span-4">{error}</p>}
-           <div className="flex justify-end pt-4">
-              <Button
-                type="button"
-                onClick={handleAuth}
-                disabled={isLoading}
-                className="w-full"
-              >
-                {isLoading && <LoaderCircle className="animate-spin" />}
-                {step === 'login' ? 'Login' : 'Register'}
-              </Button>
-            </div>
-        </div>
-      );
-    }
-
-    // Initial step
-    return (
-        <div className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="email-initial">
-              Email
-            </Label>
-            <Input
-              id="email-initial"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-              placeholder="you@example.com"
-              autoFocus
-            />
-          </div>
-          {error && <p className="text-sm text-destructive text-center col-span-4">{error}</p>}
-          <div className="flex justify-end pt-4">
-              <Button
-                type="button"
-                onClick={handleEmailCheck}
-                disabled={isLoading || !email}
-                className="w-full"
-              >
-                {isLoading && <LoaderCircle className="animate-spin" />}
-                Check Email
-              </Button>
-            </div>
-        </div>
-    );
-  }
+  const renderFormContent = (isLogin: boolean) => (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor={isLogin ? 'email-login' : 'email-register'}>Email</Label>
+        <Input
+          id={isLogin ? 'email-login' : 'email-register'}
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isLoading}
+          autoFocus
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={isLogin ? 'password-login' : 'password-register'}>Password</Label>
+        <Input
+          id={isLogin ? 'password-login' : 'password-register'}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={isLoading}
+        />
+      </div>
+      {error && <p className="text-sm text-center text-destructive">{error}</p>}
+      <div className="pt-2">
+        <Button
+          type="submit"
+          onClick={isLogin ? handleLogin : handleRegister}
+          disabled={isLoading || !email || !password}
+          className="w-full"
+        >
+          {isLoading ? <LoaderCircle className="animate-spin" /> : (isLogin ? 'Login' : 'Register')}
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        {step === 'initial' && (
-            <DialogHeader>
-            <DialogTitle>Authenticate</DialogTitle>
-            <DialogDescription>
-                Enter your email to log in or create an account.
-            </DialogDescription>
-            </DialogHeader>
-        )}
-        {renderContent()}
+        <DialogHeader>
+          <DialogTitle>Authenticate</DialogTitle>
+          <DialogDescription>
+            {activeTab === 'login' 
+              ? 'Log in to your account to manage your puzzles.'
+              : 'Create an account to start building puzzles.'
+            }
+          </DialogDescription>
+        </DialogHeader>
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Login</TabsTrigger>
+            <TabsTrigger value="register">Register</TabsTrigger>
+          </TabsList>
+          <TabsContent value="login" className="pt-4">
+            {renderFormContent(true)}
+          </TabsContent>
+          <TabsContent value="register" className="pt-4">
+            {renderFormContent(false)}
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
