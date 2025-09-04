@@ -56,8 +56,25 @@ export const useCrossword = (
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-
   const { toast } = useToast();
+
+  const resetGrid = useCallback((newSize: number, newGrid?: Grid, newClues?: {across: Entry[], down: Entry[]}, newTitle?: string, newId?: string) => {
+    setSize(newSize);
+    const gridToUpdate = newGrid || createGrid(newSize);
+    setGrid(gridToUpdate);
+    setClues(newClues || { across: [], down: [] });
+    setTitle(newTitle || '');
+    setPuzzleId(newId);
+    updateClues(gridToUpdate, newSize);
+  }, []);
+
+  useEffect(() => {
+    // This effect syncs the hook's internal state with the props passed to it.
+    // It runs whenever the initial puzzle data changes.
+    resetGrid(initialSize, initialGrid, initialClues, initialTitle, initialId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialGrid, initialClues, initialTitle, initialId, initialSize, resetGrid]);
+
 
   const updateClues = useCallback((currentGrid: Grid, currentSize: number) => {
     const newGrid = JSON.parse(JSON.stringify(currentGrid));
@@ -164,43 +181,6 @@ export const useCrossword = (
     }));
   };
 
-  const createAndSaveDraft = async (): Promise<string | undefined> => {
-     if (!user) {
-        toast({ variant: "destructive", title: "Login Required", description: "You must be logged in to save a puzzle." });
-        return;
-    }
-    try {
-        setIsSaving(true);
-        const allEntries = [...clues.across, ...clues.down].map(entry => {
-            return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
-        });
-
-        const puzzleDoc: Omit<PuzzleDoc, 'createdAt' | 'updatedAt' | 'id'> = {
-            owner: user.uid,
-            title: title || "Untitled Puzzle",
-            size,
-            status: "draft",
-            grid: grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
-            entries: allEntries
-        };
-        const userPuzzlesRef = collection(db, "users", user.uid, "puzzles");
-        const newPuzzleRef = await addDoc(userPuzzlesRef, {
-            ...puzzleDoc,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-        });
-        setPuzzleId(newPuzzleRef.id);
-        toast({ title: "Draft Saved!", description: "Your new puzzle has been saved." });
-        setLastSaved(new Date());
-        return newPuzzleRef.id;
-    } catch (e) {
-        console.error("Draft creation failed: ", e);
-        toast({ variant: "destructive", title: "Save Failed", description: "Could not create puzzle draft." });
-    } finally {
-        setIsSaving(false);
-    }
-  }
-
   const getWordFromGrid = useCallback((clue: { number: number; direction: 'across' | 'down' }) => {
     const clueData = [...clues.across, ...clues.down].find(c => c.number === clue.number && c.direction === clue.direction);
     if (!clueData) return '';
@@ -253,6 +233,43 @@ export const useCrossword = (
         setIsSaving(false);
     }
   }, [user, puzzleId, title, size, grid, clues, getWordFromGrid, toast]);
+
+  const createAndSaveDraft = async (): Promise<string | undefined> => {
+     if (!user) {
+        toast({ variant: "destructive", title: "Login Required", description: "You must be logged in to save a puzzle." });
+        return;
+    }
+    try {
+        setIsSaving(true);
+        const allEntries = [...clues.across, ...clues.down].map(entry => {
+            return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
+        });
+
+        const puzzleDoc: Omit<PuzzleDoc, 'createdAt' | 'updatedAt' | 'id'> = {
+            owner: user.uid,
+            title: title || "Untitled Puzzle",
+            size,
+            status: "draft",
+            grid: grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
+            entries: allEntries
+        };
+        const userPuzzlesRef = collection(db, "users", user.uid, "puzzles");
+        const newPuzzleRef = await addDoc(userPuzzlesRef, {
+            ...puzzleDoc,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+        setPuzzleId(newPuzzleRef.id);
+        toast({ title: "Draft Saved!", description: "Your new puzzle has been saved." });
+        setLastSaved(new Date());
+        return newPuzzleRef.id;
+    } catch (e) {
+        console.error("Draft creation failed: ", e);
+        toast({ variant: "destructive", title: "Save Failed", description: "Could not create puzzle draft." });
+    } finally {
+        setIsSaving(false);
+    }
+  }
 
     const debouncedGrid = useDebounce(grid, 1500);
     const debouncedClues = useDebounce(clues, 1500);
@@ -372,15 +389,6 @@ export const useCrossword = (
     return allClues.find(c => c.number === selectedClue.number && c.direction === selectedClue.direction) || null;
   }, [selectedClue, clues]);
 
-  const resetGrid = (newSize: number, newGrid?: Grid, newClues?: {across: Entry[], down: Entry[]}, newTitle?: string, newId?: string) => {
-    setSize(newSize);
-    const gridToUpdate = newGrid || createGrid(newSize);
-    setClues(newClues || { across: [], down: [] });
-    setTitle(newTitle || '');
-    setPuzzleId(newId);
-    updateClues(gridToUpdate, newSize);
-  };
-
   const randomizeGrid = useCallback((templateName: TemplateName = 'Classic') => {
     try {
       let blackSquareTarget: number;
@@ -439,3 +447,5 @@ export const useCrossword = (
 
   return { crossword, isSaving, lastSaved };
 };
+
+    
