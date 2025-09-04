@@ -15,11 +15,14 @@ const ThemeAnswerSchema = z.object({
   number: z.number().describe('The clue number.'),
   direction: z.enum(['across', 'down']).describe('The direction of the answer.'),
   length: z.number().describe('The length of the answer word.'),
+  row: z.number().describe('The starting row of the answer.'),
+  col: z.number().describe('The starting column of the answer.'),
 });
 
 const ThemeGenerationInputSchema = z.object({
   description: z.string().describe('A description of the desired theme for the puzzle.'),
   answers: z.array(ThemeAnswerSchema).describe('An array of the available theme answer slots in the grid.'),
+  puzzleGrid: z.array(z.array(z.string())).describe('The crossword grid layout, with "." for black squares and letters or spaces for white squares. This is used to check for intersections.'),
 });
 export type ThemeGenerationInput = z.infer<typeof ThemeGenerationInputSchema>;
 
@@ -45,19 +48,22 @@ const prompt = ai.definePrompt({
 
 You need to generate:
 1. A clever and catchy puzzle title.
-2. A set of theme answers that match the provided lengths and clue numbers.
+2. A set of theme answers that are valid, single words (no spaces) and match the provided lengths.
 
-The theme should be consistent, interesting, and appropriate for a general audience. The answers must be real words or well-known phrases.
+**Crucially, the theme answers must be consistent with each other.** If any of the theme answers intersect on the grid, the letters at the intersection point MUST be the same.
 
 Theme Description:
 {{{description}}}
 
 Available Theme Answer Slots:
 {{#each answers}}
-- {{number}} {{direction}} ({{length}} letters)
+- {{number}} {{direction}} ({{length}} letters) starting at (row: {{row}}, col: {{col}})
 {{/each}}
 
-Based on the description and the slots, generate a suitable title and a complete set of theme answers. Ensure each generated word perfectly matches its required length.
+Puzzle Grid (for intersection checking):
+{{jsonStringify puzzleGrid}}
+
+Analyze the theme description and the available slots. Generate a suitable title and a complete set of theme answers that are valid, fit the lengths, and correctly handle any intersections between them.
 `,
 });
 

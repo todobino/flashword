@@ -158,9 +158,13 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
         number: clue.number,
         direction: clue.direction,
         length: clue.length,
+        row: clue.row,
+        col: clue.col,
     }));
 
-    const result = await generateThemeAction({ description: themeDescription, answers: themeAnswerSlots });
+    const puzzleGrid = crossword.grid.map(row => row.map(cell => cell.isBlack ? '.' : ' '));
+
+    const result = await generateThemeAction({ description: themeDescription, answers: themeAnswerSlots, puzzleGrid });
     
     if (result.success && result.data) {
         setThemeSuggestions([result.data]);
