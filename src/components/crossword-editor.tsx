@@ -138,7 +138,11 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
       );
     }
     if (lastSaved) {
-      return <span className="text-sm text-muted-foreground">All changes saved</span>;
+      return (
+        <div className="flex items-center gap-1.5 text-sm text-green-600">
+            <CheckCircle className="h-4 w-4" /> Saved!
+        </div>
+      );
     }
     return null;
   };
