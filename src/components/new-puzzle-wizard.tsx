@@ -108,14 +108,15 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   }, [attemptedBuild]);
 
 
-  const startBuilding = () => {
+  const startBuilding = async () => {
+    const newPuzzleId = await crossword.createAndSaveDraft();
     onStartBuilder({
-        id: undefined,
+        id: newPuzzleId,
         title: crossword.title,
         size: crossword.size,
         grid: crossword.grid,
         clues: crossword.clues,
-    })
+    });
   }
 
   const handleNext = () => {

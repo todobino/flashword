@@ -92,17 +92,25 @@ export const useCrossword = (
       }
     }
     
-    const oldClues = clues;
+    // Find existing clues to preserve their text
+    const oldCluesMap = new Map();
+    if (clues) {
+        [...clues.across, ...clues.down].forEach(c => {
+            oldCluesMap.set(`${c.number}-${c.direction}`, c.clue);
+        });
+    }
     
-    const updateClueText = (newClues: Entry[], oldClues: Entry[]) => {
-      const oldCluesMap = new Map(oldClues.map(c => [c.id, c.clue]));
-      return newClues.map(nc => ({ ...nc, clue: oldCluesMap.get(nc.id) || '' }));
+    const updateClueText = (newCluesList: Entry[]) => {
+      return newCluesList.map(nc => {
+          const key = `${nc.number}-${nc.direction}`;
+          return {...nc, clue: oldCluesMap.get(key) || ''};
+      });
     };
     
     setGrid(newGrid);
     setClues({
-      across: updateClueText(newAcrossClues, oldClues.across),
-      down: updateClueText(newDownClues, oldClues.down),
+      across: updateClueText(newAcrossClues),
+      down: updateClueText(newDownClues),
     });
   }, [clues]);
 
@@ -136,6 +144,39 @@ export const useCrossword = (
     }));
   };
 
+  const createAndSaveDraft = async (): Promise<string | undefined> => {
+     if (!user) {
+        toast({ variant: "destructive", title: "Login Required", description: "You must be logged in to save a puzzle." });
+        return;
+    }
+    try {
+        const allEntries = [...clues.across, ...clues.down].map(entry => {
+            return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
+        });
+
+        const puzzleDoc: Omit<PuzzleDoc, 'createdAt' | 'updatedAt' | 'id'> = {
+            owner: user.uid,
+            title: title || "Untitled Puzzle",
+            size,
+            status: "draft",
+            grid: grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
+            entries: allEntries
+        };
+        const userPuzzlesRef = collection(db, "users", user.uid, "puzzles");
+        const newPuzzleRef = await addDoc(userPuzzlesRef, {
+            ...puzzleDoc,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+        setPuzzleId(newPuzzleRef.id);
+        toast({ title: "Draft Saved!", description: "Your new puzzle has been saved." });
+        return newPuzzleRef.id;
+    } catch (e) {
+        console.error("Draft creation failed: ", e);
+        toast({ variant: "destructive", title: "Save Failed", description: "Could not create puzzle draft." });
+    }
+  }
+
   const savePuzzle = async (asNew = false) => {
     if (!user) {
         toast({ variant: "destructive", title: "Login Required", description: "You must be logged in to save a puzzle." });
@@ -147,7 +188,7 @@ export const useCrossword = (
             return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
         });
 
-        const puzzleDoc: Omit<PuzzleDoc, 'createdAt' | 'updatedAt'> = {
+        const puzzleDoc: Omit<PuzzleDoc, 'createdAt' | 'updatedAt' | 'id'> = {
             owner: user.uid,
             title,
             size,
@@ -166,14 +207,10 @@ export const useCrossword = (
             toast({ title: "Puzzle Updated!", description: "Your crossword has been updated." });
         } else {
             // Create new puzzle
-            const userPuzzlesRef = collection(db, "users", user.uid, "puzzles");
-            const newPuzzleRef = await addDoc(userPuzzlesRef, {
-                ...puzzleDoc,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-            });
-            setPuzzleId(newPuzzleRef.id);
-            toast({ title: "Puzzle Saved!", description: "Your new crossword has been saved." });
+            const newId = await createAndSaveDraft();
+            if (newId) {
+                setPuzzleId(newId);
+            }
         }
     } catch (e) {
         console.error("Save failed: ", e);
@@ -200,7 +237,6 @@ export const useCrossword = (
         const puzzleDocSnap = querySnapshot.docs[0];
         const docData = puzzleDocSnap.data() as PuzzleDoc;
         
-        // Convert from PuzzleDoc to client-side Puzzle
         const newGrid = createGrid(docData.size);
         docData.grid.forEach((rowStr, r) => {
             for(let c = 0; c < docData.size; c++) {
@@ -226,14 +262,8 @@ export const useCrossword = (
             clues: newClues,
         };
         
-        updateClues(loadedPuzzle.grid, loadedPuzzle.size); // Recalculate numbers
-        setGrid(loadedPuzzle.grid);
-        setClues(loadedPuzzle.clues);
-        setTitle(loadedPuzzle.title);
-        setPuzzleId(loadedPuzzle.id);
-        setSize(loadedPuzzle.size);
-        setSelectedClue(null);
-        
+        resetGrid(loadedPuzzle.size, loadedPuzzle.grid, loadedPuzzle.clues, loadedPuzzle.title, loadedPuzzle.id);
+
         toast({ title: "Puzzle Loaded!", description: `Loaded "${loadedPuzzle.title}".` });
         return loadedPuzzle;
 
@@ -289,7 +319,8 @@ export const useCrossword = (
         const newGrid = JSON.parse(JSON.stringify(currentGrid));
         
         for (const item of wordList) {
-            const clue = [...clues.across, ...clues.down].find(c => c.number === item.number && c.direction === item.direction);
+            const allClues = [...clues.across, ...clues.down];
+            const clue = allClues.find(c => c.number === item.number && c.direction === item.direction);
             if (!clue) continue;
 
             const normalizedWord = item.word.toUpperCase().padEnd(clue.length, ' ');
@@ -379,5 +410,7 @@ export const useCrossword = (
     randomizeGrid,
     fillWord,
     batchFillWords,
+    createAndSaveDraft,
   };
 };
+
