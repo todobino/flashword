@@ -8,9 +8,6 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -131,27 +128,20 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Authenticate</DialogTitle>
-          <DialogDescription>
-            {activeTab === 'login' 
-              ? 'Log in to your account to manage your puzzles.'
-              : 'Create an account to start building puzzles.'
-            }
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[425px] p-0">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-2 rounded-b-none rounded-t-lg">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
           </TabsList>
-          <TabsContent value="login" className="pt-4">
-            {renderFormContent(true)}
-          </TabsContent>
-          <TabsContent value="register" className="pt-4">
-            {renderFormContent(false)}
-          </TabsContent>
+          <div className="p-6">
+            <TabsContent value="login" className="pt-4 m-0">
+              {renderFormContent(true)}
+            </TabsContent>
+            <TabsContent value="register" className="pt-4 m-0">
+              {renderFormContent(false)}
+            </TabsContent>
+          </div>
         </Tabs>
       </DialogContent>
     </Dialog>
