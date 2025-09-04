@@ -120,7 +120,7 @@ export default function HomePage() {
       </header>
 
       <main className="flex-1 p-4 sm:p-6 md:p-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">My Puzzles</h2>
             <Button asChild>
@@ -131,7 +131,7 @@ export default function HomePage() {
           </div>
 
           {puzzles.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {puzzles.map(p => (
                 <Card 
                   key={p.id} 
