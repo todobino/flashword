@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { Download, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut, FilePlus, FolderOpen, Copy, Home, User as UserIcon } from 'lucide-react';
+import { Share2, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut, FilePlus, FolderOpen, Copy, Home, User as UserIcon } from 'lucide-react';
 import { useCrossword } from '@/hooks/use-crossword';
 import { CrosswordGrid } from '@/components/crossword-grid';
 import { ClueLists } from '@/components/clue-lists';
@@ -77,9 +77,9 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
         </div>
         <div className="flex items-center gap-4">
            <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" title="Export to PDF (coming soon)" disabled>
-              <Download className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:ml-2">Export</span>
+            <Button variant="outline" size="sm" title="Share puzzle (coming soon)" disabled>
+              <Share2 className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only sm:ml-2">Share</span>
             </Button>
           </div>
           <Separator orientation="vertical" className="h-6" />
