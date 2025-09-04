@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { collection, query, where, getDocs, orderBy, DocumentData, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, DocumentData, doc, getDoc, OrderByDirection } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,19 +14,37 @@ import { app, db } from '@/lib/firebase';
 import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
-import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2 } from 'lucide-react';
+import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { createGrid } from '@/hooks/use-crossword';
 import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
 import { cn } from '@/lib/utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 // A type for the puzzles listed on the home page, which might have less data
 type PuzzleListing = Pick<PuzzleDoc, 'title' | 'size' | 'status' | 'grid'> & { id: string };
+
+type SortOption = {
+    field: 'updatedAt' | 'createdAt' | 'title' | 'size';
+    direction: OrderByDirection;
+    label: string;
+}
+
+const SORT_OPTIONS: SortOption[] = [
+    { field: 'updatedAt', direction: 'desc', label: 'Last Updated' },
+    { field: 'createdAt', direction: 'desc', label: 'Date Created (Newest)' },
+    { field: 'createdAt', direction: 'asc', label: 'Date Created (Oldest)' },
+    { field: 'title', direction: 'asc', label: 'Title (A-Z)' },
+    { field: 'title', direction: 'desc', label: 'Title (Z-A)' },
+    { field: 'size', direction: 'asc', label: 'Size (Smallest)' },
+    { field: 'size', direction: 'desc', label: 'Size (Largest)' },
+];
 
 export default function HomePage() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [puzzles, setPuzzles] = useState<PuzzleListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortOption, setSortOption] = useState<SortOption>(SORT_OPTIONS[0]);
   const router = useRouter();
   const { toast } = useToast();
   const setPuzzle = useCrosswordStore(state => state.setPuzzle);
@@ -36,22 +54,29 @@ export default function HomePage() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUser(user);
-        fetchPuzzles(user.uid);
       } else {
         router.push('/');
       }
-      setIsLoading(false);
+      // Initial load or user change, don't set loading to false yet
     });
 
     return () => unsubscribe();
   }, [router]);
+
+  useEffect(() => {
+      if (user) {
+          fetchPuzzles(user.uid);
+      } else {
+          setIsLoading(false);
+      }
+  }, [user, sortOption]);
 
   const fetchPuzzles = async (uid: string) => {
     setIsLoading(true);
     try {
       const q = query(
         collection(db, 'users', uid, 'puzzles'),
-        orderBy('updatedAt', 'desc')
+        orderBy(sortOption.field, sortOption.direction)
       );
       const querySnapshot = await getDocs(q);
       const userPuzzles = querySnapshot.docs.map(doc => {
@@ -123,11 +148,28 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">My Puzzles</h2>
-            <Button asChild>
-                <Link href="/new">
-                    <Grid2x2Plus className="h-4 w-4 mr-2" /> Create New
-                </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                            <ArrowUpDown className="mr-2 h-4 w-4" />
+                            Sort by: {sortOption.label}
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        {SORT_OPTIONS.map(option => (
+                             <DropdownMenuItem key={`${option.field}-${option.direction}`} onClick={() => setSortOption(option)}>
+                                {option.label}
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <Button asChild>
+                    <Link href="/new">
+                        <Grid2x2Plus className="h-4 w-4 mr-2" /> Create New
+                    </Link>
+                </Button>
+            </div>
           </div>
 
           {puzzles.length > 0 ? (
