@@ -34,6 +34,8 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt }: Puz
     }
   }
 
+  const isCompleted = stats.completion >= 100;
+
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -52,7 +54,11 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt }: Puz
                     <span className="text-muted-foreground">Completion</span>
                     <span className="font-medium">{stats.completion.toFixed(0)}%</span>
                 </div>
-                <Progress value={stats.completion} aria-label={`${stats.completion.toFixed(0)}% complete`} />
+                <Progress 
+                  value={stats.completion} 
+                  aria-label={`${stats.completion.toFixed(0)}% complete`} 
+                  className={isCompleted ? '[&>div]:bg-green-500' : ''}
+                />
             </TooltipTrigger>
             <TooltipContent>
                 <p>{stats.filledSquares} of {stats.totalSquares} squares filled</p>
