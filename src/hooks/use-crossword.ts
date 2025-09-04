@@ -45,7 +45,8 @@ export const useCrossword = (
     initialClues?: { across: Entry[], down: Entry[] }, 
     initialTitle?: string,
     initialId?: string,
-    user?: User | null
+    user?: User | null,
+    initialStatus?: 'draft' | 'published'
 ) => {
   const [size, setSize] = useState(initialSize);
   const [grid, setGrid] = useState<Grid>(() => initialGrid || createGrid(initialSize));
@@ -53,6 +54,7 @@ export const useCrossword = (
   const [selectedClue, setSelectedClue] = useState<{ number: number; direction: 'across' | 'down' } | null>(null);
   const [title, setTitle] = useState(initialTitle || '');
   const [puzzleId, setPuzzleId] = useState<string | undefined>(initialId);
+  const [status, setStatus] = useState<'draft' | 'published'>(initialStatus || 'draft');
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
@@ -133,7 +135,7 @@ export const useCrossword = (
     });
   }, []);
 
-  const resetGrid = useCallback((newSize: number, newGrid?: Grid, newClues?: {across: Entry[], down: Entry[]}, newTitle?: string, newId?: string) => {
+  const resetGrid = useCallback((newSize: number, newGrid?: Grid, newClues?: {across: Entry[], down: Entry[]}, newTitle?: string, newId?: string, newStatus?: 'draft' | 'published') => {
     setSize(newSize);
     const gridToUpdate = newGrid || createGrid(newSize);
     setGrid(gridToUpdate);
@@ -141,14 +143,15 @@ export const useCrossword = (
     setClues(cluesToUpdate);
     setTitle(newTitle || '');
     setPuzzleId(newId);
+    setStatus(newStatus || 'draft');
     updateClues(gridToUpdate, newSize, cluesToUpdate);
   }, [updateClues]);
 
   useEffect(() => {
     // This effect syncs the hook's internal state with the props passed to it.
     // It runs whenever the initial puzzle data changes.
-    resetGrid(initialSize, initialGrid, initialClues, initialTitle, initialId);
-  }, [initialGrid, initialClues, initialTitle, initialId, initialSize, resetGrid]);
+    resetGrid(initialSize, initialGrid, initialClues, initialTitle, initialId, initialStatus);
+  }, [initialGrid, initialClues, initialTitle, initialId, initialSize, initialStatus, resetGrid]);
 
 
   const toggleCellBlack = (row: number, col: number) => {
@@ -215,7 +218,7 @@ export const useCrossword = (
             owner: user.uid,
             title,
             size,
-            status: "draft",
+            status: status,
             grid: grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
             entries: allEntries
         };
@@ -232,7 +235,29 @@ export const useCrossword = (
     } finally {
         setIsSaving(false);
     }
-  }, [user, puzzleId, title, size, grid, clues, getWordFromGrid, toast]);
+  }, [user, puzzleId, title, size, status, grid, clues, getWordFromGrid, toast]);
+  
+  const publishPuzzle = async () => {
+    if (!user || !puzzleId) return;
+
+    setIsSaving(true);
+    try {
+      const puzzleRef = doc(db, "users", user.uid, "puzzles", puzzleId);
+      await updateDoc(puzzleRef, {
+        status: 'published',
+        updatedAt: serverTimestamp(),
+      });
+      setStatus('published');
+      setLastSaved(new Date());
+      toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
+    } catch (error) {
+      console.error('Error publishing puzzle:', error);
+      toast({ variant: 'destructive', title: 'Publish Failed', description: 'Could not publish your puzzle.' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
 
   const createAndSaveDraft = async (): Promise<string | undefined> => {
      if (!user) {
@@ -260,6 +285,7 @@ export const useCrossword = (
             updatedAt: serverTimestamp(),
         });
         setPuzzleId(newPuzzleRef.id);
+        setStatus('draft');
         toast({ title: "Draft Saved!", description: "Your new puzzle has been saved." });
         setLastSaved(new Date());
         return newPuzzleRef.id;
@@ -323,9 +349,10 @@ export const useCrossword = (
             size: docData.size,
             grid: newGrid,
             clues: newClues,
+            status: docData.status,
         };
         
-        resetGrid(loadedPuzzle.size, loadedPuzzle.grid, loadedPuzzle.clues, loadedPuzzle.title, loadedPuzzle.id);
+        resetGrid(loadedPuzzle.size, loadedPuzzle.grid, loadedPuzzle.clues, loadedPuzzle.title, loadedPuzzle.id, loadedPuzzle.status);
 
         toast({ title: "Puzzle Loaded!", description: `Loaded "${loadedPuzzle.title}".` });
         return loadedPuzzle;
@@ -428,6 +455,8 @@ export const useCrossword = (
     title,
     setTitle,
     puzzleId,
+    status,
+    publishPuzzle,
     toggleCellBlack,
     updateCellChar,
     clues,

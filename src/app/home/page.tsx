@@ -14,7 +14,7 @@ import { app, db } from '@/lib/firebase';
 import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
-import { FilePlus, LoaderCircle, LogOut, User } from 'lucide-react';
+import { FilePlus, LoaderCircle, LogOut, User, CheckCircle, Edit } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { createGrid } from '@/hooks/use-crossword';
 import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
@@ -59,7 +59,7 @@ export default function HomePage() {
             id: doc.id,
             title: data.title,
             size: data.size,
-            status: data.status,
+            status: data.status || 'draft',
           }
       }) as PuzzleListing[];
       setPuzzles(userPuzzles);
@@ -141,7 +141,15 @@ export default function HomePage() {
                   <CardContent>
                     <div className="flex justify-between items-center text-sm text-muted-foreground">
                       <span>{p.size} x {p.size}</span>
-                       <Badge variant="outline">{p.status}</Badge>
+                       {p.status === 'draft' ? (
+                          <Badge variant="outline" className="gap-1.5 text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
+                              <Edit className="h-3 w-3" /> Draft
+                          </Badge>
+                      ) : (
+                          <Badge variant="outline" className="gap-1.5 text-green-600 border-green-600/50 bg-green-50 dark:bg-green-900/20">
+                              <CheckCircle className="h-3 w-3" /> Published
+                          </Badge>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

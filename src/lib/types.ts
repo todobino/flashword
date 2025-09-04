@@ -34,6 +34,7 @@ export interface Puzzle {
     down: Entry[];
   };
   size: number;
+  status: 'draft' | 'published';
 }
 
 // This represents the Firestore document schema

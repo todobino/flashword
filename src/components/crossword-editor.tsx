@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { Share2, LoaderCircle, LogIn } from 'lucide-react';
+import { Share2, LoaderCircle, LogIn, CheckCircle, Edit } from 'lucide-react';
 import { useCrossword, createGrid } from '@/hooks/use-crossword';
 import { CrosswordGridEdit } from '@/components/crossword-grid-edit';
 import { ClueLists } from '@/components/clue-lists';
@@ -14,11 +14,22 @@ import { LogoIcon } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { AuthDialog } from '@/components/auth-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { app, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { AccountDropdown } from './account-dropdown';
 import { Separator } from './ui/separator';
 import { Input } from './ui/input';
+import { Badge } from './ui/badge';
 
 interface CrosswordEditorProps {
   puzzleId: string;
@@ -29,6 +40,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
   const [initialPuzzle, setInitialPuzzle] = useState<Puzzle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -79,6 +91,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             size: docData.size,
             grid: newGrid,
             clues: newClues,
+            status: docData.status,
           });
         } else {
           toast({ variant: 'destructive', title: 'Error', description: 'Puzzle not found.' });
@@ -96,16 +109,20 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
     fetchPuzzle();
   }, [puzzleId, user, router, toast]);
 
-  // Pass initial puzzle data to the hook.
-  // The hook will now manage all state changes from this point forward.
   const { crossword, isSaving, lastSaved } = useCrossword(
-    initialPuzzle?.size || 15,
+    initialPuzzle?.size,
     initialPuzzle?.grid,
     initialPuzzle?.clues,
     initialPuzzle?.title,
     initialPuzzle?.id,
-    user
+    user,
+    initialPuzzle?.status
   );
+
+  const handlePublish = async () => {
+    await crossword.publishPuzzle();
+    setIsPublishDialogOpen(false);
+  };
 
   const getSaveStatus = () => {
     if (isSaving) {
@@ -145,14 +162,28 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             value={crossword.title}
             onChange={(e) => crossword.setTitle(e.target.value)}
           />
+          {crossword.status === 'draft' ? (
+              <Badge variant="outline" className="gap-2 text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
+                  <Edit className="h-3 w-3" /> Draft
+              </Badge>
+          ) : (
+              <Badge variant="outline" className="gap-2 text-green-600 border-green-600/50 bg-green-50 dark:bg-green-900/20">
+                  <CheckCircle className="h-3 w-3" /> Published
+              </Badge>
+          )}
           {getSaveStatus()}
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" title="Share puzzle (coming soon)" disabled>
+            <Button variant="outline" size="sm" title="Share puzzle" disabled={crossword.status === 'draft'}>
               <Share2 className="h-4 w-4" />
               <span className="sr-only sm:not-sr-only sm:ml-2">Share</span>
             </Button>
+            {crossword.status === 'draft' && (
+                <Button size="sm" onClick={() => setIsPublishDialogOpen(true)}>
+                    Publish
+                </Button>
+            )}
           </div>
           <Separator orientation="vertical" className="h-6" />
           <div className="flex items-center gap-2">
@@ -196,6 +227,20 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
         </div>
       </main>
       <AuthDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen} />
+      <AlertDialog open={isPublishDialogOpen} onOpenChange={setIsPublishDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to publish?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Once published, your puzzle will be publicly accessible and you will not be able to make major edits to the grid layout. You can still edit clues.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePublish}>Publish</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

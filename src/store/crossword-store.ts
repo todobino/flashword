@@ -4,7 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Puzzle } from '@/lib/types';
 
 interface CrosswordState {
-  puzzle: Puzzle | null;
+  puzzle: Omit<Puzzle, 'grid' | 'clues'> & { grid: any, clues: any } | null;
   setPuzzle: (puzzle: Puzzle) => void;
   clearPuzzle: () => void;
 }
