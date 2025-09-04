@@ -6,7 +6,7 @@ import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle, Check, Feather } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle, Check, Feather, Hand } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +23,7 @@ import type { Puzzle, TemplateName } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { Slider } from './ui/slider';
-import { generateThemeAction } from '@/app/actions';
+import { generateThemeAction, type ThemeGenerationOutput } from '@/app/actions';
 import { Textarea } from './ui/textarea';
 import { ClassicPatternIcon } from './icons/classic-pattern-icon';
 import { CondensedPatternIcon } from './icons/condensed-pattern-icon';
@@ -84,6 +84,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   const [title, setTitle] = useState('');
   const [themeDescription, setThemeDescription] = useState('');
   const [isGeneratingTheme, setIsGeneratingTheme] = useState(false);
+  const [themeSuggestions, setThemeSuggestions] = useState<ThemeGenerationOutput[]>([]);
   
   const [user, setUser] = useState<User | null>(null);
   const crossword = useCrossword(size, undefined, undefined, title, undefined, user);
@@ -150,6 +151,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
 
   const handleGenerateTheme = async () => {
     setIsGeneratingTheme(true);
+    setThemeSuggestions([]);
     toast({ title: 'Generating Theme...', description: 'AI is crafting a title and theme answers for you.' });
     
     const themeAnswerSlots = themers.map(clue => ({
@@ -161,19 +163,25 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     const result = await generateThemeAction({ description: themeDescription, answers: themeAnswerSlots });
     
     if (result.success && result.data) {
-        crossword.setTitle(result.data.title);
-        result.data.themeAnswers.forEach(answer => {
-            const clueToFill = themers.find(t => t.number === answer.number && t.direction === answer.direction);
-            if (clueToFill) {
-                crossword.fillWord(clueToFill, answer.word);
-            }
-        });
-        toast({ title: 'Theme Generated!', description: `"${result.data.title}" and theme answers have been populated.` });
+        setThemeSuggestions([result.data]);
+        toast({ title: 'Suggestions Ready!', description: `Click a suggestion to apply it.` });
     } else {
         toast({ variant: 'destructive', title: 'Theme Generation Failed', description: result.error });
     }
     
     setIsGeneratingTheme(false);
+  };
+  
+  const applyThemeSuggestion = (suggestion: ThemeGenerationOutput) => {
+    crossword.setTitle(suggestion.title);
+    suggestion.themeAnswers.forEach(answer => {
+      const clueToFill = themers.find(t => t.number === answer.number && t.direction === answer.direction);
+      if (clueToFill) {
+        crossword.fillWord(clueToFill, answer.word);
+      }
+    });
+    setThemeSuggestions([]);
+    toast({ title: 'Theme Applied!', description: `"${suggestion.title}" and answers are now in the grid.` });
   };
   
   const gridAnalysis = useMemo(() => {
@@ -222,7 +230,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
       case 2:
         return (
           <div className="space-y-4">
-            <p>Click and drag to make squares black. Or, select a template to generate a pattern! The best patterns follow these rules:</p>
+            <p>Click squares to toggle them black or white. Or, select a template to generate a pattern! The best patterns follow these rules:</p>
             <ul className="space-y-2 list-disc list-inside">
                <li><b>Connectivity:</b> All white squares must be connected (no isolated sections).</li>
                <li><b>Word Lengths:</b> Minimum 3 letters per word (no 2-letter entries).</li>
@@ -377,7 +385,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                               className="p-2 rounded-md hover:bg-muted cursor-pointer flex items-center gap-3"
                               onClick={() => handleRandomize(template.name)}
                             >
-                               <template.icon className="h-10 w-10 text-primary shrink-0" />
+                               <template.icon className="h-12 w-12 text-primary shrink-0" />
                                <div>
                                 <h4 className="font-semibold">{template.name}</h4>
                                 <p className="text-xs text-muted-foreground">{template.description}</p>
@@ -446,16 +454,41 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                       </div>
                        <div className="space-y-4 rounded-lg border bg-background p-4">
                            <Label className="font-semibold text-base">Smart Theme</Label>
-                           <Textarea
-                               placeholder="Describe your theme idea. e.g., 'Things that can be found in a park' or 'Puns about vegetables'."
+                           <Input
+                               placeholder="Describe your theme idea..."
                                value={themeDescription}
                                onChange={(e) => setThemeDescription(e.target.value)}
-                               rows={5}
                             />
                             <Button onClick={handleGenerateTheme} disabled={isGeneratingTheme || !themeDescription || themers.length === 0} className="w-full">
                                 {isGeneratingTheme ? <LoaderCircle className="animate-spin" /> : <Sparkles />}
                                 <span>Generate</span>
                             </Button>
+                            {themeSuggestions.length > 0 && (
+                                <div className="space-y-3 pt-4">
+                                    <h4 className="font-semibold">Suggestions</h4>
+                                    {themeSuggestions.map((suggestion, index) => (
+                                        <Card key={index} className="bg-muted/50">
+                                            <CardHeader className="p-4">
+                                                <CardTitle className="text-lg">{suggestion.title}</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="p-4 pt-0 space-y-2">
+                                                {suggestion.themeAnswers.map(ans => (
+                                                    <div key={`${ans.number}-${ans.direction}`} className="flex justify-between items-center text-sm">
+                                                        <span className="text-muted-foreground">{ans.number} {ans.direction}</span>
+                                                        <span className="font-mono uppercase tracking-wider">{ans.word}</span>
+                                                    </div>
+                                                ))}
+                                            </CardContent>
+                                            <CardFooter className="p-4 pt-0">
+                                                <Button size="sm" onClick={() => applyThemeSuggestion(suggestion)} className="w-full">
+                                                    <Hand className="mr-2 h-4 w-4" />
+                                                    Apply Theme
+                                                </Button>
+                                            </CardFooter>
+                                        </Card>
+                                    ))}
+                                </div>
+                            )}
                        </div>
                    </div>
               )}
@@ -548,5 +581,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
 
     

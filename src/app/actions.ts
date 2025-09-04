@@ -1,8 +1,9 @@
+
 'use server';
 
 import { suggestClue as suggestClueFlow, type ClueSuggestionInput } from '@/ai/flows/clue-suggestion';
 import { verifyPuzzle as verifyPuzzleFlow, type VerifyPuzzleInput } from '@/ai/flows/puzzle-verification';
-import { generateTheme as generateThemeFlow, type ThemeGenerationInput } from '@/ai/flows/theme-generation';
+import { generateTheme as generateThemeFlow, type ThemeGenerationInput, type ThemeGenerationOutput } from '@/ai/flows/theme-generation';
 
 
 export async function suggestClueAction(input: ClueSuggestionInput) {
@@ -25,7 +26,7 @@ export async function verifyPuzzleAction(input: VerifyPuzzleInput) {
   }
 }
 
-export async function generateThemeAction(input: ThemeGenerationInput) {
+export async function generateThemeAction(input: ThemeGenerationInput): Promise<{ success: boolean, data?: ThemeGenerationOutput, error?: string }> {
     try {
       const result = await generateThemeFlow(input);
       return { success: true, data: result };
@@ -34,3 +35,5 @@ export async function generateThemeAction(input: ThemeGenerationInput) {
       return { success: false, error: 'Failed to generate a theme due to a server error.' };
     }
 }
+
+    
