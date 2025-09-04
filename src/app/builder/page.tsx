@@ -16,6 +16,8 @@ export default function BuilderPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // If there's no puzzle in the store, the user probably landed here directly.
+    // Redirect them to the start of the flow.
     if (!puzzle) {
         router.push('/');
     }
@@ -30,8 +32,8 @@ export default function BuilderPage() {
     router.push('/new');
   }
 
+  // While redirecting or if puzzle is null before the effect runs
   if (!puzzle) {
-    // This will be briefly visible while the redirect happens
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-background">
             <p>Loading...</p>

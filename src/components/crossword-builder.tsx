@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { Download, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut, FilePlus, FolderOpen, Copy, Home, User as UserIcon } from 'lucide-react';
 import { useCrossword } from '@/hooks/use-crossword';
 import { CrosswordGrid } from '@/components/crossword-grid';
@@ -89,12 +89,39 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
       toast({ variant: 'destructive', title: 'Verification Error', description: result.error });
     }
   };
-
+  
   const handleSave = async () => {
+    if (!user || !crossword.puzzleId) {
+      // If not logged in, or if it's a new puzzle without an ID yet, prompt login/save as.
+      // For now, we just show a toast, but this could trigger a save-as flow.
+      toast({
+        variant: 'destructive',
+        title: 'Cannot Save',
+        description: 'Please log in and create a puzzle first.',
+      });
+      return;
+    }
     setIsSaving(true);
-    await crossword.savePuzzle();
-    setIsSaving(false);
-  }
+    const puzzleDocRef = doc(db, 'users', user.uid, 'puzzles', crossword.puzzleId);
+    
+    const puzzleData = {
+        title: crossword.title,
+        size: crossword.size,
+        grid: crossword.grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
+        entries: [...crossword.clues.across, ...crossword.clues.down],
+        updatedAt: serverTimestamp(),
+    };
+
+    try {
+      await updateDoc(puzzleDocRef, puzzleData);
+      toast({ title: 'Puzzle Saved!', description: 'Your changes have been saved.' });
+    } catch (error) {
+      console.error('Error saving puzzle:', error);
+      toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save your changes.' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen font-body text-foreground bg-background">
@@ -118,10 +145,6 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <Button variant="default" size="sm" onClick={handleSave} disabled={isSaving} title="Save Puzzle">
-                  {isSaving ? <LoaderCircle className="animate-spin h-4 w-4" /> : <Save className="h-4 w-4" />}
-                  <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
-                </Button>
                 <Button variant="secondary" size="sm" asChild>
                   <Link href="/home">My Puzzles</Link>
                 </Button>

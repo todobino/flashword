@@ -85,7 +85,7 @@ export default function HomePage() {
         const newGrid = createGrid(docData.size);
         docData.grid.forEach((rowStr, r) => {
             for(let c = 0; c < docData.size; c++) {
-                const char = rowStr[c];
+                const char = rowStr[c] || '.';
                 if (char === '#') {
                     newGrid[r][c].isBlack = true;
                 } else if (char !== '.') {
