@@ -26,6 +26,14 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+export interface PuzzleStats {
+    completion: number;
+    filledSquares: number;
+    totalSquares: number;
+    difficulty: 'Easy' | 'Medium' | 'Challenging' | 'Hard';
+    avgWordLength: number;
+}
+
 
 export const createGrid = (size: number): Grid => {
   return Array.from({ length: size }, (_, row) =>
@@ -46,7 +54,9 @@ export const useCrossword = (
     initialTitle?: string,
     initialId?: string,
     user?: User | null,
-    initialStatus?: 'draft' | 'published'
+    initialStatus?: 'draft' | 'published',
+    initialCreatedAt?: Date,
+    initialAuthor?: string,
 ) => {
   const [size, setSize] = useState(initialSize);
   const [grid, setGrid] = useState<Grid>(() => initialGrid || createGrid(initialSize));
@@ -55,6 +65,8 @@ export const useCrossword = (
   const [title, setTitle] = useState(initialTitle || '');
   const [puzzleId, setPuzzleId] = useState<string | undefined>(initialId);
   const [status, setStatus] = useState<'draft' | 'published'>(initialStatus || 'draft');
+  const [createdAt, setCreatedAt] = useState<Date | undefined>(initialCreatedAt);
+  const [author, setAuthor] = useState<string>(initialAuthor || 'Anonymous');
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
@@ -135,7 +147,7 @@ export const useCrossword = (
     });
   }, []);
 
-  const resetGrid = useCallback((newSize: number, newGrid?: Grid, newClues?: {across: Entry[], down: Entry[]}, newTitle?: string, newId?: string, newStatus?: 'draft' | 'published') => {
+  const resetGrid = useCallback((newSize: number, newGrid?: Grid, newClues?: {across: Entry[], down: Entry[]}, newTitle?: string, newId?: string, newStatus?: 'draft' | 'published', newCreatedAt?: Date, newAuthor?: string) => {
     setSize(newSize);
     const gridToUpdate = newGrid || createGrid(newSize);
     setGrid(gridToUpdate);
@@ -144,17 +156,24 @@ export const useCrossword = (
     setTitle(newTitle || '');
     setPuzzleId(newId);
     setStatus(newStatus || 'draft');
+    setCreatedAt(newCreatedAt);
+    setAuthor(newAuthor || user?.displayName || 'Anonymous');
     updateClues(gridToUpdate, newSize, cluesToUpdate);
-  }, [updateClues]);
+  }, [updateClues, user]);
 
   useEffect(() => {
     // This effect syncs the hook's internal state with the props passed to it.
     // It runs whenever the initial puzzle data changes.
-    resetGrid(initialSize, initialGrid, initialClues, initialTitle, initialId, initialStatus);
-  }, [initialGrid, initialClues, initialTitle, initialId, initialSize, initialStatus, resetGrid]);
+    resetGrid(initialSize, initialGrid, initialClues, initialTitle, initialId, initialStatus, initialCreatedAt, initialAuthor);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialGrid, initialClues, initialTitle, initialId, initialSize, initialStatus, initialCreatedAt, initialAuthor]);
 
 
   const toggleCellBlack = (row: number, col: number) => {
+    if (status === 'published') {
+      toast({ variant: 'destructive', title: "Cannot Edit Published Puzzle", description: "The grid of a published puzzle cannot be changed." });
+      return;
+    }
     const newGrid = JSON.parse(JSON.stringify(grid));
     newGrid[row][col].isBlack = !newGrid[row][col].isBlack;
     newGrid[row][col].char = '';
@@ -214,7 +233,7 @@ export const useCrossword = (
             return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
         });
 
-        const puzzleDoc: Omit<PuzzleDoc, 'createdAt' | 'updatedAt' | 'id'> = {
+        const puzzleDoc: Partial<PuzzleDoc> = {
             owner: user.uid,
             title,
             size,
@@ -270,22 +289,23 @@ export const useCrossword = (
             return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
         });
 
-        const puzzleDoc: Omit<PuzzleDoc, 'createdAt' | 'updatedAt' | 'id'> = {
+        const puzzleDoc: Omit<PuzzleDoc, 'id'> = {
             owner: user.uid,
+            author: user.displayName || 'Anonymous',
             title: title || "Untitled Puzzle",
             size,
             status: "draft",
             grid: grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
-            entries: allEntries
-        };
-        const userPuzzlesRef = collection(db, "users", user.uid, "puzzles");
-        const newPuzzleRef = await addDoc(userPuzzlesRef, {
-            ...puzzleDoc,
+            entries: allEntries,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
-        });
+        };
+        const userPuzzlesRef = collection(db, "users", user.uid, "puzzles");
+        const newPuzzleRef = await addDoc(userPuzzlesRef, puzzleDoc);
         setPuzzleId(newPuzzleRef.id);
         setStatus('draft');
+        setCreatedAt(new Date());
+        setAuthor(user.displayName || 'Anonymous');
         toast({ title: "Draft Saved!", description: "Your new puzzle has been saved." });
         setLastSaved(new Date());
         return newPuzzleRef.id;
@@ -306,7 +326,7 @@ export const useCrossword = (
             savePuzzle();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedGrid, debouncedClues, debouncedTitle, savePuzzle]);
+    }, [debouncedGrid, debouncedClues, debouncedTitle]);
 
 
   const loadPuzzle = async (): Promise<Puzzle | null> => {
@@ -350,9 +370,11 @@ export const useCrossword = (
             grid: newGrid,
             clues: newClues,
             status: docData.status,
+            author: docData.author,
+            createdAt: docData.createdAt?.toDate(),
         };
         
-        resetGrid(loadedPuzzle.size, loadedPuzzle.grid, loadedPuzzle.clues, loadedPuzzle.title, loadedPuzzle.id, loadedPuzzle.status);
+        resetGrid(loadedPuzzle.size, loadedPuzzle.grid, loadedPuzzle.clues, loadedPuzzle.title, loadedPuzzle.id, loadedPuzzle.status, loadedPuzzle.createdAt, loadedPuzzle.author);
 
         toast({ title: "Puzzle Loaded!", description: `Loaded "${loadedPuzzle.title}".` });
         return loadedPuzzle;
@@ -449,6 +471,39 @@ export const useCrossword = (
     }
   }, [size, toast, updateClues, clues]);
 
+  const stats = useMemo<PuzzleStats>(() => {
+    const flatGrid = grid.flat();
+    const whiteSquares = flatGrid.filter(cell => !cell.isBlack);
+    const totalSquares = whiteSquares.length;
+    const filledSquares = whiteSquares.filter(cell => cell.char !== '').length;
+    const completion = totalSquares > 0 ? (filledSquares / totalSquares) * 100 : 0;
+    
+    const blackSquareCount = flatGrid.length - totalSquares;
+    const blackSquarePercentage = (blackSquareCount / flatGrid.length);
+    const allClues = [...clues.across, ...clues.down];
+    const totalWords = allClues.length;
+    const totalWordLetters = allClues.reduce((sum, clue) => sum + clue.length, 0);
+    const avgWordLength = totalWords > 0 ? totalWordLetters / totalWords : 0;
+    
+    let difficulty: PuzzleStats['difficulty'] = 'Medium';
+    if (avgWordLength > 5.5 && blackSquarePercentage < 0.17) {
+        difficulty = 'Hard';
+    } else if (avgWordLength > 5.0 && blackSquarePercentage < 0.20) {
+        difficulty = 'Challenging';
+    } else if (avgWordLength < 4.5 || blackSquarePercentage > 0.25) {
+        difficulty = 'Easy';
+    }
+
+    return { 
+        completion, 
+        filledSquares,
+        totalSquares,
+        difficulty,
+        avgWordLength,
+    };
+
+  }, [grid, clues]);
+
   const crossword = {
     size,
     grid,
@@ -456,6 +511,8 @@ export const useCrossword = (
     setTitle,
     puzzleId,
     status,
+    createdAt,
+    author,
     publishPuzzle,
     toggleCellBlack,
     updateCellChar,
@@ -474,5 +531,5 @@ export const useCrossword = (
     createAndSaveDraft,
   };
 
-  return { crossword, isSaving, lastSaved };
+  return { crossword, isSaving, lastSaved, stats };
 };

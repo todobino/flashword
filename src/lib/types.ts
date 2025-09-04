@@ -35,10 +35,13 @@ export interface Puzzle {
   };
   size: number;
   status: 'draft' | 'published';
+  author: string;
+  createdAt?: Date;
 }
 
 // This represents the Firestore document schema
 export interface PuzzleDoc {
+    id?: string;
     title: string;
     status: "draft" | "published";
     size: number;
@@ -48,5 +51,6 @@ export interface PuzzleDoc {
     // housekeeping
     createdAt: any; // serverTimestamp
     updatedAt: any; // serverTimestamp
-    owner: string; 
+    owner: string;
+    author: string; 
 }

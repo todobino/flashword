@@ -93,6 +93,8 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             grid: newGrid,
             clues: newClues,
             status: docData.status,
+            createdAt: docData.createdAt?.toDate(),
+            author: user.displayName || 'Anonymous'
           });
         } else {
           toast({ variant: 'destructive', title: 'Error', description: 'Puzzle not found.' });
@@ -110,14 +112,16 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
     fetchPuzzle();
   }, [puzzleId, user, router, toast]);
 
-  const { crossword, isSaving, lastSaved } = useCrossword(
+  const { crossword, isSaving, lastSaved, stats } = useCrossword(
     initialPuzzle?.size,
     initialPuzzle?.grid,
     initialPuzzle?.clues,
     initialPuzzle?.title,
     initialPuzzle?.id,
     user,
-    initialPuzzle?.status
+    initialPuzzle?.status,
+    initialPuzzle?.createdAt,
+    initialPuzzle?.author,
   );
 
   const handlePublish = async () => {
@@ -230,6 +234,9 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             <PuzzleStatsCard 
                 title={crossword.title}
                 status={crossword.status}
+                stats={stats}
+                author={crossword.author}
+                createdAt={crossword.createdAt}
             />
         </div>
       </main>
