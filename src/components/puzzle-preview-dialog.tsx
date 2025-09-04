@@ -22,9 +22,9 @@ export function PuzzlePreviewDialog({ isOpen, onOpenChange, puzzle }: PuzzlePrev
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[8.5in] w-[8.5in] h-[11in] p-0 flex flex-col">
+      <DialogContent className="max-w-4xl w-full h-[calc(100vh-4rem)] p-0 flex flex-col">
         <ScrollArea className="h-full">
-            <div className="p-[0.75in] space-y-8 font-serif">
+            <div className="p-8 space-y-8 font-serif">
                 <header className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold">{puzzle.title}</h1>
                     <h2 className="text-lg font-medium">{puzzle.author}</h2>
