@@ -65,7 +65,7 @@ export function ClueLists({
                 <div className="font-bold text-sm text-muted-foreground mt-2">{clue.number}.</div>
                 <div className="flex-1 space-y-2">
                   <div
-                    className="font-semibold uppercase text-base cursor-text py-2"
+                    className="font-semibold uppercase text-base cursor-text py-2 px-3 bg-muted/50 rounded-md"
                     tabIndex={0}
                     onFocus={() => onSelectClue({ number: clue.number, direction })}
                   >
