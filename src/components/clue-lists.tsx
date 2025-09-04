@@ -131,8 +131,8 @@ export function ClueLists({
   );
 
   return (
-    <Tabs defaultValue="across" className="h-full flex flex-col bg-card rounded-xl shadow-sm overflow-hidden">
-      <TabsList className="grid w-full grid-cols-2 rounded-none">
+    <Tabs defaultValue="across" className="h-full flex flex-col bg-card rounded-xl shadow-sm border overflow-hidden">
+      <TabsList className="grid w-full grid-cols-2 rounded-none bg-primary/10 p-2">
         <TabsTrigger value="across">
           Across <ArrowRightCircle className="h-4 w-4 ml-2" />
         </TabsTrigger>
