@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { Download, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut, FilePlus, FolderOpen, Copy, Home } from 'lucide-react';
+import { Download, Save, Sparkles, CheckCircle, LoaderCircle, LogIn, LogOut, FilePlus, FolderOpen, Copy, Home, User as UserIcon } from 'lucide-react';
 import { useCrossword } from '@/hooks/use-crossword';
 import { CrosswordGrid } from '@/components/crossword-grid';
 import { ClueLists } from '@/components/clue-lists';
@@ -143,10 +143,12 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/home">My Puzzles</Link>
+                <Button variant="default" size="sm" asChild>
+                    <Link href="/home">
+                        <UserIcon className="h-4 w-4 mr-2" />
+                        Account
+                    </Link>
                 </Button>
-                <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
                 <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
                     <LogOut className="h-4 w-4" />
                     <span className="sr-only">Logout</span>

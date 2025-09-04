@@ -6,7 +6,7 @@ import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle, Check, Feather, Hand } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle, Check, Feather, Hand, User as UserIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +23,7 @@ import type { Puzzle, TemplateName } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { Slider } from './ui/slider';
-import { fillThemeWordsAction, type ThemeFillOutput } from '@/app/actions';
+import { fillThemeWordsAction } from '@/app/actions';
 import { ClassicPatternIcon } from './icons/classic-pattern-icon';
 import { CondensedPatternIcon } from './icons/condensed-pattern-icon';
 import { ClearPatternIcon } from './icons/clear-pattern-icon';
@@ -543,10 +543,12 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
         <div className="flex items-center gap-2">
           {user ? (
             <>
-                <Button variant="outline" size="sm" asChild>
-                    <Link href="/home">My Puzzles</Link>
+                <Button variant="default" size="sm" asChild>
+                    <Link href="/home">
+                        <UserIcon className="h-4 w-4 mr-2" />
+                        Account
+                    </Link>
                 </Button>
-                <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
                 <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
                     <LogOut className="h-4 w-4" />
                     <span className="sr-only">Logout</span>

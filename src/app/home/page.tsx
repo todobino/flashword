@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User as FirebaseUser, signOut } from 'firebase/auth';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,10 +14,10 @@ import { app, db } from '@/lib/firebase';
 import type { Puzzle } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
-import { FilePlus, LoaderCircle, LogOut } from 'lucide-react';
+import { FilePlus, LoaderCircle, LogOut, User } from 'lucide-react';
 
 export default function HomePage() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -93,7 +93,12 @@ export default function HomePage() {
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
         </div>
         <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
+            <Button variant="default" size="sm" asChild>
+                <Link href="/home">
+                    <User className="h-4 w-4 mr-2" />
+                    Account
+                </Link>
+            </Button>
             <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
                 <LogOut className="h-4 w-4" />
                 <span className="sr-only">Logout</span>
