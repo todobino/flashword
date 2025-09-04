@@ -27,6 +27,7 @@ import { fillThemeWordsAction } from '@/app/actions';
 import { ClassicPatternIcon } from './icons/classic-pattern-icon';
 import { CondensedPatternIcon } from './icons/condensed-pattern-icon';
 import { ClearPatternIcon } from './icons/clear-pattern-icon';
+import { AccountDropdown } from './account-dropdown';
 
 
 interface NewPuzzleWizardProps {
@@ -526,12 +527,6 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
       </main>
     );
   }
-
-  const handleLogout = async () => {
-    const auth = getAuth(app);
-    await signOut(auth);
-    toast({ title: 'Logged out successfully.' });
-  };
   
   return (
     <div className="flex flex-col h-screen font-body text-foreground bg-background">
@@ -543,16 +538,12 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
         <div className="flex items-center gap-2">
           {user ? (
             <>
-                <Button variant="default" size="sm" asChild>
+                <Button variant="secondary" size="sm" asChild>
                     <Link href="/home">
-                        <UserIcon className="h-4 w-4 mr-2" />
-                        Account
+                        My Puzzles
                     </Link>
                 </Button>
-                <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
-                    <LogOut className="h-4 w-4" />
-                    <span className="sr-only">Logout</span>
-                </Button>
+                <AccountDropdown user={user} />
             </>
           ) : (
             <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login / Sign Up" variant="default">

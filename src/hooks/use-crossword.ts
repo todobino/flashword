@@ -258,6 +258,29 @@ export const useCrossword = (
     });
   };
 
+  const batchFillWords = (wordList: { number: number; direction: 'across' | 'down'; word: string }[]) => {
+    setGrid(currentGrid => {
+        const newGrid = JSON.parse(JSON.stringify(currentGrid));
+        
+        for (const item of wordList) {
+            const clue = [...clues.across, ...clues.down].find(c => c.number === item.number && c.direction === item.direction);
+            if (!clue) continue;
+
+            const normalizedWord = item.word.toUpperCase().padEnd(clue.length, ' ');
+            if (clue.direction === 'across') {
+                for (let i = 0; i < clue.length; i++) {
+                    newGrid[clue.row][clue.col + i].char = normalizedWord[i] === ' ' ? '' : normalizedWord[i];
+                }
+            } else {
+                for (let i = 0; i < clue.length; i++) {
+                    newGrid[clue.row + i][clue.col].char = normalizedWord[i] === ' ' ? '' : normalizedWord[i];
+                }
+            }
+        }
+        return newGrid;
+    });
+  };
+
 
   const currentClueDetails = useMemo(() => {
     if (!selectedClue) return null;
@@ -329,5 +352,6 @@ export const useCrossword = (
     updateClues,
     randomizeGrid,
     fillWord,
+    batchFillWords,
   };
 };

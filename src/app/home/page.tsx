@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { getAuth, onAuthStateChanged, User as FirebaseUser, signOut } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,7 @@ import type { Puzzle } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
 import { FilePlus, LoaderCircle, LogOut, User } from 'lucide-react';
+import { AccountDropdown } from '@/components/account-dropdown';
 
 export default function HomePage() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -63,13 +64,6 @@ export default function HomePage() {
       setIsLoading(false);
     }
   };
-
-  const handleLogout = async () => {
-    const auth = getAuth(app);
-    await signOut(auth);
-    toast({ title: 'Logged out successfully.' });
-    router.push('/');
-  };
   
   const handlePuzzleSelect = (puzzle: Puzzle) => {
     setPuzzle(puzzle);
@@ -93,16 +87,12 @@ export default function HomePage() {
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
         </div>
         <div className="flex items-center gap-2">
-            <Button variant="default" size="sm" asChild>
+            <Button variant="secondary" size="sm" asChild>
                 <Link href="/home">
-                    <User className="h-4 w-4 mr-2" />
-                    Account
+                    My Puzzles
                 </Link>
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
-                <LogOut className="h-4 w-4" />
-                <span className="sr-only">Logout</span>
-            </Button>
+            <AccountDropdown user={user} />
         </div>
       </header>
 

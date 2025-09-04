@@ -17,6 +17,7 @@ import type { Puzzle } from '@/lib/types';
 import { AuthDialog } from '@/components/auth-dialog';
 import { app, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
+import { AccountDropdown } from './account-dropdown';
 
 interface CrosswordBuilderProps {
   puzzle: Puzzle;
@@ -47,13 +48,6 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzle]);
 
-  
-  const handleLogout = async () => {
-    const auth = getAuth(app);
-    await signOut(auth);
-    toast({ title: 'Logged out successfully.' });
-    router.push('/');
-  };
   
   const handleVerify = async () => {
     setIsVerifying(true);
@@ -143,16 +137,10 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <Button variant="default" size="sm" asChild>
-                    <Link href="/home">
-                        <UserIcon className="h-4 w-4 mr-2" />
-                        Account
-                    </Link>
+                <Button variant="secondary" size="sm" asChild>
+                  <Link href="/home">My Puzzles</Link>
                 </Button>
-                <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
-                    <LogOut className="h-4 w-4" />
-                    <span className="sr-only">Logout</span>
-                </Button>
+                <AccountDropdown user={user} />
               </>
             ) : (
               <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login / Sign Up" variant="default">
