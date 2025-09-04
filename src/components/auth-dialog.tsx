@@ -134,20 +134,24 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
         <DialogHeader className="sr-only">
             <DialogTitle>Authentication</DialogTitle>
         </DialogHeader>
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 rounded-b-none rounded-t-lg">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="register">Register</TabsTrigger>
-          </TabsList>
-          <div className="p-6">
-            <TabsContent value="login" className="pt-4 m-0">
-              {renderFormContent(true)}
-            </TabsContent>
-            <TabsContent value="register" className="pt-4 m-0">
-              {renderFormContent(false)}
-            </TabsContent>
-          </div>
-        </Tabs>
+        <div className="p-6 pb-2">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="login">Login</TabsTrigger>
+                    <TabsTrigger value="register">Register</TabsTrigger>
+                </TabsList>
+            </Tabs>
+        </div>
+        <div className="p-6 pt-0">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+                <TabsContent value="login" className="pt-4 m-0">
+                    {renderFormContent(true)}
+                </TabsContent>
+                <TabsContent value="register" className="pt-4 m-0">
+                    {renderFormContent(false)}
+                </TabsContent>
+            </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );
