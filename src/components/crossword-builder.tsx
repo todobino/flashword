@@ -18,6 +18,7 @@ import { AuthDialog } from '@/components/auth-dialog';
 import { app, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { AccountDropdown } from './account-dropdown';
+import { Separator } from './ui/separator';
 
 interface CrosswordBuilderProps {
   puzzle: Puzzle;
@@ -118,6 +119,7 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
               <span className="sr-only sm:not-sr-only sm:ml-2">Verify</span>
             </Button>
           </div>
+          <Separator orientation="vertical" className="h-6" />
           <div className="flex items-center gap-2">
             {user ? (
               <>
