@@ -262,7 +262,8 @@ export const useCrossword = (
         if (puzzleId && user) {
             savePuzzle();
         }
-    }, [debouncedGrid, debouncedClues, debouncedTitle, puzzleId, user, savePuzzle]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [debouncedGrid, debouncedClues, debouncedTitle, puzzleId, user]);
 
 
   const loadPuzzle = async (): Promise<Puzzle | null> => {
@@ -416,7 +417,6 @@ export const useCrossword = (
   const crossword = {
     size,
     grid,
-    setGrid,
     title,
     setTitle,
     puzzleId,

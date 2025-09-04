@@ -44,52 +44,6 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    crossword.resetGrid(puzzle.size, puzzle.grid, puzzle.clues, puzzle.title, puzzle.id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [puzzle]);
-
-  
-  const handleVerify = async () => {
-    setIsVerifying(true);
-    toast({ title: 'Verifying puzzle...', description: 'AI is checking your clues and answers.' });
-    
-    const acrossClues = Object.fromEntries(crossword.clues.across.map(c => [c.number, c.clue]));
-    const downClues = Object.fromEntries(crossword.clues.down.map(c => [c.number, c.clue]));
-    const answers = [...crossword.clues.across, ...crossword.clues.down].reduce((acc, clue) => {
-      const word = crossword.getWordFromGrid(clue).replace(/_/g, ' ');
-      acc[`${clue.number} ${clue.direction}`] = word;
-      return acc;
-    }, {} as Record<string, string>);
-
-    const puzzleGrid = crossword.grid.map(row => row.map(cell => cell.isBlack ? '.' : (cell.char || ' ')));
-
-    const result = await verifyPuzzleAction({ puzzleGrid, acrossClues, downClues, answers });
-    setIsVerifying(false);
-
-    if (result.success && result.data) {
-      if (result.data.isValid) {
-        toast({ title: 'Verification Complete!', description: 'Your puzzle is valid.', variant: 'default' });
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Verification Failed',
-          description: (
-            <div>
-              <p>Found {result.data.errors.length} errors:</p>
-              <ul className="mt-2 list-disc list-inside">
-                {result.data.errors.map((error, i) => <li key={i}>{error}</li>)}
-              </ul>
-            </div>
-          ),
-          duration: 9000,
-        });
-      }
-    } else {
-      toast({ variant: 'destructive', title: 'Verification Error', description: result.error });
-    }
-  };
-
   const getSaveStatus = () => {
     if (isSaving) {
       return (
