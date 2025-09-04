@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { Share2, LoaderCircle, LogIn, CheckCircle, Edit } from 'lucide-react';
+import { Share2, LoaderCircle, LogIn, CheckCircle, Edit, Rocket } from 'lucide-react';
 import { useCrossword, createGrid } from '@/hooks/use-crossword';
 import { CrosswordGridEdit } from '@/components/crossword-grid-edit';
 import { ClueLists } from '@/components/clue-lists';
@@ -186,6 +186,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             </Button>
             {crossword.status === 'draft' && (
                 <Button size="sm" onClick={() => setIsPublishDialogOpen(true)}>
+                    <Rocket />
                     Publish
                 </Button>
             )}
