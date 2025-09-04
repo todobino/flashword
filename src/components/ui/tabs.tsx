@@ -1,9 +1,7 @@
-
 "use client"
 
 import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
-
 import { cn } from "@/lib/utils"
 
 const Tabs = TabsPrimitive.Root
@@ -15,8 +13,10 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-auto items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
-      "grid w-full grid-cols-2",
+      // LIGHT GRAY BG on the whole tab group container (the <Primitive.div>)
+      // plus padding + rounded + space between triggers
+      "grid w-full grid-cols-2 gap-2 rounded-lg bg-neutral-100 p-2",
+      // keep it flexible; your overrides can still win via className
       className
     )}
     {...props}
@@ -31,9 +31,16 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+      // more horizontal padding for a chunkier button
+      "inline-flex items-center justify-center whitespace-nowrap rounded-md px-7 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+
+      // ACTIVE state (unchanged)
       "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=active]:hover:bg-primary/90",
-      "data-[state=inactive]:text-foreground data-[state=inactive]:hover:bg-muted-foreground/20",
+
+      // INACTIVE state: text black by default; mid-gray on hover
+      "data-[state=inactive]:text-black dark:data-[state=inactive]:text-neutral-200",
+      "data-[state=inactive]:hover:bg-neutral-300 dark:data-[state=inactive]:hover:bg-neutral-700",
+
       className
     )}
     {...props}
