@@ -213,7 +213,8 @@ export function CrosswordGrid({
                   cell.isBlack ? 'bg-primary' : 'bg-card',
                    isSelected && !cell.isBlack && 'bg-accent/20',
                    isFocused && !cell.isBlack && 'bg-accent/40',
-                   designMode ? 'cursor-pointer' : 'cursor-default'
+                   designMode ? 'cursor-pointer' : 'cursor-default',
+                   designMode && cell.char ? 'bg-yellow-200/50 dark:bg-yellow-800/50' : ''
                 )}
               >
                 {cell.number && (
