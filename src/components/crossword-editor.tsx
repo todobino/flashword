@@ -7,7 +7,7 @@ import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { Share2, LoaderCircle, LogIn } from 'lucide-react';
 import { useCrossword, createGrid } from '@/hooks/use-crossword';
-import { CrosswordGrid } from '@/components/crossword-grid';
+import { CrosswordGridEdit } from '@/components/crossword-grid-edit';
 import { ClueLists } from '@/components/clue-lists';
 import { Button } from '@/components/ui/button';
 import { LogoIcon } from '@/components/icons';
@@ -184,10 +184,9 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
           />
         </div>
         <div className="flex h-full items-center justify-center">
-          <CrosswordGrid
+          <CrosswordGridEdit
             grid={crossword.grid}
             size={crossword.size}
-            onCellClick={crossword.toggleCellBlack}
             onCharChange={crossword.updateCellChar}
             selectedClue={crossword.selectedClue}
             currentClueDetails={crossword.currentClueDetails}
