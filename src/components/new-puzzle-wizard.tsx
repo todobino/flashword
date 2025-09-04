@@ -24,7 +24,6 @@ import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { Slider } from './ui/slider';
 import { generateThemeAction, type ThemeGenerationOutput } from '@/app/actions';
-import { Textarea } from './ui/textarea';
 import { ClassicPatternIcon } from './icons/classic-pattern-icon';
 import { CondensedPatternIcon } from './icons/condensed-pattern-icon';
 import { ClearPatternIcon } from './icons/clear-pattern-icon';
@@ -85,6 +84,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   const [themeDescription, setThemeDescription] = useState('');
   const [isGeneratingTheme, setIsGeneratingTheme] = useState(false);
   const [themeSuggestions, setThemeSuggestions] = useState<ThemeGenerationOutput[]>([]);
+  const [appliedTheme, setAppliedTheme] = useState<ThemeGenerationOutput | null>(null);
   
   const [user, setUser] = useState<User | null>(null);
   const crossword = useCrossword(size, undefined, undefined, title, undefined, user);
@@ -179,12 +179,15 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   const applyThemeSuggestion = (suggestion: ThemeGenerationOutput) => {
     crossword.setTitle(suggestion.title);
     suggestion.themeAnswers.forEach(answer => {
-      const clueToFill = themers.find(t => t.number === answer.number && t.direction === answer.direction);
+      // Find the corresponding clue slot from the themers array
+      const clueToFill = themers.find(t => 
+        t.number === answer.number && t.direction === answer.direction
+      );
       if (clueToFill) {
         crossword.fillWord(clueToFill, answer.word);
       }
     });
-    setThemeSuggestions([]);
+    setAppliedTheme(suggestion); // Set the applied theme
     toast({ title: 'Theme Applied!', description: `"${suggestion.title}" and answers are now in the grid.` });
   };
   
@@ -470,10 +473,18 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                             {themeSuggestions.length > 0 && (
                                 <div className="space-y-3 pt-4">
                                     <h4 className="font-semibold">Suggestions</h4>
-                                    {themeSuggestions.map((suggestion, index) => (
-                                        <Card key={index} className="bg-muted/50">
+                                    {themeSuggestions.map((suggestion, index) => {
+                                        const isApplied = appliedTheme?.title === suggestion.title;
+                                        return (
+                                        <Card key={index} className={cn(
+                                                "bg-muted/50 transition-all",
+                                                isApplied && "ring-2 ring-green-500 bg-green-500/10"
+                                            )}>
                                             <CardHeader className="p-4">
-                                                <CardTitle className="text-lg">{suggestion.title}</CardTitle>
+                                                <CardTitle className="text-lg flex justify-between items-center">
+                                                    {suggestion.title}
+                                                    {isApplied && <Check className="h-5 w-5 text-green-600" />}
+                                                </CardTitle>
                                             </CardHeader>
                                             <CardContent className="p-4 pt-0 space-y-2">
                                                 {suggestion.themeAnswers.map(ans => (
@@ -484,13 +495,13 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                                                 ))}
                                             </CardContent>
                                             <CardFooter className="p-4 pt-0">
-                                                <Button size="sm" onClick={() => applyThemeSuggestion(suggestion)} className="w-full">
+                                                <Button size="sm" onClick={() => applyThemeSuggestion(suggestion)} className="w-full" disabled={isApplied}>
                                                     <Hand className="mr-2 h-4 w-4" />
-                                                    Apply Theme
+                                                    {isApplied ? "Applied" : "Apply Theme"}
                                                 </Button>
                                             </CardFooter>
                                         </Card>
-                                    ))}
+                                    )})}
                                 </div>
                             )}
                        </div>
@@ -585,7 +596,5 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
-
-    
 
     
