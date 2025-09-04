@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -33,31 +34,55 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
   const auth = getAuth(app);
 
   const handleEmailCheck = async () => {
+    const normalized = email.trim().toLowerCase();
+    setEmail(normalized);
+
     setIsLoading(true);
     setError(null);
     setStep('loading');
+
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-      if (methods.length > 0) {
-        setStep('login');
+      const methods = await fetchSignInMethodsForEmail(auth, normalized);
+
+      // 🔎 Prove what project/env you’re using and what Firebase returns
+      // eslint-disable-next-line no-console
+      console.table({
+        email: normalized,
+        methods: JSON.stringify(methods),
+        projectId: auth.app.options?.projectId,
+        authDomain: (auth.app.options as any)?.authDomain,
+        apiKey: (auth.app.options as any)?.apiKey?.slice?.(0, 6) + '…',
+      });
+
+      if (methods.includes('password')) {
+        setStep('login');            // existing email+password account
+      } else if (methods.length > 0) {
+        setError(`This email is registered with: ${methods.join(', ')}. Use that method.`);
+        setStep('initial');
       } else {
-        setStep('signup');
+        setStep('signup');           // no account found in THIS project/env
       }
     } catch (err: any) {
-        if (err.code === 'auth/invalid-email') {
-             setError('Please enter a valid email address.');
-        } else {
-             setError('Could not verify email. Please try again.');
-        }
-       setStep('initial');
+      setError(err?.code === 'auth/invalid-email'
+        ? 'Please enter a valid email address.'
+        : 'Could not verify email. Please try again.'
+      );
+      setStep('initial');
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleAuth = async () => {
     setIsLoading(true);
     setError(null);
+    
+    if (step !== 'login' && step !== 'signup') {
+      setError('Please check your email first.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       if (step === 'signup') {
         await createUserWithEmailAndPassword(auth, email, password);
