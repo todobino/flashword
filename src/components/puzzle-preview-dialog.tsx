@@ -23,6 +23,9 @@ export function PuzzlePreviewDialog({ isOpen, onOpenChange, puzzle }: PuzzlePrev
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl w-full h-[calc(100vh-4rem)] p-0 flex flex-col">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Puzzle Preview</DialogTitle>
+        </DialogHeader>
         <ScrollArea className="h-full">
             <div className="p-8 space-y-8 font-serif">
                 <header className="flex justify-between items-center">
@@ -31,7 +34,7 @@ export function PuzzlePreviewDialog({ isOpen, onOpenChange, puzzle }: PuzzlePrev
                 </header>
 
                 <div className="grid grid-cols-2 gap-8">
-                    <div className="col-span-1 space-y-6 text-sm leading-relaxed">
+                     <div className="col-span-1 space-y-6 text-sm leading-relaxed">
                         <div>
                             <h3 className="text-base font-bold tracking-wider uppercase border-b pb-2 mb-2">Across</h3>
                             <ol className="space-y-1.5 column-count-2 column-gap-6">

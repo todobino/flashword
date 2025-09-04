@@ -132,7 +132,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px] p-0">
         <DialogHeader className="sr-only">
-            <DialogTitle>Authentication</DialogTitle>
+          <DialogTitle>Authentication</DialogTitle>
         </DialogHeader>
         <div className="p-6 pb-2">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
