@@ -44,7 +44,11 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
         setStep('signup');
       }
     } catch (err: any) {
-       setError(err.message);
+        if (err.code === 'auth/invalid-email') {
+             setError('Please enter a valid email address.');
+        } else {
+             setError('Could not verify email. Please try again.');
+        }
        setStep('initial');
     } finally {
       setIsLoading(false);
@@ -64,7 +68,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
       }
       onOpenChange(false);
     } catch (err: any) {
-        if (err.code === 'auth/invalid-credential') {
+        if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
             setError('Invalid credentials. Please check your email or password.');
         } else {
             setError(err.message);
