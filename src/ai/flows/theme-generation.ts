@@ -42,7 +42,11 @@ export async function generateTheme(input: ThemeGenerationInput): Promise<ThemeG
 
 const prompt = ai.definePrompt({
   name: 'themeGenerationPrompt',
-  input: {schema: ThemeGenerationInputSchema},
+  input: {schema: z.object({
+    description: z.string(),
+    answers: z.string(),
+    puzzleGrid: z.string(),
+  })},
   output: {schema: ThemeGenerationOutputSchema},
   prompt: `You are a professional crossword puzzle constructor. Your task is to brainstorm a theme for a puzzle based on a user's description and the grid's structural constraints.
 
@@ -56,12 +60,10 @@ Theme Description:
 {{{description}}}
 
 Available Theme Answer Slots:
-{{#each answers}}
-- {{number}} {{direction}} ({{length}} letters) starting at (row: {{row}}, col: {{col}})
-{{/each}}
+{{{answers}}}
 
 Puzzle Grid (for intersection checking):
-{{jsonStringify puzzleGrid}}
+{{{puzzleGrid}}}
 
 Analyze the theme description and the available slots. Generate a suitable title and a complete set of theme answers that are valid, fit the lengths, and correctly handle any intersections between them.
 `,
@@ -74,7 +76,11 @@ const themeGenerationFlow = ai.defineFlow(
     outputSchema: ThemeGenerationOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await prompt({
+        description: input.description,
+        answers: JSON.stringify(input.answers, null, 2),
+        puzzleGrid: JSON.stringify(input.puzzleGrid, null, 2),
+    });
     return output!;
   }
 );
