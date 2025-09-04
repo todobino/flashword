@@ -175,15 +175,6 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            {crossword.status === 'draft' ? (
-                <Badge variant="outline" className="text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
-                    Draft
-                </Badge>
-            ) : (
-                <Badge variant="outline" className="text-green-600 border-green-600/50 bg-green-50 dark:bg-green-900/20">
-                    Published
-                </Badge>
-            )}
             <Button variant="outline" size="sm" title="Share puzzle" disabled={crossword.status === 'draft'}>
               <Share2 className="h-4 w-4" />
               <span className="sr-only sm:not-sr-only sm:ml-2">Share</span>
