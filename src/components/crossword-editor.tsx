@@ -173,25 +173,9 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
         </div>
       </header>
 
-      <main className="grid flex-1 gap-6 overflow-hidden p-4 md:grid-cols-2 md:p-6">
-        <div className="h-full">
-          <ClueLists
-            clues={crossword.clues}
-            selectedClue={crossword.selectedClue}
-            onSelectClue={crossword.setSelectedClue}
-            onClueTextChange={crossword.updateClueText}
-            getWordFromGrid={crossword.getWordFromGrid}
-          />
-        </div>
-        <div className="flex h-full items-center justify-center">
-          <CrosswordGridEdit
-            grid={crossword.grid}
-            size={crossword.size}
-            onCharChange={crossword.updateCellChar}
-            selectedClue={crossword.selectedClue}
-            currentClueDetails={crossword.currentClueDetails}
-            onSelectClue={crossword.setSelectedClue}
-          />
+      <main className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md h-96 flex items-center justify-center bg-destructive/10 border-2 border-dashed border-destructive/50 rounded-lg">
+            <h2 className="text-2xl font-bold text-destructive-foreground">This Page is Terrible</h2>
         </div>
       </main>
       <AuthDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen} />
