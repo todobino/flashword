@@ -6,7 +6,7 @@ import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle, Check, LayoutGrid, Blocks, Feather } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle, Check, Feather } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +26,7 @@ import { Slider } from './ui/slider';
 import { generateThemeAction } from '@/app/actions';
 import { Textarea } from './ui/textarea';
 import { ClassicPatternIcon } from './icons/classic-pattern-icon';
+import { BlockedPatternIcon } from './icons/blocked-pattern-icon';
 
 
 interface NewPuzzleWizardProps {
@@ -43,7 +44,7 @@ const SIZES = [
 
 const TEMPLATES: { name: TemplateName, description: string, icon: React.ElementType }[] = [
     { name: 'Classic', description: 'A standard, widely-used symmetric pattern.', icon: ClassicPatternIcon},
-    { name: 'Blocked', description: 'Higher density of black squares, easier to fill.', icon: Blocks},
+    { name: 'Blocked', description: 'Higher density of black squares, easier to fill.', icon: BlockedPatternIcon},
     { name: 'Wide Open', description: 'Very few black squares, for a challenging construction.', icon: Feather },
 ];
 
@@ -546,5 +547,3 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
-
-    
