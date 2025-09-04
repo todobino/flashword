@@ -6,6 +6,7 @@ import { Wand2, LoaderCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Entry } from '@/lib/types';
@@ -21,6 +22,7 @@ interface ClueListsProps {
   onSelectClue: (clue: { number: number; direction: 'across' | 'down' }) => void;
   onClueTextChange: (number: number, direction: 'across' | 'down', text: string) => void;
   getWordFromGrid: (clue: { number: number; direction: 'across' | 'down' }) => string;
+  onWordChange: (clue: Entry, word: string) => void;
 }
 
 export function ClueLists({
@@ -29,6 +31,7 @@ export function ClueLists({
   onSelectClue,
   onClueTextChange,
   getWordFromGrid,
+  onWordChange,
 }: ClueListsProps) {
   const [aiLoadingClue, setAiLoadingClue] = useState<string | null>(null);
   const { toast } = useToast();
@@ -83,7 +86,14 @@ export function ClueLists({
               <div className="flex gap-3 items-start">
                 <div className="font-bold text-sm text-muted-foreground mt-2">{clue.number}.</div>
                 <div className="flex-1 space-y-2">
-                  <div className="font-mono text-sm uppercase tracking-wider text-muted-foreground">{currentAnswer}</div>
+                  <Input
+                    placeholder={`Enter ${clue.length}-letter answer...`}
+                    maxLength={clue.length}
+                    value={currentAnswer.replace(/_/g, '')}
+                    onChange={(e) => onWordChange(clue, e.target.value)}
+                    className="font-mono uppercase tracking-widest"
+                    onFocus={() => onSelectClue({ number: clue.number, direction })}
+                  />
                   <Textarea
                     placeholder={`Enter clue...`}
                     value={clue.clue}
