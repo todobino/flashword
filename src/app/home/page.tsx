@@ -14,7 +14,7 @@ import { app, db } from '@/lib/firebase';
 import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
-import { FilePlus, LoaderCircle, LogOut, User, CheckCircle, Edit } from 'lucide-react';
+import { FilePlus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2 } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { createGrid } from '@/hooks/use-crossword';
 import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
@@ -109,6 +109,7 @@ export default function HomePage() {
         <div className="flex items-center gap-2">
             <Button variant="secondary" size="sm" asChild>
                 <Link href="/home">
+                    <Grid2x2 className="mr-2 h-4 w-4" />
                     My Puzzles
                 </Link>
             </Button>

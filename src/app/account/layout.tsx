@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { LogoIcon } from '@/components/icons';
 import { app } from '@/lib/firebase';
 import { AccountDropdown } from '@/components/account-dropdown';
-import { LoaderCircle, UserCircle, Settings } from 'lucide-react';
+import { LoaderCircle, UserCircle, Settings, Grid2x2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -61,6 +61,7 @@ export default function AccountLayout({
         <div className="flex items-center gap-2">
             <Button variant="secondary" size="sm" asChild>
                 <Link href="/home">
+                    <Grid2x2 className="mr-2 h-4 w-4" />
                     My Puzzles
                 </Link>
             </Button>

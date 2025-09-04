@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { Share2, LoaderCircle, LogIn, CheckCircle, Edit, Rocket } from 'lucide-react';
+import { Share2, LoaderCircle, LogIn, CheckCircle, Edit, Rocket, Grid2x2 } from 'lucide-react';
 import { useCrossword, createGrid } from '@/hooks/use-crossword';
 import { CrosswordGridEdit } from '@/components/crossword-grid-edit';
 import { ClueLists } from '@/components/clue-lists';
@@ -196,7 +196,10 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             {user ? (
               <>
                 <Button variant="secondary" size="sm" asChild>
-                  <Link href="/home">My Puzzles</Link>
+                  <Link href="/home">
+                    <Grid2x2 className="mr-2 h-4 w-4" />
+                    My Puzzles
+                  </Link>
                 </Button>
                 <AccountDropdown user={user} />
               </>
