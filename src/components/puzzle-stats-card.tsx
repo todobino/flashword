@@ -98,26 +98,17 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt, onPre
             </div>
              <div className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
                 <span className="text-muted-foreground">Created</span>
-                <span className="font-medium truncate">{createdAt ? format(createdAt, 'PPP') : 'N/A'}</span>
+                <span className="font-medium truncate">{createdAt ? format(createdAt, 'MM/dd/yyyy') : 'N/A'}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
+                <span className="text-muted-foreground">Difficulty</span>
+                {getDifficultyBadge()}
+            </div>
+             <div className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
+                <span className="text-muted-foreground">Avg. Word Length</span>
+                <span className="font-medium">{stats.avgWordLength.toFixed(2)}</span>
             </div>
         </div>
-        
-        <Separator />
-        
-        <div className="space-y-2">
-             <h4 className="font-semibold">Analysis</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
-                    <span className="text-muted-foreground">Difficulty</span>
-                    {getDifficultyBadge()}
-                </div>
-                 <div className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
-                    <span className="text-muted-foreground">Avg. Word Length</span>
-                    <span className="font-medium">{stats.avgWordLength.toFixed(2)}</span>
-                </div>
-              </div>
-        </div>
-
       </CardContent>
     </Card>
   );
