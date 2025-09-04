@@ -1,6 +1,7 @@
 
 'use client';
 
+import { Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -8,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PuzzleStats } from "@/hooks/use-crossword";
 import { format } from 'date-fns';
+import { Button } from "./ui/button";
 
 interface PuzzleStatsCardProps {
     title: string;
@@ -34,11 +36,13 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt }: Puz
 
   return (
     <Card className="h-full">
-      <CardHeader>
-        <CardTitle>Puzzle Stats</CardTitle>
-        <CardDescription>
-            Information and analysis of your puzzle.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="space-y-1.5">
+          <CardTitle>Puzzle Stats</CardTitle>
+        </div>
+        <Button variant="secondary" size="icon">
+          <Eye className="h-4 w-4" />
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
