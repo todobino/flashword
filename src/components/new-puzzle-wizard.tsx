@@ -27,6 +27,7 @@ import { generateThemeAction } from '@/app/actions';
 import { Textarea } from './ui/textarea';
 import { ClassicPatternIcon } from './icons/classic-pattern-icon';
 import { BlockedPatternIcon } from './icons/blocked-pattern-icon';
+import { WideOpenPatternIcon } from './icons/wide-open-pattern-icon';
 
 
 interface NewPuzzleWizardProps {
@@ -45,7 +46,7 @@ const SIZES = [
 const TEMPLATES: { name: TemplateName, description: string, icon: React.ElementType }[] = [
     { name: 'Classic', description: 'A standard, widely-used symmetric pattern.', icon: ClassicPatternIcon},
     { name: 'Blocked', description: 'Higher density of black squares, easier to fill.', icon: BlockedPatternIcon},
-    { name: 'Wide Open', description: 'Very few black squares, for a challenging construction.', icon: Feather },
+    { name: 'Wide Open', description: 'Very few black squares, for a challenging construction.', icon: WideOpenPatternIcon },
 ];
 
 
