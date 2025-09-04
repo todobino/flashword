@@ -3,7 +3,7 @@
 
 import { suggestClue as suggestClueFlow, type ClueSuggestionInput } from '@/ai/flows/clue-suggestion';
 import { verifyPuzzle as verifyPuzzleFlow, type VerifyPuzzleInput } from '@/ai/flows/puzzle-verification';
-import { generateTheme as generateThemeFlow, type ThemeGenerationInput, type ThemeGenerationOutput } from '@/ai/flows/theme-generation';
+import { fillThemeWords as fillThemeWordsFlow, type ThemeFillInput, type ThemeFillOutput } from '@/ai/flows/theme-fill';
 
 
 export async function suggestClueAction(input: ClueSuggestionInput) {
@@ -26,14 +26,12 @@ export async function verifyPuzzleAction(input: VerifyPuzzleInput) {
   }
 }
 
-export async function generateThemeAction(input: ThemeGenerationInput): Promise<{ success: boolean, data?: ThemeGenerationOutput, error?: string }> {
+export async function fillThemeWordsAction(input: ThemeFillInput): Promise<{ success: boolean, data?: ThemeFillOutput, error?: string }> {
     try {
-      const result = await generateThemeFlow(input);
+      const result = await fillThemeWordsFlow(input);
       return { success: true, data: result };
     } catch (error) {
       console.error('Error generating theme:', error);
       return { success: false, error: 'Failed to generate a theme due to a server error.' };
     }
 }
-
-    
