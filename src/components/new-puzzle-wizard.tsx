@@ -25,6 +25,7 @@ import { Separator } from './ui/separator';
 import { Slider } from './ui/slider';
 import { generateThemeAction } from '@/app/actions';
 import { Textarea } from './ui/textarea';
+import { ClassicPatternIcon } from './icons/classic-pattern-icon';
 
 
 interface NewPuzzleWizardProps {
@@ -41,7 +42,7 @@ const SIZES = [
 
 
 const TEMPLATES: { name: TemplateName, description: string, icon: React.ElementType }[] = [
-    { name: 'Classic', description: 'A standard, widely-used symmetric pattern.', icon: LayoutGrid},
+    { name: 'Classic', description: 'A standard, widely-used symmetric pattern.', icon: ClassicPatternIcon},
     { name: 'Blocked', description: 'Higher density of black squares, easier to fill.', icon: Blocks},
     { name: 'Wide Open', description: 'Very few black squares, for a challenging construction.', icon: Feather },
 ];
