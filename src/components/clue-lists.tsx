@@ -76,7 +76,7 @@ export function ClueLists({
               key={loadingKey}
               className={cn(
                 'p-3 rounded-lg transition-colors',
-                isSelected ? 'bg-accent/20' : 'bg-card'
+                isSelected ? 'bg-yellow-100/80 dark:bg-yellow-900/40' : 'bg-card'
               )}
             >
               <div className="flex gap-3 items-start">
@@ -87,7 +87,7 @@ export function ClueLists({
                     value={clue.clue}
                     onFocus={() => onSelectClue({ number: clue.number, direction })}
                     onChange={(e) => onClueTextChange(clue.number, direction, e.target.value)}
-                    className="bg-background focus-visible:ring-accent"
+                    className="bg-background focus-visible:ring-primary"
                     rows={2}
                   />
                   <Button
@@ -95,7 +95,7 @@ export function ClueLists({
                     variant="ghost"
                     onClick={() => handleSuggestClue(clue)}
                     disabled={aiLoadingClue === loadingKey}
-                    className="text-accent-foreground hover:bg-accent/80 hover:text-accent-foreground"
+                    className="text-primary hover:bg-primary/10 hover:text-primary"
                   >
                     {aiLoadingClue === loadingKey ? (
                       <LoaderCircle className="w-4 h-4 animate-spin" />

@@ -156,8 +156,8 @@ export function CrosswordGrid({
                 className={cn(
                   'relative aspect-square border border-border flex items-center justify-center transition-colors',
                   cell.isBlack ? 'bg-primary' : 'bg-card',
-                   isSelected && !cell.isBlack && 'bg-accent/20',
-                   isFocused && !cell.isBlack && 'bg-accent/40',
+                   isSelected && !cell.isBlack && 'bg-yellow-200/50 dark:bg-yellow-800/50',
+                   isFocused && !cell.isBlack && 'bg-yellow-300/50 dark:bg-yellow-700/50',
                    designMode ? 'cursor-pointer' : 'cursor-default',
                    designMode && cell.char ? 'bg-yellow-200/50 dark:bg-yellow-800/50' : ''
                 )}

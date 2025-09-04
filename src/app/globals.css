@@ -20,8 +20,8 @@ body {
     --secondary-foreground: 0 0% 9%;
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
-    --accent: 210 40% 25%; /* Midnight Blue */
-    --accent-foreground: 0 0% 98%;
+    --accent: 0 0% 92%; /* Light Gray for hover */
+    --accent-foreground: 0 0% 9%; /* Dark text for light gray hover */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 83%; /* Mid Gray */
@@ -55,8 +55,8 @@ body {
     --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
-    --accent: 210 40% 75%; /* Lighter Midnight Blue for dark mode */
-    --accent-foreground: 0 0% 9%;
+    --accent: 0 0% 14.9%; /* Darker Gray for hover */
+    --accent-foreground: 0 0% 98%; /* Light text for dark gray hover */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 25%; /* Darker Gray for dark mode */
