@@ -134,10 +134,10 @@ export function ClueLists({
     <Tabs defaultValue="across" className="h-full flex flex-col bg-card rounded-xl shadow-sm overflow-hidden">
       <TabsList className="grid w-full grid-cols-2 rounded-none">
         <TabsTrigger value="across">
-          Across <ArrowRightCircle />
+          Across <ArrowRightCircle className="h-4 w-4 ml-2" />
         </TabsTrigger>
         <TabsTrigger value="down">
-          Down <ArrowDownCircle />
+          Down <ArrowDownCircle className="h-4 w-4 ml-2" />
         </TabsTrigger>
       </TabsList>
       <div className="flex-1 overflow-hidden">
