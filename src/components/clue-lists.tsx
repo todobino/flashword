@@ -71,6 +71,7 @@ export function ClueLists({
         {clues[direction].map((clue) => {
           const isSelected = selectedClue?.number === clue.number && selectedClue?.direction === direction;
           const loadingKey = `${clue.number}-${direction}`;
+          const currentAnswer = getWordFromGrid(clue);
           return (
             <div
               key={loadingKey}
@@ -82,8 +83,9 @@ export function ClueLists({
               <div className="flex gap-3 items-start">
                 <div className="font-bold text-sm text-muted-foreground mt-2">{clue.number}.</div>
                 <div className="flex-1 space-y-2">
+                  <div className="font-mono text-sm uppercase tracking-wider text-muted-foreground">{currentAnswer}</div>
                   <Textarea
-                    placeholder={`Clue for ${getWordFromGrid(clue)}...`}
+                    placeholder={`Enter clue...`}
                     value={clue.clue}
                     onFocus={() => onSelectClue({ number: clue.number, direction })}
                     onChange={(e) => onClueTextChange(clue.number, direction, e.target.value)}

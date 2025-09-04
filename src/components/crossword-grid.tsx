@@ -137,7 +137,7 @@ export function CrosswordGrid({
 
   return (
     <div className={cn(
-        "relative aspect-square w-full max-w-[calc(100vh-12rem)] overflow-hidden bg-card",
+        "relative aspect-square w-full max-w-[calc(100vh-12rem)] mx-auto overflow-hidden bg-card",
         !designMode && "shadow-lg"
     )}>
       <div

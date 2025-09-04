@@ -19,6 +19,7 @@ import { app, db } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import { AccountDropdown } from './account-dropdown';
 import { Separator } from './ui/separator';
+import { Input } from './ui/input';
 
 interface CrosswordBuilderProps {
   puzzle: Puzzle;
@@ -91,50 +92,39 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
   };
   
   const handleSave = async () => {
-    if (!user || !crossword.puzzleId) {
-      // If not logged in, or if it's a new puzzle without an ID yet, prompt login/save as.
-      // For now, we just show a toast, but this could trigger a save-as flow.
-      toast({
-        variant: 'destructive',
-        title: 'Cannot Save',
-        description: 'Please log in and create a puzzle first.',
-      });
+    if (!user) {
+      toast({ variant: 'destructive', title: 'Login Required', description: 'You must be logged in to save.'});
       return;
     }
     setIsSaving(true);
-    const puzzleDocRef = doc(db, 'users', user.uid, 'puzzles', crossword.puzzleId);
-    
-    const puzzleData = {
-        title: crossword.title,
-        size: crossword.size,
-        grid: crossword.grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
-        entries: [...crossword.clues.across, ...crossword.clues.down],
-        updatedAt: serverTimestamp(),
-    };
-
-    try {
-      await updateDoc(puzzleDocRef, puzzleData);
-      toast({ title: 'Puzzle Saved!', description: 'Your changes have been saved.' });
-    } catch (error) {
-      console.error('Error saving puzzle:', error);
-      toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save your changes.' });
-    } finally {
-      setIsSaving(false);
-    }
+    await crossword.savePuzzle();
+    setIsSaving(false);
   };
 
   return (
     <div className="flex flex-col h-screen font-body text-foreground bg-background">
       <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-card">
-        <div className="flex items-center gap-3">
-          <LogoIcon className="h-8 w-8 text-primary" />
-          <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <LogoIcon className="h-8 w-8 text-primary" />
+            <h1 className="text-xl font-bold tracking-tight text-primary sr-only">FlashWord</h1>
+          </div>
+          <Input 
+            placeholder="Untitled Puzzle" 
+            className="text-lg font-semibold w-72"
+            value={crossword.title}
+            onChange={(e) => crossword.setTitle(e.target.value)}
+          />
         </div>
         <div className="flex items-center gap-4">
            <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" title="Export to PDF (coming soon)" disabled>
               <Download className="h-4 w-4" />
               <span className="sr-only sm:not-sr-only sm:ml-2">Export</span>
+            </Button>
+             <Button size="sm" onClick={handleSave} disabled={isSaving} title="Save Puzzle">
+              {isSaving ? <LoaderCircle className="animate-spin" /> : <Save />}
+              <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
             </Button>
             <Button size="sm" onClick={handleVerify} disabled={isVerifying} title="Verify Puzzle">
               {isVerifying ? <LoaderCircle className="animate-spin" /> : <CheckCircle />}
@@ -161,6 +151,15 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
       </header>
 
       <main className="flex-1 grid md:grid-cols-2 lg:grid-cols-5 gap-6 p-4 md:p-6 overflow-hidden">
+        <div className="lg:col-span-2 md:col-span-1 h-full">
+          <ClueLists
+            clues={crossword.clues}
+            selectedClue={crossword.selectedClue}
+            onSelectClue={crossword.setSelectedClue}
+            onClueTextChange={crossword.updateClueText}
+            getWordFromGrid={crossword.getWordFromGrid}
+          />
+        </div>
         <div className="lg:col-span-3 md:col-span-1 h-full flex items-center justify-center">
           <CrosswordGrid
             grid={crossword.grid}
@@ -170,15 +169,6 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
             selectedClue={crossword.selectedClue}
             currentClueDetails={crossword.currentClueDetails}
             onSelectClue={crossword.setSelectedClue}
-          />
-        </div>
-        <div className="lg:col-span-2 md:col-span-1 h-full">
-          <ClueLists
-            clues={crossword.clues}
-            selectedClue={crossword.selectedClue}
-            onSelectClue={crossword.setSelectedClue}
-            onClueTextChange={crossword.updateClueText}
-            getWordFromGrid={crossword.getWordFromGrid}
           />
         </div>
       </main>
