@@ -30,7 +30,7 @@ export function PuzzlePreviewDialog({ isOpen, onOpenChange, puzzle }: PuzzlePrev
             <div className="p-8 space-y-8 font-serif">
                 <header className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold">{puzzle.title}</h1>
-                    <h2 className="text-lg font-medium">{puzzle.author}</h2>
+                    <h2 className="text-lg font-medium">@{puzzle.author}</h2>
                 </header>
 
                 <div className="grid grid-cols-2 gap-8">
