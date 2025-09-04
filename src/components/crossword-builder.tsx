@@ -108,55 +108,57 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
 
   return (
     <div className="flex flex-col h-screen font-body text-foreground bg-background">
-      <header className="flex items-center justify-between p-4 border-b shrink-0">
+      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-card">
         <div className="flex items-center gap-3">
           <LogoIcon className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
-           {user ? (
-            <div className="flex items-center gap-2 ml-4">
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/home">
-                  <Home className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:ml-2">My Puzzles</span>
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleLogout} title="Logout">
-                <LogOut className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">Logout</span>
-              </Button>
-            </div>
-          ) : (
-            <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login / Sign Up" variant="default" className="ml-4">
-              <LogIn className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:ml-2">Login / Sign Up</span>
-            </Button>
-          )}
         </div>
-        <div className="flex items-center gap-2">
-           <Button variant="outline" size="sm" onClick={onNew} title="New Puzzle">
-            <FilePlus className="h-4 w-4" />
-             <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => crossword.savePuzzle(false)} disabled={!user} title="Save Puzzle">
-            <Save className="h-4 w-4" />
-             <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
-          </Button>
-          <Button variant="outline" size="sm" onClick={crossword.savePuzzleAs} disabled={!user} title="Save as New Puzzle">
-            <Copy className="h-4 w-4" />
-             <span className="sr-only sm:not-sr-only sm:ml-2">Save As</span>
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleLoadPuzzle} disabled={!user} title="Load Puzzle">
-            <FolderOpen className="h-4 w-4" />
-             <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
-          </Button>
-          <Button variant="outline" size="sm" title="Export to PDF (coming soon)" disabled>
-            <Download className="h-4 w-4" />
-             <span className="sr-only sm:not-sr-only sm:ml-2">Export</span>
-          </Button>
-          <Button size="sm" onClick={handleVerify} disabled={isVerifying} title="Verify Puzzle">
-            {isVerifying ? <LoaderCircle className="animate-spin" /> : <CheckCircle />}
-             <span className="sr-only sm:not-sr-only sm:ml-2">Verify</span>
-          </Button>
+        <div className="flex items-center gap-4">
+           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={onNew} title="New Puzzle">
+              <FilePlus className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => crossword.savePuzzle(false)} disabled={!user} title="Save Puzzle">
+              <Save className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={crossword.savePuzzleAs} disabled={!user} title="Save as New Puzzle">
+              <Copy className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only sm:ml-2">Save As</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleLoadPuzzle} disabled={!user} title="Load Puzzle">
+              <FolderOpen className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
+            </Button>
+            <Button variant="outline" size="sm" title="Export to PDF (coming soon)" disabled>
+              <Download className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only sm:ml-2">Export</span>
+            </Button>
+            <Button size="sm" onClick={handleVerify} disabled={isVerifying} title="Verify Puzzle">
+              {isVerifying ? <LoaderCircle className="animate-spin" /> : <CheckCircle />}
+              <span className="sr-only sm:not-sr-only sm:ml-2">Verify</span>
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            {user ? (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/home">My Puzzles</Link>
+                </Button>
+                <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
+                <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+                    <LogOut className="h-4 w-4" />
+                    <span className="sr-only">Logout</span>
+                </Button>
+              </>
+            ) : (
+              <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login / Sign Up" variant="default">
+                <LogIn className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:ml-2">Login / Sign Up</span>
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, Fragment } from 'react';
-import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -182,14 +182,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     const result = await fillThemeWordsAction({ answers: themeAnswerSlots, puzzleGrid });
     
     if (result.success && result.data) {
-        result.data.themeAnswers.forEach(answer => {
-            const clueToFill = themers.find(t => 
-              t.number === answer.number && t.direction === answer.direction
-            );
-            if (clueToFill) {
-              crossword.fillWord(clueToFill, answer.word);
-            }
-        });
+        crossword.batchFillWords(result.data.themeAnswers);
         toast({ title: 'Random Fill Complete!', description: `Theme answers have been filled in the grid.` });
     } else {
         toast({ variant: 'destructive', title: 'Random Fill Failed', description: result.error });
@@ -534,6 +527,12 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     );
   }
 
+  const handleLogout = async () => {
+    const auth = getAuth(app);
+    await signOut(auth);
+    toast({ title: 'Logged out successfully.' });
+  };
+  
   return (
     <div className="flex flex-col h-screen font-body text-foreground bg-background">
       <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-card">
@@ -543,13 +542,20 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
         </div>
         <div className="flex items-center gap-2">
           {user ? (
-            <Button variant="outline" size="sm" asChild>
-                <Link href="/home">My Puzzles</Link>
-            </Button>
+            <>
+                <Button variant="outline" size="sm" asChild>
+                    <Link href="/home">My Puzzles</Link>
+                </Button>
+                <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
+                <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+                    <LogOut className="h-4 w-4" />
+                    <span className="sr-only">Logout</span>
+                </Button>
+            </>
           ) : (
-            <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login" variant="default">
+            <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login / Sign Up" variant="default">
                 <LogIn className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">Login</span>
+                <span className="sr-only sm:not-sr-only sm:ml-2">Login / Sign Up</span>
             </Button>
           )}
         </div>
@@ -561,5 +567,3 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
-
-    

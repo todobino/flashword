@@ -94,9 +94,9 @@ export default function HomePage() {
         </div>
         <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
-            <Button variant="outline" size="sm" onClick={handleLogout} title="Logout">
+            <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
                 <LogOut className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">Logout</span>
+                <span className="sr-only">Logout</span>
             </Button>
         </div>
       </header>
