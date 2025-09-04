@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -13,10 +14,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      // LIGHT GRAY BG on the whole tab group container (the <Primitive.div>)
-      // plus padding + rounded + space between triggers
-      "grid w-full grid-cols-2 gap-2 rounded-lg bg-neutral-100 p-2",
-      // keep it flexible; your overrides can still win via className
+      "grid w-full grid-cols-2 gap-2 rounded-lg bg-primary/10 p-2",
       className
     )}
     {...props}
