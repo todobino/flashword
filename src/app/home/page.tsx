@@ -284,12 +284,12 @@ export default function HomePage() {
                     <div className="flex justify-between items-center text-sm text-muted-foreground">
                       <span>{p.size} x {p.size}</span>
                        {p.status === 'draft' ? (
-                          <Badge variant="outline" className="gap-1.5 text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
-                              <Edit className="h-3 w-3" /> Draft
+                          <Badge variant="outline" className="text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
+                              Draft
                           </Badge>
                       ) : (
-                          <Badge variant="outline" className="gap-1.5 text-green-600 border-green-600/50 bg-green-50 dark:bg-green-900/20">
-                              <CheckCircle className="h-3 w-3" /> Published
+                          <Badge variant="outline" className="text-green-600 border-green-600/50 bg-green-50 dark:bg-green-900/20">
+                              Published
                           </Badge>
                       )}
                     </div>
