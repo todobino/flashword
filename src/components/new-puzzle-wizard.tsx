@@ -311,11 +311,12 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                     <h3 className="text-xl font-semibold mt-1">{WIZARD_STEPS[step - 1].title}</h3>
                 </div>
                 <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="icon" onClick={handleBack} disabled={step === 1}>
-                        <ArrowLeft className="h-4 w-4" />
+                    <Button variant="outline" onClick={handleBack} disabled={step === 1}>
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        <span>Back</span>
                     </Button>
-                    <Button onClick={handleNext} disabled={step === 3 && !crossword.title}>
-                        <span>{step === WIZARD_STEPS.length ? 'Start Building' : 'Next'}</span>
+                    <Button onClick={handleNext} disabled={(step === 3 && !crossword.title) || (step === 2 && gridAnalysis.totalWords === 0) }>
+                        <span>{step === WIZARD_STEPS.length ? 'Build' : 'Next'}</span>
                         <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                 </div>
