@@ -29,10 +29,9 @@ interface CrosswordBuilderProps {
 
 export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProps) {
   const [user, setUser] = useState<User | null>(null);
-  const crossword = useCrossword(puzzle.size, puzzle.grid, puzzle.clues, puzzle.title, puzzle.id, user);
+  const { crossword, isSaving, lastSaved } = useCrossword(puzzle.size, puzzle.grid, puzzle.clues, puzzle.title, puzzle.id, user);
 
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
@@ -90,16 +89,21 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
       toast({ variant: 'destructive', title: 'Verification Error', description: result.error });
     }
   };
-  
-  const handleSave = async () => {
-    if (!user) {
-      toast({ variant: 'destructive', title: 'Login Required', description: 'You must be logged in to save.'});
-      return;
+
+  const getSaveStatus = () => {
+    if (isSaving) {
+      return (
+        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+          <LoaderCircle className="animate-spin" /> Saving...
+        </div>
+      );
     }
-    setIsSaving(true);
-    await crossword.savePuzzle();
-    setIsSaving(false);
+    if (lastSaved) {
+      return <span className="text-muted-foreground text-sm">All changes saved</span>;
+    }
+    return null;
   };
+
 
   return (
     <div className="flex flex-col h-screen font-body text-foreground bg-background">
@@ -115,20 +119,13 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
             value={crossword.title}
             onChange={(e) => crossword.setTitle(e.target.value)}
           />
+           {getSaveStatus()}
         </div>
         <div className="flex items-center gap-4">
            <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" title="Export to PDF (coming soon)" disabled>
               <Download className="h-4 w-4" />
               <span className="sr-only sm:not-sr-only sm:ml-2">Export</span>
-            </Button>
-             <Button size="sm" onClick={handleSave} disabled={isSaving} title="Save Puzzle">
-              {isSaving ? <LoaderCircle className="animate-spin" /> : <Save />}
-              <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
-            </Button>
-            <Button size="sm" onClick={handleVerify} disabled={isVerifying} title="Verify Puzzle">
-              {isVerifying ? <LoaderCircle className="animate-spin" /> : <CheckCircle />}
-              <span className="sr-only sm:not-sr-only sm:ml-2">Verify</span>
             </Button>
           </div>
           <Separator orientation="vertical" className="h-6" />

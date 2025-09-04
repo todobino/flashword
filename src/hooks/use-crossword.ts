@@ -1,13 +1,30 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import type { Grid, Cell, Entry, Puzzle, PuzzleDoc, TemplateName, Direction } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { generatePattern } from '@/lib/grid-generator';
 import { User } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, orderBy, limit, setDoc } from 'firebase/firestore';
+
+// Debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 
 
 export const createGrid = (size: number): Grid => {
@@ -36,6 +53,9 @@ export const useCrossword = (
   const [selectedClue, setSelectedClue] = useState<{ number: number; direction: 'across' | 'down' } | null>(null);
   const [title, setTitle] = useState(initialTitle || '');
   const [puzzleId, setPuzzleId] = useState<string | undefined>(initialId);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
 
   const { toast } = useToast();
 
@@ -150,6 +170,7 @@ export const useCrossword = (
         return;
     }
     try {
+        setIsSaving(true);
         const allEntries = [...clues.across, ...clues.down].map(entry => {
             return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
         });
@@ -170,24 +191,22 @@ export const useCrossword = (
         });
         setPuzzleId(newPuzzleRef.id);
         toast({ title: "Draft Saved!", description: "Your new puzzle has been saved." });
+        setLastSaved(new Date());
         return newPuzzleRef.id;
     } catch (e) {
         console.error("Draft creation failed: ", e);
         toast({ variant: "destructive", title: "Save Failed", description: "Could not create puzzle draft." });
+    } finally {
+        setIsSaving(false);
     }
   }
 
-  const savePuzzle = async () => {
-    if (!user) {
-        toast({ variant: "destructive", title: "Login Required", description: "You must be logged in to save a puzzle." });
-        return;
-    }
-
-    if (!puzzleId) {
-        toast({ variant: "destructive", title: "Save Failed", description: "Cannot save a puzzle without an ID. Please create a new puzzle first." });
+  const savePuzzle = useCallback(async () => {
+    if (!user || !puzzleId) {
         return;
     }
     
+    setIsSaving(true);
     try {
         const allEntries = [...clues.across, ...clues.down].map(entry => {
             return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
@@ -207,13 +226,25 @@ export const useCrossword = (
             ...puzzleDoc,
             updatedAt: serverTimestamp(),
         });
-        toast({ title: "Puzzle Saved!", description: "Your crossword has been updated." });
-
+        setLastSaved(new Date());
     } catch (e) {
         console.error("Save failed: ", e);
         toast({ variant: "destructive", title: "Save Failed", description: "Could not save puzzle to Firestore." });
+    } finally {
+        setIsSaving(false);
     }
-  };
+  }, [user, puzzleId, title, size, grid, clues, getWordFromGrid, toast]);
+
+    const debouncedGrid = useDebounce(grid, 1500);
+    const debouncedClues = useDebounce(clues, 1500);
+    const debouncedTitle = useDebounce(title, 1500);
+
+    useEffect(() => {
+        if (puzzleId && user) {
+            savePuzzle();
+        }
+    }, [debouncedGrid, debouncedClues, debouncedTitle, puzzleId, user, savePuzzle]);
+
 
   const loadPuzzle = async (): Promise<Puzzle | null> => {
     if (!user) {
@@ -273,7 +304,7 @@ export const useCrossword = (
     }
   };
 
-  const getWordFromGrid = (clue: { number: number; direction: 'across' | 'down' }) => {
+  const getWordFromGrid = useCallback((clue: { number: number; direction: 'across' | 'down' }) => {
     const clueData = [...clues.across, ...clues.down].find(c => c.number === clue.number && c.direction === clue.direction);
     if (!clueData) return '';
     
@@ -281,16 +312,16 @@ export const useCrossword = (
     if (clue.direction === 'across') {
       for (let i = 0; i < clueData.length; i++) {
         const cell = grid[clueData.row][clueData.col + i];
-        word += cell.char || '_';
+        word += cell ? (cell.char || '_') : '_';
       }
     } else {
       for (let i = 0; i < clueData.length; i++) {
-        const cell = grid[clueData.row + i][clueData.col];
-        word += cell.char || '_';
+         const cell = grid[clueData.row + i][clueData.col];
+        word += cell ? (cell.char || '_') : '_';
       }
     }
     return word;
-  };
+  }, [grid, clues]);
 
   const fillWord = (clue: Entry, word: string) => {
     setGrid(currentGrid => {
@@ -382,7 +413,7 @@ export const useCrossword = (
     }
   }, [size, toast, updateClues]);
 
-  return {
+  const crossword = {
     size,
     grid,
     setGrid,
@@ -396,7 +427,6 @@ export const useCrossword = (
     selectedClue,
     setSelectedClue,
     currentClueDetails,
-    savePuzzle,
     loadPuzzle,
     getWordFromGrid,
     resetGrid,
@@ -406,4 +436,6 @@ export const useCrossword = (
     batchFillWords,
     createAndSaveDraft,
   };
+
+  return { crossword, isSaving, lastSaved };
 };
