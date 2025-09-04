@@ -171,19 +171,19 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             value={crossword.title}
             onChange={(e) => crossword.setTitle(e.target.value)}
           />
-          {crossword.status === 'draft' ? (
-              <Badge variant="outline" className="gap-1.5 text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
-                  <Edit className="h-3 w-3" /> Draft
-              </Badge>
-          ) : (
-              <Badge variant="outline" className="gap-1.5 text-green-600 border-green-600/50 bg-green-50 dark:bg-green-900/20">
-                  <CheckCircle className="h-3 w-3" /> Published
-              </Badge>
-          )}
           {getSaveStatus()}
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
+            {crossword.status === 'draft' ? (
+                <Badge variant="outline" className="gap-1.5 text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
+                    <Edit className="h-3 w-3" /> Draft
+                </Badge>
+            ) : (
+                <Badge variant="outline" className="gap-1.5 text-green-600 border-green-600/50 bg-green-50 dark:bg-green-900/20">
+                    <CheckCircle className="h-3 w-3" /> Published
+                </Badge>
+            )}
             <Button variant="outline" size="sm" title="Share puzzle" disabled={crossword.status === 'draft'}>
               <Share2 className="h-4 w-4" />
               <span className="sr-only sm:not-sr-only sm:ml-2">Share</span>
