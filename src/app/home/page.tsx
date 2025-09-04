@@ -14,7 +14,7 @@ import { app, db } from '@/lib/firebase';
 import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
-import { FilePlus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2 } from 'lucide-react';
+import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2 } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { createGrid } from '@/hooks/use-crossword';
 import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
@@ -123,7 +123,7 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold">My Puzzles</h2>
             <Button asChild>
                 <Link href="/new">
-                    <FilePlus className="h-4 w-4 mr-2" /> Create New
+                    <Grid2x2Plus className="h-4 w-4 mr-2" /> Create New
                 </Link>
             </Button>
           </div>
@@ -162,7 +162,7 @@ export default function HomePage() {
               <p className="mt-2 text-muted-foreground">Get started by creating your first crossword puzzle.</p>
               <Button asChild className="mt-4">
                  <Link href="/new">
-                    <FilePlus className="h-4 w-4 mr-2" /> Create New Puzzle
+                    <Grid2x2Plus className="h-4 w-4 mr-2" /> Create New Puzzle
                 </Link>
               </Button>
             </div>
