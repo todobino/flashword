@@ -30,6 +30,7 @@ import { AccountDropdown } from './account-dropdown';
 import { Separator } from './ui/separator';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
+import { PuzzleStatsCard } from './puzzle-stats-card';
 
 interface CrosswordEditorProps {
   puzzleId: string;
@@ -204,8 +205,8 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
         </div>
       </header>
 
-      <main className="flex-1 grid md:grid-cols-5 gap-6 p-4 md:p-6 overflow-hidden">
-        <div className="md:col-span-2 h-full overflow-y-auto">
+      <main className="flex-1 grid md:grid-cols-4 gap-6 p-4 md:p-6 overflow-hidden">
+        <div className="md:col-span-1 h-full overflow-y-auto">
            <ClueLists
             clues={crossword.clues}
             selectedClue={crossword.selectedClue}
@@ -215,7 +216,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             onWordChange={crossword.fillWord}
           />
         </div>
-        <div className="md:col-span-3 flex items-center justify-center">
+        <div className="md:col-span-2 flex items-center justify-center">
           <CrosswordGridEdit
             grid={crossword.grid}
             size={crossword.size}
@@ -224,6 +225,12 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             currentClueDetails={crossword.currentClueDetails}
             onSelectClue={crossword.setSelectedClue}
           />
+        </div>
+         <div className="md:col-span-1 h-full overflow-y-auto">
+            <PuzzleStatsCard 
+                title={crossword.title}
+                status={crossword.status}
+            />
         </div>
       </main>
       <AuthDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen} />
