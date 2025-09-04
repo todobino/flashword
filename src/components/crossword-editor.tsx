@@ -186,7 +186,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             </Button>
             {crossword.status === 'draft' && (
                 <Button size="sm" onClick={() => setIsPublishDialogOpen(true)}>
-                    <Rocket />
+                    <Rocket className="mr-2 h-4 w-4" />
                     Publish
                 </Button>
             )}
@@ -213,7 +213,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
         </div>
       </header>
 
-      <main className="flex-1 grid md:grid-cols-4 gap-6 p-4 md:p-6 overflow-hidden">
+      <main className="flex-1 grid md:grid-cols-4 gap-6 p-2 md:p-3 overflow-hidden">
         <div className="md:col-span-1 h-full overflow-y-auto">
            <ClueLists
             clues={crossword.clues}
