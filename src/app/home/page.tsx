@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { collection, query, where, getDocs, orderBy, DocumentData } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, DocumentData, doc, getDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +38,7 @@ export default function HomePage() {
       } else {
         router.push('/');
       }
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
@@ -73,34 +74,40 @@ export default function HomePage() {
     }
   };
   
-  const handlePuzzleSelect = (puzzleData: DocumentData) => {
-    const docData = puzzleData.data() as PuzzleDoc;
-        
-    const newGrid = createGrid(docData.size);
-    docData.grid.forEach((rowStr, r) => {
-        for(let c = 0; c < docData.size; c++) {
-            const char = rowStr[c];
-            if (char === '#') {
-                newGrid[r][c].isBlack = true;
-            } else if (char !== '.') {
-                newGrid[r][c].char = char;
-            }
-        }
-    });
+  const handlePuzzleSelect = async (puzzleId: string) => {
+     if (!user) return;
+    const puzzleDocRef = doc(db, 'users', user.uid, 'puzzles', puzzleId);
+    const puzzleDocSnap = await getDoc(puzzleDocRef);
 
-    const newClues = {
-        across: docData.entries.filter(e => e.direction === 'across'),
-        down: docData.entries.filter(e => e.direction === 'down'),
-    };
-    
-    setPuzzle({
-      id: puzzleData.id,
-      title: docData.title,
-      size: docData.size,
-      grid: newGrid,
-      clues: newClues,
-    });
-    router.push('/builder');
+    if (puzzleDocSnap.exists()) {
+        const docData = puzzleDocSnap.data() as PuzzleDoc;
+            
+        const newGrid = createGrid(docData.size);
+        docData.grid.forEach((rowStr, r) => {
+            for(let c = 0; c < docData.size; c++) {
+                const char = rowStr[c];
+                if (char === '#') {
+                    newGrid[r][c].isBlack = true;
+                } else if (char !== '.') {
+                    newGrid[r][c].char = char;
+                }
+            }
+        });
+
+        const newClues = {
+            across: docData.entries.filter(e => e.direction === 'across'),
+            down: docData.entries.filter(e => e.direction === 'down'),
+        };
+        
+        setPuzzle({
+          id: puzzleDocSnap.id,
+          title: docData.title,
+          size: docData.size,
+          grid: newGrid,
+          clues: newClues,
+        });
+        router.push('/builder');
+    }
   };
 
   if (isLoading || !user) {
@@ -146,12 +153,7 @@ export default function HomePage() {
                 <Card 
                   key={p.id} 
                   className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer"
-                  onClick={async () => {
-                     const puzzleDoc = await getDocs(query(collection(db, 'users', user.uid, 'puzzles'), where('__name__', '==', p.id)));
-                     if (!puzzleDoc.empty) {
-                        handlePuzzleSelect(puzzleDoc.docs[0]);
-                     }
-                  }}
+                  onClick={() => handlePuzzleSelect(p.id)}
                 >
                   <CardHeader>
                     <CardTitle className="truncate">{p.title || 'Untitled Puzzle'}</CardTitle>
