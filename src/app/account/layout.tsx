@@ -53,7 +53,7 @@ export default function AccountLayout({
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-card">
+      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-card h-16">
         <div className="flex items-center gap-3">
           <LogoIcon className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
@@ -69,7 +69,7 @@ export default function AccountLayout({
       </header>
 
       <div className="flex-1 md:grid md:grid-cols-[220px_1fr]">
-        <aside className="hidden md:block border-r bg-muted/20 p-4">
+        <aside className="hidden md:block border-r bg-muted/20 p-4 sticky top-16 h-[calc(100vh-4rem)]">
             <nav className="flex flex-col gap-2">
                  {navItems.map(item => (
                     <Link key={item.href} href={item.href}>
