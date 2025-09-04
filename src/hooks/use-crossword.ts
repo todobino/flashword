@@ -279,10 +279,10 @@ export const useCrossword = (
         case 'Classic':
           blackSquareTarget = 0.20;
           break;
-        case 'Blocked':
+        case 'Condensed':
           blackSquareTarget = 0.30;
           break;
-        case 'Wide Open':
+        case 'Clear':
           blackSquareTarget = 0.15;
           break;
         default:

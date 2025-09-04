@@ -18,7 +18,7 @@ export interface Clue {
   length: number;
 }
 
-export type TemplateName = 'Classic' | 'Blocked' | 'Wide Open';
+export type TemplateName = 'Classic' | 'Condensed' | 'Clear';
 
 export interface Puzzle {
   id?: string;

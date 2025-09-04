@@ -1,7 +1,7 @@
 
 import * as React from 'react';
 
-export const BlockedPatternIcon = (props: React.SVGProps<SVGSVGElement>) => (
+export const CondensedPatternIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" {...props}>
     <rect
       x="2"
