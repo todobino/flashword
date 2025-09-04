@@ -186,7 +186,7 @@ export const useCrossword = (
     updateClues(newGrid, size, clues);
   };
   
-  const updateCellChar = (row: number, col: number, char: string) => {
+  const updateCellChar = (row: number, col: number, char: string, direction?: Direction) => {
     if (grid[row][col].isBlack) return;
     const newGrid = JSON.parse(JSON.stringify(grid));
     newGrid[row][col].char = char.toUpperCase();
@@ -485,7 +485,7 @@ export const useCrossword = (
     const cluesCompletion = totalClues > 0 ? (filledClues / totalClues) * 100 : 0;
 
     const totalWordLetters = allClues.reduce((sum, clue) => sum + clue.length, 0);
-    const avgWordLength = totalWords > 0 ? totalWordLetters / totalWords : 0;
+    const avgWordLength = totalClues > 0 ? totalWordLetters / totalClues : 0;
     
     let difficulty: PuzzleStats['difficulty'] = 'Medium';
     if (avgWordLength > 5.5 && blackSquarePercentage < 0.17) {
