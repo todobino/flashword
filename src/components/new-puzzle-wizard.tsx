@@ -377,7 +377,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                               className="p-2 rounded-md hover:bg-muted cursor-pointer flex items-center gap-3"
                               onClick={() => handleRandomize(template.name)}
                             >
-                               <template.icon className="h-6 w-6 text-primary shrink-0" />
+                               <template.icon className="h-10 w-10 text-primary shrink-0" />
                                <div>
                                 <h4 className="font-semibold">{template.name}</h4>
                                 <p className="text-xs text-muted-foreground">{template.description}</p>
@@ -548,3 +548,5 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
