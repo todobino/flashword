@@ -17,6 +17,7 @@ import { useCrosswordStore } from '@/store/crossword-store';
 import { FilePlus, LoaderCircle, LogOut, User } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { createGrid } from '@/hooks/use-crossword';
+import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
 
 // A type for the puzzles listed on the home page, which might have less data
 type PuzzleListing = Pick<PuzzleDoc, 'title' | 'size' | 'status'> & { id: string };
@@ -106,8 +107,18 @@ export default function HomePage() {
           grid: newGrid,
           clues: newClues,
         });
-        router.push('/builder');
+        router.push('/edit');
     }
+  };
+
+  const handleStartBuilder = (puzzle: Puzzle) => {
+    setPuzzle(puzzle);
+    router.push('/edit');
+  };
+
+  const handleLoad = (puzzle: Puzzle) => {
+      setPuzzle(puzzle);
+      router.push('/edit');
   };
 
   if (isLoading || !user) {

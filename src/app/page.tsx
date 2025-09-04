@@ -107,18 +107,18 @@ export default function RootPage() {
             grid: newGrid,
             clues: newClues,
         });
-        router.push('/builder');
+        router.push('/edit');
     }
   };
 
    const handleStartBuilder = (puzzle: Puzzle) => {
         setPuzzle(puzzle);
-        router.push('/builder');
+        router.push('/edit');
     };
 
     const handleLoad = (puzzle: Puzzle) => {
         setPuzzle(puzzle);
-        router.push('/builder');
+        router.push('/edit');
     };
 
   if (isLoading) {
