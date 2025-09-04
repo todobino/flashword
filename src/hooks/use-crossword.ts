@@ -27,11 +27,13 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 export interface PuzzleStats {
-    completion: number;
+    answersCompletion: number;
     filledSquares: number;
     totalSquares: number;
+    cluesCompletion: number;
+    filledClues: number;
+    totalClues: number;
     difficulty: 'Easy' | 'Medium' | 'Challenging' | 'Hard';
-    avgWordLength: number;
 }
 
 
@@ -473,12 +475,15 @@ export const useCrossword = (
     const whiteSquares = flatGrid.filter(cell => !cell.isBlack);
     const totalSquares = whiteSquares.length;
     const filledSquares = whiteSquares.filter(cell => cell.char !== '').length;
-    const completion = totalSquares > 0 ? (filledSquares / totalSquares) * 100 : 0;
+    const answersCompletion = totalSquares > 0 ? (filledSquares / totalSquares) * 100 : 0;
     
     const blackSquareCount = flatGrid.length - totalSquares;
     const blackSquarePercentage = (blackSquareCount / flatGrid.length);
     const allClues = [...clues.across, ...clues.down];
-    const totalWords = allClues.length;
+    const totalClues = allClues.length;
+    const filledClues = allClues.filter(c => c.clue.trim() !== '').length;
+    const cluesCompletion = totalClues > 0 ? (filledClues / totalClues) * 100 : 0;
+
     const totalWordLetters = allClues.reduce((sum, clue) => sum + clue.length, 0);
     const avgWordLength = totalWords > 0 ? totalWordLetters / totalWords : 0;
     
@@ -492,11 +497,13 @@ export const useCrossword = (
     }
 
     return { 
-        completion, 
+        answersCompletion, 
         filledSquares,
         totalSquares,
+        cluesCompletion,
+        filledClues,
+        totalClues,
         difficulty,
-        avgWordLength,
     };
 
   }, [grid, clues]);

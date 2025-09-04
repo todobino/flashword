@@ -35,7 +35,8 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt, onPre
     }
   }
 
-  const isCompleted = stats.completion >= 100;
+  const areAnswersCompleted = stats.answersCompletion >= 100;
+  const areCluesCompleted = stats.cluesCompletion >= 100;
 
   return (
     <Card className="h-full">
@@ -57,24 +58,44 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt, onPre
         </TooltipProvider>
       </CardHeader>
       <CardContent className="space-y-4">
-        <TooltipProvider>
-            <Tooltip>
-            <TooltipTrigger className="w-full">
-                <div className="flex justify-between items-center text-sm mb-1">
-                    <span className="text-muted-foreground">Completion</span>
-                    <span className="font-medium">{stats.completion.toFixed(0)}%</span>
-                </div>
-                <Progress 
-                  value={stats.completion} 
-                  aria-label={`${stats.completion.toFixed(0)}% complete`} 
-                  className={isCompleted ? '[&>div]:bg-green-500' : ''}
-                />
-            </TooltipTrigger>
-            <TooltipContent>
-                <p>{stats.filledSquares} of {stats.totalSquares} squares filled</p>
-            </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+        <div className="space-y-3">
+            <TooltipProvider>
+                <Tooltip>
+                <TooltipTrigger className="w-full">
+                    <div className="flex justify-between items-center text-sm mb-1">
+                        <span className="text-muted-foreground">Answers</span>
+                        <span className="font-medium">{stats.answersCompletion.toFixed(0)}%</span>
+                    </div>
+                    <Progress 
+                      value={stats.answersCompletion} 
+                      aria-label={`${stats.answersCompletion.toFixed(0)}% answers complete`} 
+                      className={areAnswersCompleted ? '[&>div]:bg-green-500' : ''}
+                    />
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>{stats.filledSquares} of {stats.totalSquares} squares filled</p>
+                </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+                <Tooltip>
+                <TooltipTrigger className="w-full">
+                    <div className="flex justify-between items-center text-sm mb-1">
+                        <span className="text-muted-foreground">Clues</span>
+                        <span className="font-medium">{stats.cluesCompletion.toFixed(0)}%</span>
+                    </div>
+                    <Progress 
+                      value={stats.cluesCompletion} 
+                      aria-label={`${stats.cluesCompletion.toFixed(0)}% clues complete`} 
+                      className={areCluesCompleted ? '[&>div]:bg-green-500' : ''}
+                    />
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>{stats.filledClues} of {stats.totalClues} clues written</p>
+                </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        </div>
 
         <Separator />
         
@@ -103,10 +124,6 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt, onPre
             <div className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
                 <span className="text-muted-foreground">Difficulty</span>
                 {getDifficultyBadge()}
-            </div>
-             <div className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
-                <span className="text-muted-foreground">Avg. Word Length</span>
-                <span className="font-medium">{stats.avgWordLength.toFixed(2)}</span>
             </div>
         </div>
       </CardContent>
