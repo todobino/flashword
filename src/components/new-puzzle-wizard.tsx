@@ -82,6 +82,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   const [size, setSize] = useState(15);
   const [title, setTitle] = useState('');
   const [isFilling, setIsFilling] = useState(false);
+  const [attemptedBuild, setAttemptedBuild] = useState(false);
   
   const [user, setUser] = useState<User | null>(null);
   const crossword = useCrossword(size, undefined, undefined, title, undefined, user);
@@ -96,10 +97,25 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
       setUser(user);
       if (user) {
         setIsAuthDialogOpen(false);
+        if (attemptedBuild) {
+            startBuilding();
+            setAttemptedBuild(false);
+        }
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [attemptedBuild]);
+
+
+  const startBuilding = () => {
+    onStartBuilder({
+        id: undefined,
+        title: crossword.title,
+        size: crossword.size,
+        grid: crossword.grid,
+        clues: crossword.clues,
+    })
+  }
 
   const handleNext = () => {
     if (step === 1) { // Move from Size to Design
@@ -110,13 +126,16 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     if (step < WIZARD_STEPS.length) {
       setStep(s => s + 1);
     } else { // Finish
-      onStartBuilder({
-          id: undefined,
-          title: crossword.title,
-          size: crossword.size,
-          grid: crossword.grid,
-          clues: crossword.clues,
-      })
+      if (user) {
+          startBuilding();
+      } else {
+          setAttemptedBuild(true);
+          setIsAuthDialogOpen(true);
+          toast({
+              title: "Login to Continue",
+              description: "Please log in or register to save and build your puzzle."
+          })
+      }
     }
   };
 
@@ -542,3 +561,5 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     </div>
   )
 }
+
+    
