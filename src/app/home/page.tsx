@@ -18,9 +18,10 @@ import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2 } f
 import { AccountDropdown } from '@/components/account-dropdown';
 import { createGrid } from '@/hooks/use-crossword';
 import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
+import { cn } from '@/lib/utils';
 
 // A type for the puzzles listed on the home page, which might have less data
-type PuzzleListing = Pick<PuzzleDoc, 'title' | 'size' | 'status'> & { id: string };
+type PuzzleListing = Pick<PuzzleDoc, 'title' | 'size' | 'status' | 'grid'> & { id: string };
 
 export default function HomePage() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -60,6 +61,7 @@ export default function HomePage() {
             title: data.title,
             size: data.size,
             status: data.status || 'draft',
+            grid: data.grid,
           }
       }) as PuzzleListing[];
       setPuzzles(userPuzzles);
@@ -133,10 +135,24 @@ export default function HomePage() {
               {puzzles.map(p => (
                 <Card 
                   key={p.id} 
-                  className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer"
+                  className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer flex flex-col"
                   onClick={() => handlePuzzleSelect(p.id)}
                 >
-                  <CardHeader>
+                  <CardHeader className="flex-1">
+                     {p.grid && (
+                        <div 
+                            className="aspect-square w-full bg-muted/20 rounded-md p-1.5 mb-4"
+                        >
+                            <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${p.size}, 1fr)`}}>
+                                {p.grid.flat().join('').split('').map((cell, i) => (
+                                    <div key={i} className={cn(
+                                        'aspect-square',
+                                        cell === '#' ? 'bg-primary' : 'bg-background'
+                                    )} />
+                                ))}
+                            </div>
+                        </div>
+                     )}
                     <CardTitle className="truncate">{p.title || 'Untitled Puzzle'}</CardTitle>
                   </CardHeader>
                   <CardContent>
