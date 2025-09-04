@@ -132,7 +132,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
   const getSaveStatus = () => {
     if (isSaving) {
       return (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <LoaderCircle className="animate-spin" /> Saving...
         </div>
       );
@@ -168,11 +168,11 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             onChange={(e) => crossword.setTitle(e.target.value)}
           />
           {crossword.status === 'draft' ? (
-              <Badge variant="outline" className="gap-2 text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
+              <Badge variant="outline" className="gap-1.5 text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
                   <Edit className="h-3 w-3" /> Draft
               </Badge>
           ) : (
-              <Badge variant="outline" className="gap-2 text-green-600 border-green-600/50 bg-green-50 dark:bg-green-900/20">
+              <Badge variant="outline" className="gap-1.5 text-green-600 border-green-600/50 bg-green-50 dark:bg-green-900/20">
                   <CheckCircle className="h-3 w-3" /> Published
               </Badge>
           )}

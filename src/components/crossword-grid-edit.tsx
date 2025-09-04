@@ -3,12 +3,12 @@
 
 import { useRef, useEffect, KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
-import type { Grid, Entry } from '@/lib/types';
+import type { Grid, Entry, Direction } from '@/lib/types';
 
 interface CrosswordGridEditProps {
   grid: Grid;
   size: number;
-  onCharChange: (row: number, col: number, char: string) => void;
+  onCharChange: (row: number, col: number, char: string, direction?: Direction) => void;
   selectedClue: { number: number; direction: 'across' | 'down' } | null;
   currentClueDetails: Entry | null;
   onSelectClue: (clue: { number: number; direction: 'across' | 'down' } | null) => void;
@@ -33,11 +33,9 @@ export function CrosswordGridEdit({
     const cell = grid[row][col];
     if (cell.isBlack) return;
 
-    // Determine which clues pass through this cell
     let acrossClueNum: number | null = null;
     let downClueNum: number | null = null;
     
-    // Find across clue
     for (let i = col; i >= 0; i--) {
         if (grid[row][i].number !== null && (i === 0 || grid[row][i-1].isBlack)) {
             acrossClueNum = grid[row][i].number;
@@ -45,7 +43,6 @@ export function CrosswordGridEdit({
         }
     }
     
-    // Find down clue
     for (let i = row; i >= 0; i--) {
         if (grid[i][col].number !== null && (i === 0 || grid[i-1][col].isBlack)) {
             downClueNum = grid[i][col].number;
@@ -54,7 +51,6 @@ export function CrosswordGridEdit({
     }
 
     if (acrossClueNum && downClueNum) {
-      // Toggle between across and down if both exist
       if (selectedClue && selectedClue.number === acrossClueNum && selectedClue.direction === 'across') {
         onSelectClue({ number: downClueNum, direction: 'down' });
       } else {
@@ -67,6 +63,27 @@ export function CrosswordGridEdit({
     }
 
     inputRefs.current[row][col]?.focus();
+  };
+
+  const handleCharChange = (row: number, col: number, char: string) => {
+    onCharChange(row, col, char, selectedClue?.direction);
+
+    // After updating the character, move to the next cell
+    let nextRow = row;
+    let nextCol = col;
+    if (char.length > 0) {
+      if (selectedClue?.direction === 'across') {
+        nextCol = Math.min(size - 1, col + 1);
+        while(nextCol < size && grid[row][nextCol].isBlack) nextCol++;
+      } else {
+        nextRow = Math.min(size - 1, row + 1);
+        while(nextRow < size && grid[nextRow][col].isBlack) nextRow++;
+      }
+
+      if (nextRow !== row || nextCol !== col) {
+        inputRefs.current[nextRow]?.[nextCol]?.focus();
+      }
+    }
   };
   
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, row: number, col: number) => {
@@ -89,20 +106,16 @@ export function CrosswordGridEdit({
         } else {
             nextRow = Math.max(0, row - 1);
         }
-    } else if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
-        if (selectedClue?.direction === 'across') {
-            nextCol = Math.min(size - 1, col + 1);
-        } else {
-            nextRow = Math.min(size - 1, row + 1);
-        }
     }
     
-    // Skip over black cells
-    if (selectedClue?.direction === 'across' && (e.key === 'ArrowRight' || (e.key.length === 1 && /[a-zA-Z]/.test(e.key)))) {
-        while(nextCol < size && grid[row][nextCol].isBlack) nextCol++;
-    }
-    if (selectedClue?.direction === 'down' && (e.key === 'ArrowDown' || (e.key.length === 1 && /[a-zA-Z]/.test(e.key)))) {
-        while(nextRow < size && grid[nextRow][col].isBlack) nextRow++;
+    // Skip over black cells on arrow navigation
+     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      while(nextRow >= 0 && nextRow < size && nextCol >= 0 && nextCol < size && grid[nextRow][nextCol].isBlack) {
+        if (e.key === 'ArrowRight') nextCol++;
+        if (e.key === 'ArrowLeft') nextCol--;
+        if (e.key === 'ArrowDown') nextRow++;
+        if (e.key === 'ArrowUp') nextRow--;
+      }
     }
 
     if (nextRow !== row || nextCol !== col) {
@@ -158,7 +171,7 @@ export function CrosswordGridEdit({
                     type="text"
                     maxLength={1}
                     value={cell.char}
-                    onChange={(e) => onCharChange(rowIndex, colIndex, e.target.value)}
+                    onChange={(e) => handleCharChange(rowIndex, colIndex, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(e, rowIndex, colIndex)}
                     className="w-full h-full p-0 text-center uppercase bg-transparent border-none outline-none text-base md:text-lg font-semibold focus:ring-0 text-foreground"
                     aria-label={`Cell ${rowIndex + 1}-${colIndex + 1}`}

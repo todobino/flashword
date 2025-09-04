@@ -125,7 +125,6 @@ export const useCrossword = (
       }
     }
     
-    // Find existing clues to preserve their text
     const oldCluesMap = new Map();
     if (currentClues) {
         [...currentClues.across, ...currentClues.down].forEach(c => {
@@ -162,8 +161,6 @@ export const useCrossword = (
   }, [updateClues, user]);
 
   useEffect(() => {
-    // This effect syncs the hook's internal state with the props passed to it.
-    // It runs whenever the initial puzzle data changes.
     resetGrid(initialSize, initialGrid, initialClues, initialTitle, initialId, initialStatus, initialCreatedAt, initialAuthor);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid, initialClues, initialTitle, initialId, initialSize, initialStatus, initialCreatedAt, initialAuthor]);
