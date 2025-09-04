@@ -35,9 +35,6 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt, onPre
     }
   }
 
-  const areAnswersCompleted = stats.answersCompletion >= 100;
-  const areCluesCompleted = stats.cluesCompletion >= 100;
-
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -69,7 +66,6 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt, onPre
                     <Progress 
                       value={stats.answersCompletion} 
                       aria-label={`${stats.answersCompletion.toFixed(0)}% answers complete`} 
-                      className={areAnswersCompleted ? '[&>div]:bg-green-500' : ''}
                     />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -86,8 +82,7 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt, onPre
                     </div>
                     <Progress 
                       value={stats.cluesCompletion} 
-                      aria-label={`${stats.cluesCompletion.toFixed(0)}% clues complete`} 
-                      className={areCluesCompleted ? '[&>div]:bg-green-500' : ''}
+                      aria-label={`${stats.cluesCompletion.toFixed(0)}% clues complete`}
                     />
                 </TooltipTrigger>
                 <TooltipContent>
