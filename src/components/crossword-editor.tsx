@@ -31,6 +31,8 @@ import { Separator } from './ui/separator';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { PuzzleStatsCard } from './puzzle-stats-card';
+import { PuzzlePreviewDialog } from './puzzle-preview-dialog';
+
 
 interface CrosswordEditorProps {
   puzzleId: string;
@@ -42,6 +44,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -235,6 +238,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
                 stats={stats}
                 author={crossword.author}
                 createdAt={crossword.createdAt}
+                onPreview={() => setIsPreviewOpen(true)}
             />
         </div>
       </main>
@@ -253,6 +257,11 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <PuzzlePreviewDialog 
+        isOpen={isPreviewOpen} 
+        onOpenChange={setIsPreviewOpen}
+        puzzle={{...crossword, ...stats}}
+      />
     </div>
   );
 }

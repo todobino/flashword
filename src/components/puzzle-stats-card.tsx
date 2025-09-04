@@ -17,9 +17,10 @@ interface PuzzleStatsCardProps {
     stats: PuzzleStats;
     author: string;
     createdAt?: Date;
+    onPreview: () => void;
 }
 
-export function PuzzleStatsCard({ title, status, stats, author, createdAt }: PuzzleStatsCardProps) {
+export function PuzzleStatsCard({ title, status, stats, author, createdAt, onPreview }: PuzzleStatsCardProps) {
   
   const getDifficultyBadge = () => {
     switch (stats.difficulty) {
@@ -42,9 +43,18 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt }: Puz
         <div className="space-y-1.5">
           <CardTitle>Puzzle Stats</CardTitle>
         </div>
-        <Button variant="outline" size="icon">
-          <Eye className="h-4 w-4" />
-        </Button>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" onClick={onPreview}>
+                  <Eye className="h-4 w-4" />
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Preview</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </CardHeader>
       <CardContent className="space-y-4">
         <TooltipProvider>
