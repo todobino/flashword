@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useRef, useEffect, KeyboardEvent, useState } from 'react';
+import { useRef, useEffect, KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
 import type { Grid, Clue } from '@/lib/types';
 
@@ -27,67 +27,15 @@ export function CrosswordGrid({
   designMode = false,
 }: CrosswordGridProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [drawMode, setDrawMode] = useState<'draw' | 'erase' | null>(null);
-  const [startCell, setStartCell] = useState<{ row: number, col: number } | null>(null);
-  const [dragDirection, setDragDirection] = useState<'horizontal' | 'vertical' | null>(null);
-  const [lastPaintedCell, setLastPaintedCell] = useState<{row: number, col: number} | null>(null);
-
 
   useEffect(() => {
     inputRefs.current = Array(size).fill(null).map(() => Array(size).fill(null));
   }, [size]);
 
-  const handleMouseDown = (row: number, col: number) => {
-    if (!designMode) return;
-    setIsDrawing(true);
-    setStartCell({ row, col });
-    setLastPaintedCell({row, col});
-    const cellIsBlack = grid[row][col].isBlack;
-    setDrawMode(cellIsBlack ? 'erase' : 'draw');
-    onCellClick(row, col);
-  };
-
-  const handleMouseUp = () => {
-    if (!designMode) return;
-    setIsDrawing(false);
-    setDrawMode(null);
-    setStartCell(null);
-    setDragDirection(null);
-    setLastPaintedCell(null);
-  };
-
-  const handleMouseEnter = (row: number, col: number) => {
-    if (!designMode || !isDrawing || !startCell || (lastPaintedCell?.row === row && lastPaintedCell?.col === col)) return;
-    
-    let currentDragDirection = dragDirection;
-
-    // Determine and lock drag direction
-    if (!currentDragDirection) {
-        const dRow = Math.abs(row - startCell.row);
-        const dCol = Math.abs(col - startCell.col);
-        if (dRow > 0 || dCol > 0) { // Check if there's any movement
-            currentDragDirection = dRow > dCol ? 'vertical' : 'horizontal';
-            setDragDirection(currentDragDirection);
-        }
-    }
-
-    const canPaint = (currentDragDirection === 'horizontal' && row === startCell.row) ||
-                     (currentDragDirection === 'vertical' && col === startCell.col);
-
-
-    if (canPaint) {
-        const cellIsBlack = grid[row][col].isBlack;
-        if ((drawMode === 'draw' && !cellIsBlack) || (drawMode === 'erase' && cellIsBlack)) {
-            onCellClick(row, col);
-            setLastPaintedCell({row, col});
-        }
-    }
-  };
   
   const handleCellClick = (row: number, col: number, e: React.MouseEvent<HTMLDivElement>) => {
     if (designMode) {
-        // This is handled by onMouseDown in design mode to initiate drawing
+        onCellClick(row, col);
         return;
     }
 
@@ -191,11 +139,10 @@ export function CrosswordGrid({
     <div className={cn(
         "relative aspect-square w-full max-w-[calc(100vh-12rem)] overflow-hidden bg-card",
         !designMode && "shadow-lg"
-    )} onMouseLeave={handleMouseUp}>
+    )}>
       <div
         className="grid absolute inset-0"
         style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
-        onMouseUp={handleMouseUp}
       >
         {grid.map((row, rowIndex) =>
           row.map((cell, colIndex) => {
@@ -206,8 +153,6 @@ export function CrosswordGrid({
               <div
                 key={`${rowIndex}-${colIndex}`}
                 onClick={(e) => handleCellClick(rowIndex, colIndex, e)}
-                onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
-                onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
                 className={cn(
                   'relative aspect-square border border-border flex items-center justify-center transition-colors',
                   cell.isBlack ? 'bg-primary' : 'bg-card',
