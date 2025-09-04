@@ -242,18 +242,20 @@ export const useCrossword = (
   };
 
   const fillWord = (clue: Clue, word: string) => {
-    const newGrid = JSON.parse(JSON.stringify(grid));
-    const normalizedWord = word.toUpperCase().padEnd(clue.length, ' ');
-    if (clue.direction === 'across') {
-        for (let i = 0; i < clue.length; i++) {
-            newGrid[clue.row][clue.col + i].char = normalizedWord[i] === ' ' ? '' : normalizedWord[i];
+    setGrid(currentGrid => {
+        const newGrid = JSON.parse(JSON.stringify(currentGrid));
+        const normalizedWord = word.toUpperCase().padEnd(clue.length, ' ');
+        if (clue.direction === 'across') {
+            for (let i = 0; i < clue.length; i++) {
+                newGrid[clue.row][clue.col + i].char = normalizedWord[i] === ' ' ? '' : normalizedWord[i];
+            }
+        } else {
+            for (let i = 0; i < clue.length; i++) {
+                newGrid[clue.row + i][clue.col].char = normalizedWord[i] === ' ' ? '' : normalizedWord[i];
+            }
         }
-    } else {
-        for (let i = 0; i < clue.length; i++) {
-            newGrid[clue.row + i][clue.col].char = normalizedWord[i] === ' ' ? '' : normalizedWord[i];
-        }
-    }
-    setGrid(newGrid);
+        return newGrid;
+    });
   };
 
 
