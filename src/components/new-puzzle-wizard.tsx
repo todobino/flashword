@@ -86,7 +86,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   const [attemptedBuild, setAttemptedBuild] = useState(false);
   
   const [user, setUser] = useState<User | null>(null);
-  const crossword = useCrossword(size, undefined, undefined, title, undefined, user);
+  const { crossword } = useCrossword(size, undefined, undefined, title, undefined, user);
 
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -110,13 +110,15 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
 
   const startBuilding = async () => {
     const newPuzzleId = await crossword.createAndSaveDraft();
-    onStartBuilder({
-        id: newPuzzleId,
-        title: crossword.title,
-        size: crossword.size,
-        grid: crossword.grid,
-        clues: crossword.clues,
-    });
+    if (newPuzzleId) {
+        onStartBuilder({
+            id: newPuzzleId,
+            title: crossword.title,
+            size: crossword.size,
+            grid: crossword.grid,
+            clues: crossword.clues,
+        });
+    }
   }
 
   const handleNext = () => {
@@ -160,7 +162,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   }
   
   const themers = useMemo(() => {
-    if (step !== 3 && step !== 4) return [];
+    if ((step !== 3 && step !== 4) || !crossword.clues) return [];
     const allClues = [...crossword.clues.across, ...crossword.clues.down];
     allClues.sort((a,b) => b.length - a.length);
     const longest = allClues.length > 0 ? allClues[0].length : 0;
@@ -194,6 +196,14 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   };
   
   const gridAnalysis = useMemo(() => {
+    if (!crossword.grid || !crossword.clues) {
+      return {
+        blackSquarePercentage: 0,
+        totalWords: 0,
+        totalLongWords: 0,
+        difficulty: 'Medium',
+      };
+    }
     const totalSquares = crossword.size * crossword.size;
     const blackSquares = crossword.grid.flat().filter(cell => cell.isBlack).length;
     const totalWords = crossword.clues.across.length + crossword.clues.down.length;
@@ -207,7 +217,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     let difficulty = 'Medium';
     if (averageWordLength > 5.5 && blackSquarePercentage < 0.17) {
         difficulty = 'Hard';
-    } else if (averageWordLength > 5.0 && blackSquarePercentage < 0.20) {
+    } else if (averageWord-length > 5.0 && blackSquarePercentage < 0.20) {
         difficulty = 'Challenging';
     } else if (averageWordLength < 4.5 || blackSquarePercentage > 0.25) {
         difficulty = 'Easy';

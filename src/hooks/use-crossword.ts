@@ -58,25 +58,7 @@ export const useCrossword = (
 
   const { toast } = useToast();
 
-  const resetGrid = useCallback((newSize: number, newGrid?: Grid, newClues?: {across: Entry[], down: Entry[]}, newTitle?: string, newId?: string) => {
-    setSize(newSize);
-    const gridToUpdate = newGrid || createGrid(newSize);
-    setGrid(gridToUpdate);
-    setClues(newClues || { across: [], down: [] });
-    setTitle(newTitle || '');
-    setPuzzleId(newId);
-    updateClues(gridToUpdate, newSize);
-  }, []);
-
-  useEffect(() => {
-    // This effect syncs the hook's internal state with the props passed to it.
-    // It runs whenever the initial puzzle data changes.
-    resetGrid(initialSize, initialGrid, initialClues, initialTitle, initialId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialGrid, initialClues, initialTitle, initialId, initialSize, resetGrid]);
-
-
-  const updateClues = useCallback((currentGrid: Grid, currentSize: number) => {
+  const updateClues = useCallback((currentGrid: Grid, currentSize: number, currentClues: { across: Entry[], down: Entry[] }) => {
     const newGrid = JSON.parse(JSON.stringify(currentGrid));
     const newAcrossClues: Entry[] = [];
     const newDownClues: Entry[] = [];
@@ -131,8 +113,8 @@ export const useCrossword = (
     
     // Find existing clues to preserve their text
     const oldCluesMap = new Map();
-    if (clues) {
-        [...clues.across, ...clues.down].forEach(c => {
+    if (currentClues) {
+        [...currentClues.across, ...currentClues.down].forEach(c => {
             oldCluesMap.set(`${c.number}-${c.direction}`, c.clue);
         });
     }
@@ -149,7 +131,26 @@ export const useCrossword = (
       across: updateClueText(newAcrossClues),
       down: updateClueText(newDownClues),
     });
-  }, [clues]);
+  }, []);
+
+  const resetGrid = useCallback((newSize: number, newGrid?: Grid, newClues?: {across: Entry[], down: Entry[]}, newTitle?: string, newId?: string) => {
+    setSize(newSize);
+    const gridToUpdate = newGrid || createGrid(newSize);
+    setGrid(gridToUpdate);
+    const cluesToUpdate = newClues || { across: [], down: [] };
+    setClues(cluesToUpdate);
+    setTitle(newTitle || '');
+    setPuzzleId(newId);
+    updateClues(gridToUpdate, newSize, cluesToUpdate);
+  }, [updateClues]);
+
+  useEffect(() => {
+    // This effect syncs the hook's internal state with the props passed to it.
+    // It runs whenever the initial puzzle data changes.
+    resetGrid(initialSize, initialGrid, initialClues, initialTitle, initialId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialGrid, initialClues, initialTitle, initialId, initialSize, resetGrid]);
+
 
   const toggleCellBlack = (row: number, col: number) => {
     const newGrid = JSON.parse(JSON.stringify(grid));
@@ -162,7 +163,7 @@ export const useCrossword = (
       newGrid[symmetricRow][symmetricCol].isBlack = newGrid[row][col].isBlack;
       newGrid[symmetricRow][symmetricCol].char = '';
     }
-    updateClues(newGrid, size);
+    updateClues(newGrid, size, clues);
   };
   
   const updateCellChar = (row: number, col: number, char: string) => {
@@ -280,7 +281,7 @@ export const useCrossword = (
             savePuzzle();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedGrid, debouncedClues, debouncedTitle, puzzleId, user]);
+    }, [debouncedGrid, debouncedClues, debouncedTitle]);
 
 
   const loadPuzzle = async (): Promise<Puzzle | null> => {
@@ -384,7 +385,7 @@ export const useCrossword = (
 
 
   const currentClueDetails: Entry | null = useMemo(() => {
-    if (!selectedClue) return null;
+    if (!selectedClue || !clues) return null;
     const allClues = [...clues.across, ...clues.down];
     return allClues.find(c => c.number === selectedClue.number && c.direction === selectedClue.direction) || null;
   }, [selectedClue, clues]);
@@ -414,13 +415,13 @@ export const useCrossword = (
           newGrid[r][c].isBlack = pattern.grid[r][c] === '#';
         }
       }
-      updateClues(newGrid, size);
+      updateClues(newGrid, size, clues);
     } catch (error) {
       console.error("Failed to randomize grid:", error);
       toast({ variant: "destructive", title: "Randomization Failed", description: "Could not generate a random pattern." });
-      updateClues(createGrid(size), size);
+      updateClues(createGrid(size), size, {across: [], down: []});
     }
-  }, [size, toast, updateClues]);
+  }, [size, toast, updateClues, clues]);
 
   const crossword = {
     size,
