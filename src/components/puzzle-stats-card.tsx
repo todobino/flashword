@@ -45,6 +45,23 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt }: Puz
         </Button>
       </CardHeader>
       <CardContent className="space-y-4">
+        <TooltipProvider>
+            <Tooltip>
+            <TooltipTrigger className="w-full">
+                <div className="flex justify-between items-center text-sm mb-1">
+                    <span className="text-muted-foreground">Completion</span>
+                    <span className="font-medium">{stats.completion.toFixed(0)}%</span>
+                </div>
+                <Progress value={stats.completion} aria-label={`${stats.completion.toFixed(0)}% complete`} />
+            </TooltipTrigger>
+            <TooltipContent>
+                <p>{stats.filledSquares} of {stats.totalSquares} squares filled</p>
+            </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+
+        <Separator />
+        
         <div className="space-y-2">
             <h4 className="font-semibold">Details</h4>
             <div className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
@@ -74,21 +91,6 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt }: Puz
         <div className="space-y-2">
              <h4 className="font-semibold">Analysis</h4>
               <div className="space-y-3">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger className="w-full">
-                        <div className="flex justify-between items-center text-sm mb-1">
-                            <span className="text-muted-foreground">Completion</span>
-                            <span className="font-medium">{stats.completion.toFixed(0)}%</span>
-                        </div>
-                        <Progress value={stats.completion} aria-label={`${stats.completion.toFixed(0)}% complete`} />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>{stats.filledSquares} of {stats.totalSquares} squares filled</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
                 <div className="flex justify-between items-center text-sm p-2 rounded-md bg-muted/50">
                     <span className="text-muted-foreground">Difficulty</span>
                     {getDifficultyBadge()}
@@ -97,7 +99,6 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt }: Puz
                     <span className="text-muted-foreground">Avg. Word Length</span>
                     <span className="font-medium">{stats.avgWordLength.toFixed(2)}</span>
                 </div>
-
               </div>
         </div>
 
