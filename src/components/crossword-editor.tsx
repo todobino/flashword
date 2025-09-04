@@ -221,7 +221,6 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             onSelectClue={crossword.setSelectedClue}
             onClueTextChange={crossword.updateClueText}
             getWordFromGrid={crossword.getWordFromGrid}
-            onWordChange={crossword.fillWord}
           />
         </div>
         <div className="md:col-span-2 flex items-center justify-center">

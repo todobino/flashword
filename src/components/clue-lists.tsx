@@ -18,7 +18,6 @@ interface ClueListsProps {
   onSelectClue: (clue: { number: number; direction: 'across' | 'down' }) => void;
   onClueTextChange: (number: number, direction: 'across' | 'down', text: string) => void;
   getWordFromGrid: (clue: { number: number; direction: 'across' | 'down' }) => string;
-  onWordChange: (clue: Entry, word: string) => void;
 }
 
 export function ClueLists({
@@ -27,7 +26,6 @@ export function ClueLists({
   onSelectClue,
   onClueTextChange,
   getWordFromGrid,
-  onWordChange,
 }: ClueListsProps) {
 
   const renderClueList = (direction: 'across' | 'down') => (
@@ -48,14 +46,13 @@ export function ClueLists({
               <div className="flex gap-3 items-start">
                 <div className="font-bold text-sm text-muted-foreground mt-2">{clue.number}.</div>
                 <div className="flex-1 space-y-2">
-                  <Input
-                    placeholder={`Enter ${clue.length}-letter answer...`}
-                    maxLength={clue.length}
-                    value={currentAnswer.replace(/_/g, '')}
-                    onChange={(e) => onWordChange(clue, e.target.value)}
-                    className="font-mono uppercase tracking-widest"
+                  <div 
+                    className="font-mono uppercase tracking-widest text-lg p-2 bg-background rounded-md h-10 flex items-center border border-input cursor-text"
+                    tabIndex={0}
                     onFocus={() => onSelectClue({ number: clue.number, direction })}
-                  />
+                  >
+                     {currentAnswer.split('').join(' ')}
+                  </div>
                   <Textarea
                     placeholder={`Enter clue...`}
                     value={clue.clue}
