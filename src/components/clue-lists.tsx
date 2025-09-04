@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Wand2, LoaderCircle, ArrowRight, ArrowDown } from 'lucide-react';
+import { Wand2, LoaderCircle, ArrowRightCircle, ArrowDownCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
@@ -134,10 +134,10 @@ export function ClueLists({
     <Tabs defaultValue="across" className="h-full flex flex-col bg-card rounded-xl shadow-sm overflow-hidden">
       <TabsList className="grid w-full grid-cols-2 rounded-none">
         <TabsTrigger value="across">
-          Across <ArrowRight />
+          Across <ArrowRightCircle />
         </TabsTrigger>
         <TabsTrigger value="down">
-          Down <ArrowDown />
+          Down <ArrowDownCircle />
         </TabsTrigger>
       </TabsList>
       <div className="flex-1 overflow-hidden">
