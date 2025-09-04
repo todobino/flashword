@@ -201,6 +201,25 @@ export const useCrossword = (
     }
   }
 
+  const getWordFromGrid = useCallback((clue: { number: number; direction: 'across' | 'down' }) => {
+    const clueData = [...clues.across, ...clues.down].find(c => c.number === clue.number && c.direction === clue.direction);
+    if (!clueData) return '';
+    
+    let word = '';
+    if (clue.direction === 'across') {
+      for (let i = 0; i < clueData.length; i++) {
+        const cell = grid[clueData.row][clueData.col + i];
+        word += cell ? (cell.char || '_') : '_';
+      }
+    } else {
+      for (let i = 0; i < clueData.length; i++) {
+         const cell = grid[clueData.row + i][clueData.col];
+        word += cell ? (cell.char || '_') : '_';
+      }
+    }
+    return word;
+  }, [grid, clues]);
+
   const savePuzzle = useCallback(async () => {
     if (!user || !puzzleId) {
         return;
@@ -303,25 +322,6 @@ export const useCrossword = (
       return null;
     }
   };
-
-  const getWordFromGrid = useCallback((clue: { number: number; direction: 'across' | 'down' }) => {
-    const clueData = [...clues.across, ...clues.down].find(c => c.number === clue.number && c.direction === clue.direction);
-    if (!clueData) return '';
-    
-    let word = '';
-    if (clue.direction === 'across') {
-      for (let i = 0; i < clueData.length; i++) {
-        const cell = grid[clueData.row][clueData.col + i];
-        word += cell ? (cell.char || '_') : '_';
-      }
-    } else {
-      for (let i = 0; i < clueData.length; i++) {
-         const cell = grid[clueData.row + i][clueData.col];
-        word += cell ? (cell.char || '_') : '_';
-      }
-    }
-    return word;
-  }, [grid, clues]);
 
   const fillWord = (clue: Entry, word: string) => {
     setGrid(currentGrid => {
