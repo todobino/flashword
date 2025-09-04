@@ -53,8 +53,8 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
     setIsVerifying(true);
     toast({ title: 'Verifying puzzle...', description: 'AI is checking your clues and answers.' });
     
-    const acrossClues = Object.fromEntries(crossword.clues.across.map(c => [c.number, c.text]));
-    const downClues = Object.fromEntries(crossword.clues.down.map(c => [c.number, c.text]));
+    const acrossClues = Object.fromEntries(crossword.clues.across.map(c => [c.number, c.clue]));
+    const downClues = Object.fromEntries(crossword.clues.down.map(c => [c.number, c.clue]));
     const answers = [...crossword.clues.across, ...crossword.clues.down].reduce((acc, clue) => {
       const word = crossword.getWordFromGrid(clue).replace(/_/g, ' ');
       acc[`${clue.number} ${clue.direction}`] = word;
@@ -109,22 +109,6 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
         </div>
         <div className="flex items-center gap-4">
            <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={onNew} title="New Puzzle">
-              <FilePlus className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:ml-2">New</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => crossword.savePuzzle(false)} disabled={!user} title="Save Puzzle">
-              <Save className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={crossword.savePuzzleAs} disabled={!user} title="Save as New Puzzle">
-              <Copy className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:ml-2">Save As</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleLoadPuzzle} disabled={!user} title="Load Puzzle">
-              <FolderOpen className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:ml-2">Load</span>
-            </Button>
             <Button variant="outline" size="sm" title="Export to PDF (coming soon)" disabled>
               <Download className="h-4 w-4" />
               <span className="sr-only sm:not-sr-only sm:ml-2">Export</span>
