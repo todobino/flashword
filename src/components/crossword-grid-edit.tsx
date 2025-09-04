@@ -139,8 +139,8 @@ export function CrosswordGridEdit({
                 className={cn(
                   'relative aspect-square border border-border flex items-center justify-center transition-colors',
                   cell.isBlack ? 'bg-primary' : 'bg-card',
-                   isSelected && !cell.isBlack && 'bg-yellow-200/50 dark:bg-yellow-800/50',
-                   isFocused && !cell.isBlack && 'bg-yellow-300/50 dark:bg-yellow-700/50'
+                   isSelected && !cell.isBlack && 'bg-orange-200/50 dark:bg-orange-800/50',
+                   isFocused && !cell.isBlack && 'bg-orange-300/50 dark:bg-orange-700/50'
                 )}
               >
                 {cell.number && (

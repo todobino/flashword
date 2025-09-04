@@ -80,7 +80,7 @@ export function ClueLists({
               key={loadingKey}
               className={cn(
                 'p-3 rounded-lg transition-colors',
-                isSelected ? 'bg-yellow-100/80 dark:bg-yellow-900/40' : 'bg-card'
+                isSelected ? 'bg-orange-100/80 dark:bg-orange-900/40' : 'bg-card'
               )}
             >
               <div className="flex gap-3 items-start">
