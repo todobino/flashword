@@ -40,7 +40,7 @@ export function PuzzleStatsCard({ title, status, stats, author, createdAt }: Puz
         <div className="space-y-1.5">
           <CardTitle>Puzzle Stats</CardTitle>
         </div>
-        <Button variant="secondary" size="icon">
+        <Button variant="outline" size="icon">
           <Eye className="h-4 w-4" />
         </Button>
       </CardHeader>

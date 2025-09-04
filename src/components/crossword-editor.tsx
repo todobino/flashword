@@ -195,7 +195,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <Button variant="secondary" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild>
                   <Link href="/home">
                     <Grid2x2 className="mr-2 h-4 w-4" />
                     My Puzzles

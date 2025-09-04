@@ -59,7 +59,7 @@ export default function AccountLayout({
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
         </div>
         <div className="flex items-center gap-2">
-            <Button variant="secondary" size="sm" asChild>
+            <Button variant="outline" size="sm" asChild>
                 <Link href="/home">
                     <Grid2x2 className="mr-2 h-4 w-4" />
                     My Puzzles
