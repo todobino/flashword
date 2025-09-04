@@ -31,6 +31,7 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
   const crossword = useCrossword(puzzle.size, puzzle.grid, puzzle.clues, puzzle.title, puzzle.id, user);
 
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
@@ -44,7 +45,6 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
   }, []);
 
   useEffect(() => {
-    // This effect runs when the puzzle prop changes
     crossword.resetGrid(puzzle.size, puzzle.grid, puzzle.clues, puzzle.title, puzzle.id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzle]);
@@ -90,15 +90,10 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
     }
   };
 
-  const handleLoadPuzzle = async () => {
-    if (!user) {
-        toast({ variant: "destructive", title: "Login Required", description: "You must be logged in to load a puzzle." });
-        return;
-    }
-    const loadedPuzzle = await crossword.loadPuzzle();
-    if (loadedPuzzle) {
-        onLoad(loadedPuzzle);
-    }
+  const handleSave = async () => {
+    setIsSaving(true);
+    await crossword.savePuzzle();
+    setIsSaving(false);
   }
 
   return (
@@ -123,6 +118,10 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
           <div className="flex items-center gap-2">
             {user ? (
               <>
+                <Button variant="default" size="sm" onClick={handleSave} disabled={isSaving} title="Save Puzzle">
+                  {isSaving ? <LoaderCircle className="animate-spin h-4 w-4" /> : <Save className="h-4 w-4" />}
+                  <span className="sr-only sm:not-sr-only sm:ml-2">Save</span>
+                </Button>
                 <Button variant="secondary" size="sm" asChild>
                   <Link href="/home">My Puzzles</Link>
                 </Button>

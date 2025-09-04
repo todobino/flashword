@@ -177,9 +177,14 @@ export const useCrossword = (
     }
   }
 
-  const savePuzzle = async (asNew = false) => {
+  const savePuzzle = async () => {
     if (!user) {
         toast({ variant: "destructive", title: "Login Required", description: "You must be logged in to save a puzzle." });
+        return;
+    }
+
+    if (!puzzleId) {
+        toast({ variant: "destructive", title: "Save Failed", description: "Cannot save a puzzle without an ID. Please create a new puzzle first." });
         return;
     }
     
@@ -197,28 +202,18 @@ export const useCrossword = (
             entries: allEntries
         };
 
-        if (puzzleId && !asNew) {
-            // Update existing puzzle
-            const puzzleRef = doc(db, "users", user.uid, "puzzles", puzzleId);
-            await updateDoc(puzzleRef, {
-                ...puzzleDoc,
-                updatedAt: serverTimestamp(),
-            });
-            toast({ title: "Puzzle Updated!", description: "Your crossword has been updated." });
-        } else {
-            // Create new puzzle
-            const newId = await createAndSaveDraft();
-            if (newId) {
-                setPuzzleId(newId);
-            }
-        }
+        const puzzleRef = doc(db, "users", user.uid, "puzzles", puzzleId);
+        await updateDoc(puzzleRef, {
+            ...puzzleDoc,
+            updatedAt: serverTimestamp(),
+        });
+        toast({ title: "Puzzle Saved!", description: "Your crossword has been updated." });
+
     } catch (e) {
         console.error("Save failed: ", e);
         toast({ variant: "destructive", title: "Save Failed", description: "Could not save puzzle to Firestore." });
     }
   };
-
-  const savePuzzleAs = () => savePuzzle(true);
 
   const loadPuzzle = async (): Promise<Puzzle | null> => {
     if (!user) {
@@ -402,7 +397,6 @@ export const useCrossword = (
     setSelectedClue,
     currentClueDetails,
     savePuzzle,
-    savePuzzleAs,
     loadPuzzle,
     getWordFromGrid,
     resetGrid,
@@ -413,4 +407,3 @@ export const useCrossword = (
     createAndSaveDraft,
   };
 };
-
