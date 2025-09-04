@@ -1,11 +1,11 @@
 
 'use client';
 
+import { useEffect, useState, useRef } from 'react';
 import { ArrowRightCircle, ArrowDownCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { Entry } from '@/lib/types';
 
@@ -27,6 +27,23 @@ export function ClueLists({
   onClueTextChange,
   getWordFromGrid,
 }: ClueListsProps) {
+  const [activeTab, setActiveTab] = useState<'across' | 'down'>('across');
+  const clueRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+
+  useEffect(() => {
+    if (selectedClue) {
+      setActiveTab(selectedClue.direction);
+      const clueKey = `${selectedClue.number}-${selectedClue.direction}`;
+      // Timeout to allow tab content to render before scrolling
+      setTimeout(() => {
+        const clueElement = clueRefs.current.get(clueKey);
+        if (clueElement) {
+          clueElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 50);
+    }
+  }, [selectedClue]);
+
 
   const renderClueList = (direction: 'across' | 'down') => (
     <ScrollArea className="h-full">
@@ -38,6 +55,7 @@ export function ClueLists({
           return (
             <div
               key={loadingKey}
+              ref={(el) => clueRefs.current.set(loadingKey, el)}
               className={cn(
                 'p-3 rounded-lg transition-colors',
                 isSelected ? 'bg-orange-100/80 dark:bg-orange-900/40' : 'bg-card'
@@ -76,7 +94,7 @@ export function ClueLists({
   );
 
   return (
-    <Tabs defaultValue="across" className="h-full flex flex-col bg-card rounded-xl shadow-sm border overflow-hidden">
+    <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'across' | 'down')} className="h-full flex flex-col bg-card rounded-xl shadow-sm border overflow-hidden">
       <TabsList className="grid w-full grid-cols-2 rounded-none bg-primary/10 p-2">
         <TabsTrigger value="across">
           Across <ArrowRightCircle className="h-4 w-4 ml-2" />
