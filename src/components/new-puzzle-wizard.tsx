@@ -217,7 +217,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
     let difficulty = 'Medium';
     if (averageWordLength > 5.5 && blackSquarePercentage < 0.17) {
         difficulty = 'Hard';
-    } else if (averageWord-length > 5.0 && blackSquarePercentage < 0.20) {
+    } else if (averageWordLength > 5.0 && blackSquarePercentage < 0.20) {
         difficulty = 'Challenging';
     } else if (averageWordLength < 4.5 || blackSquarePercentage > 0.25) {
         difficulty = 'Easy';
