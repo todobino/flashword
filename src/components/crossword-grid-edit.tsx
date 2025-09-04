@@ -5,27 +5,23 @@ import { useRef, useEffect, KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
 import type { Grid, Entry } from '@/lib/types';
 
-interface CrosswordGridProps {
+interface CrosswordGridEditProps {
   grid: Grid;
   size: number;
-  onCellClick: (row: number, col: number) => void;
   onCharChange: (row: number, col: number, char: string) => void;
   selectedClue: { number: number; direction: 'across' | 'down' } | null;
   currentClueDetails: Entry | null;
   onSelectClue: (clue: { number: number; direction: 'across' | 'down' } | null) => void;
-  designMode?: boolean;
 }
 
-export function CrosswordGrid({
+export function CrosswordGridEdit({
   grid,
   size,
-  onCellClick,
   onCharChange,
   selectedClue,
   currentClueDetails,
   onSelectClue,
-  designMode = false,
-}: CrosswordGridProps) {
+}: CrosswordGridEditProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
 
   useEffect(() => {
@@ -33,17 +29,7 @@ export function CrosswordGrid({
   }, [size]);
 
   
-  const handleCellClick = (row: number, col: number, e: React.MouseEvent<HTMLDivElement>) => {
-    if (designMode) {
-        onCellClick(row, col);
-        return;
-    }
-
-    if (e.ctrlKey || e.metaKey) {
-      onCellClick(row, col);
-      return;
-    }
-
+  const handleCellClick = (row: number, col: number) => {
     const cell = grid[row][col];
     if (cell.isBlack) return;
 
@@ -136,10 +122,7 @@ export function CrosswordGrid({
   };
 
   return (
-    <div className={cn(
-        "relative aspect-square w-full max-w-[calc(100vh-12rem)] mx-auto overflow-hidden bg-card",
-        !designMode && "shadow-lg"
-    )}>
+    <div className="relative aspect-square w-full max-w-[calc(100vh-12rem)] mx-auto overflow-hidden bg-card shadow-lg">
       <div
         className="grid absolute inset-0"
         style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
@@ -152,14 +135,12 @@ export function CrosswordGrid({
             return (
               <div
                 key={`${rowIndex}-${colIndex}`}
-                onClick={(e) => handleCellClick(rowIndex, colIndex, e)}
+                onClick={() => handleCellClick(rowIndex, colIndex)}
                 className={cn(
                   'relative aspect-square border border-border flex items-center justify-center transition-colors',
                   cell.isBlack ? 'bg-primary' : 'bg-card',
                    isSelected && !cell.isBlack && 'bg-yellow-200/50 dark:bg-yellow-800/50',
-                   isFocused && !cell.isBlack && 'bg-yellow-300/50 dark:bg-yellow-700/50',
-                   designMode ? 'cursor-pointer' : 'cursor-default',
-                   designMode && cell.char ? 'bg-yellow-200/50 dark:bg-yellow-800/50' : ''
+                   isFocused && !cellisBlack && 'bg-yellow-300/50 dark:bg-yellow-700/50'
                 )}
               >
                 {cell.number && (
@@ -167,12 +148,7 @@ export function CrosswordGrid({
                     {cell.number}
                   </span>
                 )}
-                {designMode && !cell.isBlack && cell.char && (
-                    <span className="text-base md:text-lg font-semibold uppercase text-foreground select-none">
-                        {cell.char}
-                    </span>
-                )}
-                {!designMode && !cell.isBlack && (
+                {!cell.isBlack && (
                   <input
                     ref={(el) => {
                       if (inputRefs.current[rowIndex]) {

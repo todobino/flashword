@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LogoIcon } from '@/components/icons';
 import { useCrossword } from '@/hooks/use-crossword';
-import { CrosswordGrid } from './crossword-grid';
+import { CrosswordGridNew } from './crossword-grid-new';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from './auth-dialog';
@@ -432,7 +432,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
 
                   {/* RIGHT: GRID */}
                   <div className="w-full min-w-[340px] shrink-0">
-                    <CrosswordGrid
+                    <CrosswordGridNew
                       grid={crossword.grid}
                       size={size}
                       onCellClick={crossword.toggleCellBlack}
@@ -518,7 +518,7 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
                   <div className="w-full min-w-0">
                      <Label className="text-base font-semibold">Final Grid</Label>
                      <div className="mt-2">
-                        <CrosswordGrid
+                        <CrosswordGridNew
                           grid={crossword.grid}
                           size={size}
                           onCellClick={() => {}}
