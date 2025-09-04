@@ -101,8 +101,8 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
         </div>
       </header>
 
-      <main className="flex-1 grid md:grid-cols-2 lg:grid-cols-5 gap-6 p-4 md:p-6 overflow-hidden">
-        <div className="lg:col-span-2 md:col-span-1 h-full">
+      <main className="flex-1 grid md:grid-cols-2 gap-6 p-4 md:p-6 overflow-hidden">
+        <div className="h-full">
           <ClueLists
             clues={crossword.clues}
             selectedClue={crossword.selectedClue}
@@ -111,7 +111,7 @@ export function CrosswordBuilder({ puzzle, onNew, onLoad }: CrosswordBuilderProp
             getWordFromGrid={crossword.getWordFromGrid}
           />
         </div>
-        <div className="lg:col-span-3 md:col-span-1 h-full flex items-center justify-center">
+        <div className="h-full flex items-center justify-center">
           <CrosswordGrid
             grid={crossword.grid}
             size={crossword.size}
