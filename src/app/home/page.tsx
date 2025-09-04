@@ -77,48 +77,17 @@ export default function HomePage() {
   
   const handlePuzzleSelect = async (puzzleId: string) => {
      if (!user) return;
-    const puzzleDocRef = doc(db, 'users', user.uid, 'puzzles', puzzleId);
-    const puzzleDocSnap = await getDoc(puzzleDocRef);
-
-    if (puzzleDocSnap.exists()) {
-        const docData = puzzleDocSnap.data() as PuzzleDoc;
-            
-        const newGrid = createGrid(docData.size);
-        docData.grid.forEach((rowStr, r) => {
-            for(let c = 0; c < docData.size; c++) {
-                const char = rowStr[c] || '.';
-                if (char === '#') {
-                    newGrid[r][c].isBlack = true;
-                } else if (char !== '.') {
-                    newGrid[r][c].char = char;
-                }
-            }
-        });
-
-        const newClues = {
-            across: docData.entries.filter(e => e.direction === 'across'),
-            down: docData.entries.filter(e => e.direction === 'down'),
-        };
-        
-        setPuzzle({
-          id: puzzleDocSnap.id,
-          title: docData.title,
-          size: docData.size,
-          grid: newGrid,
-          clues: newClues,
-        });
-        router.push('/edit');
-    }
+     router.push(`/edit/${puzzleId}`);
   };
 
   const handleStartBuilder = (puzzle: Puzzle) => {
     setPuzzle(puzzle);
-    router.push('/edit');
+    router.push(`/edit/${puzzle.id}`);
   };
 
   const handleLoad = (puzzle: Puzzle) => {
       setPuzzle(puzzle);
-      router.push('/edit');
+      router.push(`/edit/${puzzle.id}`);
   };
 
   if (isLoading || !user) {

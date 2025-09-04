@@ -11,13 +11,20 @@ export default function NewPuzzlePage() {
     const setPuzzle = useCrosswordStore((state) => state.setPuzzle);
 
     const handleStartBuilder = (puzzle: Puzzle) => {
-        setPuzzle(puzzle);
-        router.push('/edit');
+        if (!puzzle.id) {
+            console.error("Cannot redirect, puzzle ID is missing.");
+            // Optionally, show a toast or error message to the user
+            return;
+        }
+        router.push(`/edit/${puzzle.id}`);
     };
 
     const handleLoad = (puzzle: Puzzle) => {
-        setPuzzle(puzzle);
-        router.push('/edit');
+        if (!puzzle.id) {
+            console.error("Cannot redirect, puzzle ID is missing.");
+            return;
+        }
+        router.push(`/edit/${puzzle.id}`);
     };
     
     return (

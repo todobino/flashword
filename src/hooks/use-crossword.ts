@@ -148,7 +148,6 @@ export const useCrossword = (
     // This effect syncs the hook's internal state with the props passed to it.
     // It runs whenever the initial puzzle data changes.
     resetGrid(initialSize, initialGrid, initialClues, initialTitle, initialId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialGrid, initialClues, initialTitle, initialId, initialSize, resetGrid]);
 
 
@@ -281,7 +280,7 @@ export const useCrossword = (
             savePuzzle();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedGrid, debouncedClues, debouncedTitle]);
+    }, [debouncedGrid, debouncedClues, debouncedTitle, savePuzzle]);
 
 
   const loadPuzzle = async (): Promise<Puzzle | null> => {
@@ -448,5 +447,3 @@ export const useCrossword = (
 
   return { crossword, isSaving, lastSaved };
 };
-
-    
