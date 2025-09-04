@@ -9,26 +9,43 @@ export interface Cell {
 
 export type Grid = Cell[][];
 
-export interface Clue {
+export type Direction = 'across' | 'down';
+
+export interface Entry {
+  id: string; // "1A", "4D", etc.
   number: number;
-  direction: 'across' | 'down';
-  text: string;
+  direction: Direction;
   row: number;
   col: number;
   length: number;
+  answer: string; // UPPERCASE
+  clue: string;
 }
 
 export type TemplateName = 'Classic' | 'Condensed' | 'Clear';
 
+// This represents the client-side state of a puzzle
 export interface Puzzle {
   id?: string;
   title: string;
   grid: Grid;
   clues: {
-    across: Clue[];
-    down: Clue[];
+    across: Entry[];
+    down: Entry[];
   };
   size: number;
 }
 
+// This represents the Firestore document schema
+export interface PuzzleDoc {
+    title: string;
+    status: "draft" | "published";
+    size: number;
+    grid: string[]; // rows strings, use "#" for black, "." for empty
+    entries: Entry[]; // all across/downs in one array
     
+    // housekeeping
+    createdAt: any; // serverTimestamp
+    updatedAt: any; // serverTimestamp
+    owner: string; 
+}

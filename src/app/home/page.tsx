@@ -5,21 +5,25 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, DocumentData } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LogoIcon } from '@/components/icons';
 import { app, db } from '@/lib/firebase';
-import type { Puzzle } from '@/lib/types';
+import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
 import { FilePlus, LoaderCircle, LogOut, User } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
+import { createGrid } from '@/hooks/use-crossword';
+
+// A type for the puzzles listed on the home page, which might have less data
+type PuzzleListing = Pick<PuzzleDoc, 'title' | 'size' | 'status'> & { id: string };
 
 export default function HomePage() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
+  const [puzzles, setPuzzles] = useState<PuzzleListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
@@ -43,15 +47,19 @@ export default function HomePage() {
     setIsLoading(true);
     try {
       const q = query(
-        collection(db, 'puzzles'),
-        where('owner', '==', uid),
+        collection(db, 'users', uid, 'puzzles'),
         orderBy('updatedAt', 'desc')
       );
       const querySnapshot = await getDocs(q);
-      const userPuzzles = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Puzzle[];
+      const userPuzzles = querySnapshot.docs.map(doc => {
+          const data = doc.data() as PuzzleDoc;
+          return {
+            id: doc.id,
+            title: data.title,
+            size: data.size,
+            status: data.status,
+          }
+      }) as PuzzleListing[];
       setPuzzles(userPuzzles);
     } catch (error) {
       console.error('Error fetching puzzles:', error);
@@ -65,8 +73,33 @@ export default function HomePage() {
     }
   };
   
-  const handlePuzzleSelect = (puzzle: Puzzle) => {
-    setPuzzle(puzzle);
+  const handlePuzzleSelect = (puzzleData: DocumentData) => {
+    const docData = puzzleData.data() as PuzzleDoc;
+        
+    const newGrid = createGrid(docData.size);
+    docData.grid.forEach((rowStr, r) => {
+        for(let c = 0; c < docData.size; c++) {
+            const char = rowStr[c];
+            if (char === '#') {
+                newGrid[r][c].isBlack = true;
+            } else if (char !== '.') {
+                newGrid[r][c].char = char;
+            }
+        }
+    });
+
+    const newClues = {
+        across: docData.entries.filter(e => e.direction === 'across'),
+        down: docData.entries.filter(e => e.direction === 'down'),
+    };
+    
+    setPuzzle({
+      id: puzzleData.id,
+      title: docData.title,
+      size: docData.size,
+      grid: newGrid,
+      clues: newClues,
+    });
     router.push('/builder');
   };
 
@@ -113,7 +146,12 @@ export default function HomePage() {
                 <Card 
                   key={p.id} 
                   className="hover:shadow-md hover:border-primary/50 transition-all cursor-pointer"
-                  onClick={() => handlePuzzleSelect(p)}
+                  onClick={async () => {
+                     const puzzleDoc = await getDocs(query(collection(db, 'users', user.uid, 'puzzles'), where('__name__', '==', p.id)));
+                     if (!puzzleDoc.empty) {
+                        handlePuzzleSelect(puzzleDoc.docs[0]);
+                     }
+                  }}
                 >
                   <CardHeader>
                     <CardTitle className="truncate">{p.title || 'Untitled Puzzle'}</CardTitle>
@@ -121,7 +159,7 @@ export default function HomePage() {
                   <CardContent>
                     <div className="flex justify-between items-center text-sm text-muted-foreground">
                       <span>{p.size} x {p.size}</span>
-                       <Badge variant="outline">Draft</Badge>
+                       <Badge variant="outline">{p.status}</Badge>
                     </div>
                   </CardContent>
                 </Card>

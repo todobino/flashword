@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { AuthDialog } from './auth-dialog';
 import { app, db } from '@/lib/firebase';
-import type { Puzzle, TemplateName } from '@/lib/types';
+import type { Puzzle, TemplateName, Entry } from '@/lib/types';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { Slider } from './ui/slider';

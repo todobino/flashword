@@ -3,7 +3,7 @@
 
 import { useRef, useEffect, KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
-import type { Grid, Clue } from '@/lib/types';
+import type { Grid, Entry } from '@/lib/types';
 
 interface CrosswordGridProps {
   grid: Grid;
@@ -11,7 +11,7 @@ interface CrosswordGridProps {
   onCellClick: (row: number, col: number) => void;
   onCharChange: (row: number, col: number, char: string) => void;
   selectedClue: { number: number; direction: 'across' | 'down' } | null;
-  currentClueDetails: Clue | null;
+  currentClueDetails: Entry | null;
   onSelectClue: (clue: { number: number; direction: 'across' | 'down' } | null) => void;
   designMode?: boolean;
 }

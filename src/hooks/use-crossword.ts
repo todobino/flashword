@@ -2,12 +2,12 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import type { Grid, Cell, Clue, Puzzle, TemplateName } from '@/lib/types';
+import type { Grid, Cell, Entry, Puzzle, PuzzleDoc, TemplateName, Direction } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { generatePattern } from '@/lib/grid-generator';
 import { User } from 'firebase/auth';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, updateDoc, doc, arrayUnion, query, where, getDocs, orderBy, limit, setDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, orderBy, limit, setDoc } from 'firebase/firestore';
 
 
 export const createGrid = (size: number): Grid => {
@@ -25,14 +25,14 @@ export const createGrid = (size: number): Grid => {
 export const useCrossword = (
     initialSize = 15, 
     initialGrid?: Grid, 
-    initialClues?: { across: Clue[], down: Clue[] }, 
+    initialClues?: { across: Entry[], down: Entry[] }, 
     initialTitle?: string,
     initialId?: string,
     user?: User | null
 ) => {
   const [size, setSize] = useState(initialSize);
   const [grid, setGrid] = useState<Grid>(() => initialGrid || createGrid(initialSize));
-  const [clues, setClues] = useState<{ across: Clue[], down: Clue[] }>(() => initialClues || { across: [], down: [] });
+  const [clues, setClues] = useState<{ across: Entry[], down: Entry[] }>(() => initialClues || { across: [], down: [] });
   const [selectedClue, setSelectedClue] = useState<{ number: number; direction: 'across' | 'down' } | null>(null);
   const [title, setTitle] = useState(initialTitle || '');
   const [puzzleId, setPuzzleId] = useState<string | undefined>(initialId);
@@ -41,8 +41,8 @@ export const useCrossword = (
 
   const updateClues = useCallback((currentGrid: Grid, currentSize: number) => {
     const newGrid = JSON.parse(JSON.stringify(currentGrid));
-    const newAcrossClues: Clue[] = [];
-    const newDownClues: Clue[] = [];
+    const newAcrossClues: Entry[] = [];
+    const newDownClues: Entry[] = [];
     let clueCounter = 1;
 
     for (let row = 0; row < currentSize; row++) {
@@ -66,7 +66,8 @@ export const useCrossword = (
               length++;
             }
             if (length > 2) { // Words must be 3+ letters
-              newAcrossClues.push({ number: clueCounter, direction: 'across', text: '', row, col, length });
+              const newEntry: Entry = { number: clueCounter, id: `${clueCounter}across`, direction: 'across', clue: '', answer: '', row, col, length };
+              newAcrossClues.push(newEntry);
               isClueStart = true;
             }
         }
@@ -76,7 +77,8 @@ export const useCrossword = (
               length++;
             }
             if (length > 2) { // Words must be 3+ letters
-              newDownClues.push({ number: clueCounter, direction: 'down', text: '', row, col, length });
+              const newEntry: Entry = { number: clueCounter, id: `${clueCounter}down`, direction: 'down', clue: '', answer: '', row, col, length };
+              newDownClues.push(newEntry);
               isClueStart = true;
             }
         }
@@ -90,16 +92,11 @@ export const useCrossword = (
       }
     }
     
-
     const oldClues = clues;
     
-    // Preserve existing clue text when the grid changes
-    const updateClueText = (newClues: Clue[], oldClues: Clue[]) => {
-      const oldCluesMap = new Map(oldClues.map(c => [`${c.number}-${c.direction}`, c.text]));
-      return newClues.map(nc => {
-          const oldText = oldCluesMap.get(`${nc.number}-${nc.direction}`);
-          return { ...nc, text: oldText || '' };
-      });
+    const updateClueText = (newClues: Entry[], oldClues: Entry[]) => {
+      const oldCluesMap = new Map(oldClues.map(c => [c.id, c.clue]));
+      return newClues.map(nc => ({ ...nc, clue: oldCluesMap.get(nc.id) || '' }));
     };
     
     setGrid(newGrid);
@@ -134,7 +131,7 @@ export const useCrossword = (
     setClues(prev => ({
       ...prev,
       [direction]: prev[direction].map(clue => 
-        clue.number === number ? { ...clue, text } : clue
+        clue.number === number ? { ...clue, clue: text } : clue
       ),
     }));
   };
@@ -146,34 +143,37 @@ export const useCrossword = (
     }
     
     try {
-        const puzzleData = {
+        const allEntries = [...clues.across, ...clues.down].map(entry => {
+            return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
+        });
+
+        const puzzleDoc: Omit<PuzzleDoc, 'createdAt' | 'updatedAt'> = {
             owner: user.uid,
             title,
             size,
-            grid,
-            clues,
-            updatedAt: serverTimestamp(),
+            status: "draft",
+            grid: grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
+            entries: allEntries
         };
 
         if (puzzleId && !asNew) {
             // Update existing puzzle
-            const puzzleRef = doc(db, "puzzles", puzzleId);
-            await updateDoc(puzzleRef, puzzleData);
-            toast({ title: "Puzzle Updated!", description: "Your crossword has been updated in Firestore." });
+            const puzzleRef = doc(db, "users", user.uid, "puzzles", puzzleId);
+            await updateDoc(puzzleRef, {
+                ...puzzleDoc,
+                updatedAt: serverTimestamp(),
+            });
+            toast({ title: "Puzzle Updated!", description: "Your crossword has been updated." });
         } else {
             // Create new puzzle
-            const puzzleWithCreateTime = {
-                ...puzzleData,
+            const userPuzzlesRef = collection(db, "users", user.uid, "puzzles");
+            const newPuzzleRef = await addDoc(userPuzzlesRef, {
+                ...puzzleDoc,
                 createdAt: serverTimestamp(),
-            };
-            const puzzleRef = await addDoc(collection(db, "puzzles"), puzzleWithCreateTime);
-            setPuzzleId(puzzleRef.id);
-            
-            // This might be the first time the user is saved, so use set with merge
-            const userRef = doc(db, "users", user.uid);
-            await setDoc(userRef, { puzzleIds: arrayUnion(puzzleRef.id) }, { merge: true });
-            
-            toast({ title: "Puzzle Saved!", description: "Your crossword has been saved to Firestore." });
+                updatedAt: serverTimestamp(),
+            });
+            setPuzzleId(newPuzzleRef.id);
+            toast({ title: "Puzzle Saved!", description: "Your new crossword has been saved." });
         }
     } catch (e) {
         console.error("Save failed: ", e);
@@ -190,24 +190,50 @@ export const useCrossword = (
     }
     try {
       const q = query(
-          collection(db, "puzzles"), 
-          where("owner", "==", user.uid),
+          collection(db, "users", user.uid, "puzzles"), 
           orderBy("updatedAt", "desc"),
           limit(1)
       );
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
-        const puzzleDoc = querySnapshot.docs[0];
-        const puzzleData = puzzleDoc.data() as Omit<Puzzle, 'id'>;
-        const loadedPuzzle: Puzzle = { id: puzzleDoc.id, ...puzzleData };
+        const puzzleDocSnap = querySnapshot.docs[0];
+        const docData = puzzleDocSnap.data() as PuzzleDoc;
         
-        setSize(loadedPuzzle.size);
+        // Convert from PuzzleDoc to client-side Puzzle
+        const newGrid = createGrid(docData.size);
+        docData.grid.forEach((rowStr, r) => {
+            for(let c = 0; c < docData.size; c++) {
+                const char = rowStr[c];
+                if (char === '#') {
+                    newGrid[r][c].isBlack = true;
+                } else if (char !== '.') {
+                    newGrid[r][c].char = char;
+                }
+            }
+        });
+
+        const newClues = {
+            across: docData.entries.filter(e => e.direction === 'across'),
+            down: docData.entries.filter(e => e.direction === 'down'),
+        };
+
+        const loadedPuzzle: Puzzle = { 
+            id: puzzleDocSnap.id,
+            title: docData.title,
+            size: docData.size,
+            grid: newGrid,
+            clues: newClues,
+        };
+        
+        updateClues(loadedPuzzle.grid, loadedPuzzle.size); // Recalculate numbers
         setGrid(loadedPuzzle.grid);
         setClues(loadedPuzzle.clues);
         setTitle(loadedPuzzle.title);
         setPuzzleId(loadedPuzzle.id);
+        setSize(loadedPuzzle.size);
         setSelectedClue(null);
+        
         toast({ title: "Puzzle Loaded!", description: `Loaded "${loadedPuzzle.title}".` });
         return loadedPuzzle;
 
@@ -223,7 +249,7 @@ export const useCrossword = (
   };
 
   const getWordFromGrid = (clue: { number: number; direction: 'across' | 'down' }) => {
-    const clueData = clues[clue.direction].find(c => c.number === clue.number);
+    const clueData = [...clues.across, ...clues.down].find(c => c.number === clue.number && c.direction === clue.direction);
     if (!clueData) return '';
     
     let word = '';
@@ -241,7 +267,7 @@ export const useCrossword = (
     return word;
   };
 
-  const fillWord = (clue: Clue, word: string) => {
+  const fillWord = (clue: Entry, word: string) => {
     setGrid(currentGrid => {
         const newGrid = JSON.parse(JSON.stringify(currentGrid));
         const normalizedWord = word.toUpperCase().padEnd(clue.length, ' ');
@@ -282,13 +308,13 @@ export const useCrossword = (
   };
 
 
-  const currentClueDetails = useMemo(() => {
+  const currentClueDetails: Entry | null = useMemo(() => {
     if (!selectedClue) return null;
     const allClues = [...clues.across, ...clues.down];
-    return allClues.find(c => c.number === selectedClue.number && c.direction === selectedClue.direction);
+    return allClues.find(c => c.number === selectedClue.number && c.direction === selectedClue.direction) || null;
   }, [selectedClue, clues]);
 
-  const resetGrid = (newSize: number, newGrid?: Grid, newClues?: {across: Clue[], down: Clue[]}, newTitle?: string, newId?: string) => {
+  const resetGrid = (newSize: number, newGrid?: Grid, newClues?: {across: Entry[], down: Entry[]}, newTitle?: string, newId?: string) => {
     setSize(newSize);
     const gridToUpdate = newGrid || createGrid(newSize);
     setClues(newClues || { across: [], down: [] });

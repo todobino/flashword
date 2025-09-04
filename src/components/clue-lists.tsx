@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,14 +8,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { Clue } from '@/lib/types';
+import type { Entry } from '@/lib/types';
 import { suggestClueAction } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 
 interface ClueListsProps {
   clues: {
-    across: Clue[];
-    down: Clue[];
+    across: Entry[];
+    down: Entry[];
   };
   selectedClue: { number: number; direction: 'across' | 'down' } | null;
   onSelectClue: (clue: { number: number; direction: 'across' | 'down' }) => void;
@@ -32,7 +33,7 @@ export function ClueLists({
   const [aiLoadingClue, setAiLoadingClue] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleSuggestClue = async (clue: Clue) => {
+  const handleSuggestClue = async (clue: Entry) => {
     const loadingKey = `${clue.number}-${clue.direction}`;
     setAiLoadingClue(loadingKey);
     const word = getWordFromGrid(clue).replace(/_/g, '');
@@ -83,7 +84,7 @@ export function ClueLists({
                 <div className="flex-1 space-y-2">
                   <Textarea
                     placeholder={`Clue for ${getWordFromGrid(clue)}...`}
-                    value={clue.text}
+                    value={clue.clue}
                     onFocus={() => onSelectClue({ number: clue.number, direction })}
                     onChange={(e) => onClueTextChange(clue.number, direction, e.target.value)}
                     className="bg-background focus-visible:ring-accent"
