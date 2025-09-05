@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { Share2, LoaderCircle, LogIn, CheckCircle, Edit, Rocket, Grid2x2 } from 'lucide-react';
+import { Share2, LoaderCircle, LogIn, CheckCircle, Edit, Rocket, Grid2x2, Play } from 'lucide-react';
 import { useCrossword, createGrid } from '@/hooks/use-crossword';
 import { CrosswordGridEdit } from '@/components/crossword-grid-edit';
 import { ClueLists } from '@/components/clue-lists';
@@ -183,6 +183,14 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
+            {crossword.status === 'published' && (
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={`/play/${puzzleId}`}>
+                        <Play className="h-4 w-4" />
+                        <span className="sr-only sm:not-sr-only sm:ml-2">Play</span>
+                    </Link>
+                </Button>
+            )}
             <Button variant="outline" size="sm" title="Share puzzle" onClick={() => setIsShareOpen(true)} disabled={crossword.status === 'draft'}>
               <Share2 className="h-4 w-4" />
               <span className="sr-only sm:not-sr-only sm:ml-2">Share</span>
