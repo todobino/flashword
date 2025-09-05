@@ -12,7 +12,7 @@ import { Play, Pause } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { useToast } from './hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface CrosswordPlayerProps {
   puzzle: PlayablePuzzle;
