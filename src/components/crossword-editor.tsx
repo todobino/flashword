@@ -32,6 +32,7 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { PuzzleStatsCard } from './puzzle-stats-card';
 import { PuzzlePreviewDialog } from './puzzle-preview-dialog';
+import { SharePuzzleDialog } from './share-puzzle-dialog';
 
 
 interface CrosswordEditorProps {
@@ -45,6 +46,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -178,7 +180,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" title="Share puzzle" disabled={crossword.status === 'draft'}>
+            <Button variant="outline" size="sm" title="Share puzzle" onClick={() => setIsShareOpen(true)} disabled={crossword.status === 'draft'}>
               <Share2 className="h-4 w-4" />
               <span className="sr-only sm:not-sr-only sm:ml-2">Share</span>
             </Button>
@@ -261,6 +263,11 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
         isOpen={isPreviewOpen} 
         onOpenChange={setIsPreviewOpen}
         puzzle={{...crossword, ...stats}}
+      />
+      <SharePuzzleDialog 
+        isOpen={isShareOpen} 
+        onOpenChange={setIsShareOpen}
+        puzzleId={puzzleId}
       />
     </div>
   );
