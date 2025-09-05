@@ -14,7 +14,7 @@ import { LoaderCircle, Grid2x2, Gamepad2 } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { cn } from '@/lib/utils';
 import { getPublishedPuzzlesAction } from '@/app/actions';
-import { format }s from 'date-fns';
+import { format } from 'date-fns';
 
 export default function PlayHomePage() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
