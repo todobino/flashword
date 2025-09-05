@@ -33,6 +33,7 @@ import { Badge } from './ui/badge';
 import { PuzzleStatsCard } from './puzzle-stats-card';
 import { PuzzlePreviewDialog } from './puzzle-preview-dialog';
 import { SharePuzzleDialog } from './share-puzzle-dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 
 interface CrosswordEditorProps {
@@ -133,6 +134,8 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
     await crossword.publishPuzzle();
     setIsPublishDialogOpen(false);
   };
+  
+  const canPublish = stats.answersCompletion === 100 && stats.cluesCompletion === 100;
 
   const getSaveStatus = () => {
     if (isSaving) {
@@ -185,10 +188,23 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
               <span className="sr-only sm:not-sr-only sm:ml-2">Share</span>
             </Button>
             {crossword.status === 'draft' && (
-                <Button size="sm" onClick={() => setIsPublishDialogOpen(true)}>
-                    <Rocket className="mr-2 h-4 w-4" />
-                    Publish
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="inline-block"> 
+                        <Button size="sm" onClick={() => setIsPublishDialogOpen(true)} disabled={!canPublish}>
+                            <Rocket className="mr-2 h-4 w-4" />
+                            Publish
+                        </Button>
+                      </div>
+                    </TooltipTrigger>
+                    {!canPublish && (
+                        <TooltipContent>
+                            <p>Fill all answers and clues to publish.</p>
+                        </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
             )}
           </div>
           <Separator orientation="vertical" className="h-6" />
