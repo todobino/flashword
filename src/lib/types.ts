@@ -54,3 +54,14 @@ export interface PuzzleDoc {
     owner: string;
     author: string; 
 }
+
+
+export interface PlayablePuzzle {
+    id: string;
+    title: string;
+    author: string;
+    size: number;
+    grid: string[] | Grid; // Grid for client, string[] from server
+    entries: Entry[];
+    createdAt: Date;
+}

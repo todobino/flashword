@@ -2,12 +2,12 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import type { Grid, Cell, Entry, Puzzle, PuzzleDoc, TemplateName, Direction } from '@/lib/types';
+import type { Grid, Cell, Entry, Puzzle, PuzzleDoc, TemplateName, Direction, PlayablePuzzle } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { generatePattern } from '@/lib/grid-generator';
 import { User } from 'firebase/auth';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, orderBy, limit, setDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, orderBy, limit, setDoc, getDoc } from 'firebase/firestore';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -260,11 +260,29 @@ export const useCrossword = (
 
     setIsSaving(true);
     try {
-      const puzzleRef = doc(db, "users", user.uid, "puzzles", puzzleId);
-      await updateDoc(puzzleRef, {
-        status: 'published',
-        updatedAt: serverTimestamp(),
-      });
+      // First, save the current state to the user's puzzles subcollection
+      await savePuzzle();
+
+      // Then, copy the document to the root `puzzles` collection for public access
+      const userPuzzleRef = doc(db, "users", user.uid, "puzzles", puzzleId);
+      const publicPuzzleRef = doc(db, "puzzles", puzzleId);
+
+      const puzzleSnap = await getDoc(userPuzzleRef);
+      if(puzzleSnap.exists()) {
+          const puzzleData = puzzleSnap.data();
+          await setDoc(publicPuzzleRef, {
+            ...puzzleData,
+            status: 'published',
+            updatedAt: serverTimestamp(),
+          });
+
+          // Finally, update the user's puzzle status
+          await updateDoc(userPuzzleRef, {
+            status: 'published',
+            updatedAt: serverTimestamp(),
+          });
+      }
+
       setStatus('published');
       setLastSaved(new Date());
       toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
