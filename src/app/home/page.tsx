@@ -229,7 +229,7 @@ export default function HomePage() {
                 >
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="outline" size="icon" className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <MoreHorizontal className="h-5 w-5" />
                                 <span className="sr-only">Actions</span>
                             </Button>
