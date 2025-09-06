@@ -54,6 +54,7 @@ export async function getPublishedPuzzlesAction(): Promise<{ success: boolean, d
                 author: data.author,
                 createdAt: data.createdAt.toDate(),
                 grid: data.grid, // For preview on the card
+                entries: [], // Not needed for listing
             };
         });
         
@@ -75,13 +76,8 @@ export async function getPuzzleAction(puzzleId: string): Promise<{ success: bool
 
         const data = docSnap.data() as PuzzleDoc;
 
-        // For published puzzles, anyone can play. For drafts, only the owner.
-        // This check would need the current user's ID, which we can't get here directly.
-        // We'll assume the client handles the redirect if a user isn't logged in for their own draft.
-        // For now, let's just ensure it's published to be safe.
-        if (data.status !== 'published') {
-             return { success: false, error: 'This puzzle is not available to play.' };
-        }
+        // The query from the public collection already implicitly ensures it's published.
+        // No need for an extra status check here unless we add more complex logic later.
         
         const puzzle: PlayablePuzzle = {
             id: docSnap.id,
@@ -100,3 +96,5 @@ export async function getPuzzleAction(puzzleId: string): Promise<{ success: bool
         return { success: false, error: 'Failed to fetch the puzzle.' };
     }
 }
+
+    

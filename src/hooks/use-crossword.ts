@@ -260,29 +260,33 @@ export const useCrossword = (
 
     setIsSaving(true);
     try {
-      // First, save the current state to the user's puzzles subcollection
-      await savePuzzle();
+      const allEntries = [...clues.across, ...clues.down].map(entry => {
+        return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
+      });
+      
+      const puzzleDoc: Omit<PuzzleDoc, 'id'> = {
+            owner: user.uid,
+            author: user.displayName || 'Anonymous',
+            title: title || "Untitled Puzzle",
+            size,
+            status: "published",
+            grid: grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
+            entries: allEntries,
+            createdAt: createdAt ? createdAt : serverTimestamp(),
+            updatedAt: serverTimestamp(),
+      };
 
-      // Then, copy the document to the root `puzzles` collection for public access
-      const userPuzzleRef = doc(db, "users", user.uid, "puzzles", puzzleId);
+      // Set the public puzzle document
       const publicPuzzleRef = doc(db, "puzzles", puzzleId);
+      await setDoc(publicPuzzleRef, puzzleDoc);
 
-      const puzzleSnap = await getDoc(userPuzzleRef);
-      if(puzzleSnap.exists()) {
-          const puzzleData = puzzleSnap.data();
-          await setDoc(publicPuzzleRef, {
-            ...puzzleData,
-            status: 'published',
-            updatedAt: serverTimestamp(),
-          });
-
-          // Finally, update the user's puzzle status
-          await updateDoc(userPuzzleRef, {
-            status: 'published',
-            updatedAt: serverTimestamp(),
-          });
-      }
-
+      // Update the user's private puzzle status
+      const userPuzzleRef = doc(db, "users", user.uid, "puzzles", puzzleId);
+      await updateDoc(userPuzzleRef, {
+        status: 'published',
+        updatedAt: serverTimestamp(),
+      });
+      
       setStatus('published');
       setLastSaved(new Date());
       toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
@@ -555,3 +559,5 @@ export const useCrossword = (
 
   return { crossword, isSaving, lastSaved, stats };
 };
+
+    
