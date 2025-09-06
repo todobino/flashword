@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { collection, query, where, getDocs, orderBy, DocumentData, doc, getDoc, OrderByDirection, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, DocumentData, doc, getDoc, OrderByDirection, deleteDoc, writeBatch } from 'firebase/firestore';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,13 +14,14 @@ import { app, db } from '@/lib/firebase';
 import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
-import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown, Trash2, Share2, X, Check, MoreHorizontal, Play } from 'lucide-react';
+import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown, Trash2, Share2, X, Check, MoreHorizontal, Play, ListFilter, XCircle, Rows } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { createGrid } from '@/hooks/use-crossword';
 import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
 import { cn } from '@/lib/utils';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuCheckboxItem, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,12 +52,19 @@ const SORT_OPTIONS: SortOption[] = [
     { field: 'size', direction: 'desc', label: 'Size (Largest)' },
 ];
 
+type StatusFilter = 'all' | 'draft' | 'published';
+
 export default function HomePage() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [puzzles, setPuzzles] = useState<PuzzleListing[]>([]);
+  const [allPuzzles, setAllPuzzles] = useState<PuzzleListing[]>([]);
+  const [filteredPuzzles, setFilteredPuzzles] = useState<PuzzleListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortOption, setSortOption] = useState<SortOption>(SORT_OPTIONS[0]);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [puzzleToDelete, setPuzzleToDelete] = useState<string | null>(null);
+  const [isBulkSelectMode, setIsBulkSelectMode] = useState(false);
+  const [selectedPuzzles, setSelectedPuzzles] = useState<string[]>([]);
+  const [isBulkDeleteAlertOpen, setIsBulkDeleteAlertOpen] = useState(false);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -69,7 +77,6 @@ export default function HomePage() {
       } else {
         router.push('/');
       }
-      // Initial load or user change, don't set loading to false yet
     });
 
     return () => unsubscribe();
@@ -82,7 +89,28 @@ export default function HomePage() {
           setIsLoading(false);
       }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, sortOption]);
+  }, [user]);
+
+  useEffect(() => {
+    let newFilteredPuzzles = [...allPuzzles];
+    
+    // Apply sorting
+    newFilteredPuzzles.sort((a, b) => {
+      const field = sortOption.field;
+      const dir = sortOption.direction === 'asc' ? 1 : -1;
+      if (a[field] < b[field]) return -1 * dir;
+      if (a[field] > b[field]) return 1 * dir;
+      return 0;
+    });
+
+    // Apply filtering
+    if (statusFilter !== 'all') {
+      newFilteredPuzzles = newFilteredPuzzles.filter(p => p.status === statusFilter);
+    }
+    
+    setFilteredPuzzles(newFilteredPuzzles);
+  }, [allPuzzles, sortOption, statusFilter]);
+  
   
   const calculateCompletion = (puzzle: PuzzleDoc): number => {
     if (!puzzle.grid || !puzzle.entries) return 0;
@@ -111,10 +139,7 @@ export default function HomePage() {
   const fetchPuzzles = async (uid: string) => {
     setIsLoading(true);
     try {
-      const q = query(
-        collection(db, 'users', uid, 'puzzles'),
-        orderBy(sortOption.field, sortOption.direction)
-      );
+      const q = query(collection(db, 'users', uid, 'puzzles'));
       const querySnapshot = await getDocs(q);
       const userPuzzles = querySnapshot.docs.map(doc => {
           const data = doc.data() as PuzzleDoc;
@@ -125,10 +150,12 @@ export default function HomePage() {
             status: data.status || 'draft',
             grid: data.grid,
             entries: data.entries,
+            createdAt: data.createdAt?.toDate(),
+            updatedAt: data.updatedAt?.toDate(),
             completion: calculateCompletion(data)
           }
-      }) as PuzzleListing[];
-      setPuzzles(userPuzzles);
+      }) as (PuzzleListing & { createdAt: Date, updatedAt: Date });
+      setAllPuzzles(userPuzzles);
     } catch (error) {
       console.error('Error fetching puzzles:', error);
       toast({
@@ -152,7 +179,7 @@ export default function HomePage() {
             title: 'Puzzle Deleted',
             description: `The puzzle has been successfully deleted.`
         });
-        setPuzzles(puzzles.filter(p => p.id !== puzzleToDelete));
+        setAllPuzzles(allPuzzles.filter(p => p.id !== puzzleToDelete));
     } catch (error) {
         console.error('Error deleting puzzle:', error);
         toast({
@@ -162,6 +189,46 @@ export default function HomePage() {
         });
     }
     setPuzzleToDelete(null);
+  };
+
+  const handleBulkDelete = async () => {
+    if (!user || selectedPuzzles.length === 0) return;
+    
+    const batch = writeBatch(db);
+    selectedPuzzles.forEach(id => {
+      const puzzleRef = doc(db, 'users', user.uid, 'puzzles', id);
+      batch.delete(puzzleRef);
+    });
+
+    try {
+      await batch.commit();
+      toast({
+        title: `${selectedPuzzles.length} Puzzles Deleted`,
+        description: 'The selected puzzles have been removed.'
+      });
+      setAllPuzzles(allPuzzles.filter(p => !selectedPuzzles.includes(p.id)));
+      setSelectedPuzzles([]);
+      setIsBulkSelectMode(false);
+    } catch (error) {
+      console.error('Error in bulk delete:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Bulk Delete Failed',
+        description: 'Could not delete the selected puzzles.'
+      });
+    }
+    setIsBulkDeleteAlertOpen(false);
+  };
+  
+  const toggleBulkSelectMode = () => {
+    setIsBulkSelectMode(!isBulkSelectMode);
+    setSelectedPuzzles([]); // Reset selection when toggling mode
+  };
+  
+  const handleSelectPuzzle = (puzzleId: string) => {
+    setSelectedPuzzles(prev => 
+      prev.includes(puzzleId) ? prev.filter(id => id !== puzzleId) : [...prev, puzzleId]
+    );
   };
 
 
@@ -176,7 +243,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-card">
+      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-20 bg-card">
         <div className="flex items-center gap-3">
           <LogoIcon className="h-8 w-8 text-primary" />
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
@@ -200,6 +267,21 @@ export default function HomePage() {
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline">
+                            <ListFilter className="mr-2 h-4 w-4" />
+                            Filter
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                         <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                         <DropdownMenuCheckboxItem checked={statusFilter === 'all'} onCheckedChange={() => setStatusFilter('all')}>All</DropdownMenuCheckboxItem>
+                         <DropdownMenuCheckboxItem checked={statusFilter === 'draft'} onCheckedChange={() => setStatusFilter('draft')}>Draft</DropdownMenuCheckboxItem>
+                         <DropdownMenuCheckboxItem checked={statusFilter === 'published'} onCheckedChange={() => setStatusFilter('published')}>Published</DropdownMenuCheckboxItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
                             <ArrowUpDown className="mr-2 h-4 w-4" />
                             {sortOption.label}
                         </Button>
@@ -212,6 +294,10 @@ export default function HomePage() {
                         ))}
                     </DropdownMenuContent>
                 </DropdownMenu>
+                <Button onClick={toggleBulkSelectMode} variant={isBulkSelectMode ? 'secondary' : 'outline'}>
+                    <Rows className="h-4 w-4 mr-2" />
+                    Bulk Select
+                </Button>
                 <Button asChild>
                     <Link href="/new">
                         <Grid2x2Plus className="h-4 w-4 mr-2" /> Create New
@@ -219,47 +305,78 @@ export default function HomePage() {
                 </Button>
             </div>
           </div>
+          
+           {isBulkSelectMode && selectedPuzzles.length > 0 && (
+                <div className="sticky top-[65px] z-10 bg-primary/10 border-primary/20 border rounded-lg p-2 mb-4 flex justify-between items-center animate-in fade-in-50">
+                    <span className="text-sm font-medium text-primary">{selectedPuzzles.length} puzzle{selectedPuzzles.length > 1 ? 's' : ''} selected</span>
+                    <div className="space-x-2">
+                        <Button variant="destructive" size="sm" onClick={() => setIsBulkDeleteAlertOpen(true)}>
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedPuzzles([])}>
+                            <XCircle className="h-5 w-5" />
+                        </Button>
+                    </div>
+                </div>
+            )}
 
-          {puzzles.length > 0 ? (
+          {filteredPuzzles.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {puzzles.map(p => (
+              {filteredPuzzles.map(p => (
                 <Card 
                   key={p.id} 
-                  className="hover:shadow-md hover:border-primary/50 transition-all flex flex-col group relative"
+                  className={cn(
+                    "transition-all flex flex-col group relative",
+                    isBulkSelectMode && "cursor-pointer",
+                    selectedPuzzles.includes(p.id) && "border-primary ring-2 ring-primary"
+                  )}
+                  onClick={isBulkSelectMode ? () => handleSelectPuzzle(p.id) : undefined}
                 >
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon" className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <MoreHorizontal className="h-5 w-5" />
-                                <span className="sr-only">Actions</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                             <DropdownMenuItem onClick={() => router.push(`/edit/${p.id}`)}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                <span>Edit</span>
-                            </DropdownMenuItem>
-                            {p.status === 'published' && (
-                                <>
-                                    <DropdownMenuItem onClick={() => router.push(`/play/${p.id}`)}>
-                                        <Play className="mr-2 h-4 w-4" />
-                                        <span>Play</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => router.push(`/play/${p.id}`)}>
-                                        <Share2 className="mr-2 h-4 w-4" />
-                                        <span>Share</span>
-                                    </DropdownMenuItem>
-                                </>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50" onClick={() => setPuzzleToDelete(p.id)}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Delete</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    {!isBulkSelectMode ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="icon" className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <MoreHorizontal className="h-5 w-5" />
+                                    <span className="sr-only">Actions</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => router.push(`/edit/${p.id}`)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    <span>Edit</span>
+                                </DropdownMenuItem>
+                                {p.status === 'published' && (
+                                    <>
+                                        <DropdownMenuItem onClick={() => router.push(`/play/${p.id}`)}>
+                                            <Play className="mr-2 h-4 w-4" />
+                                            <span>Play</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => router.push(`/play/${p.id}`)}>
+                                            <Share2 className="mr-2 h-4 w-4" />
+                                            <span>Share</span>
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50" onClick={() => setPuzzleToDelete(p.id)}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    <span>Delete</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <div className="absolute top-3 right-3 z-10">
+                            <Checkbox 
+                                checked={selectedPuzzles.includes(p.id)}
+                                onCheckedChange={() => handleSelectPuzzle(p.id)}
+                                className="h-6 w-6 border-2"
+                                aria-label={`Select puzzle ${p.title}`}
+                            />
+                        </div>
+                    )}
 
-                  <Link href={`/edit/${p.id}`} className="flex-1 flex flex-col">
+
+                  <Link href={`/edit/${p.id}`} className={cn("flex-1 flex flex-col", isBulkSelectMode && "pointer-events-none")}>
                     <CardHeader className="flex-1 pb-4">
                        {p.grid && (
                           <div 
@@ -327,6 +444,23 @@ export default function HomePage() {
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setPuzzleToDelete(null)}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeletePuzzle} className={buttonVariants({ variant: "destructive" })}>
+                Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <AlertDialog open={isBulkDeleteAlertOpen} onOpenChange={setIsBulkDeleteAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedPuzzles.length} Puzzles?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the selected puzzles. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBulkDelete} className={buttonVariants({ variant: "destructive" })}>
                 Delete
             </AlertDialogAction>
           </AlertDialogFooter>
