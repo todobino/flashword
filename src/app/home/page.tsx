@@ -21,6 +21,7 @@ import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 // A type for the puzzles listed on the home page, which might have less data
-type PuzzleListing = Pick<PuzzleDoc, 'title' | 'size' | 'status' | 'grid'> & { id: string };
+type PuzzleListing = Pick<PuzzleDoc, 'title' | 'size' | 'status' | 'grid' | 'entries'> & { id: string, completion: number };
 
 type SortOption = {
     field: 'updatedAt' | 'createdAt' | 'title' | 'size';
@@ -85,6 +86,24 @@ export default function HomePage() {
       }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, sortOption]);
+  
+  const calculateCompletion = (puzzle: PuzzleDoc): number => {
+    if (!puzzle.grid || !puzzle.entries) return 0;
+    
+    // Answers completion
+    const whiteSquareCount = puzzle.grid.join('').replace(/#/g, '').length;
+    const filledSquareCount = puzzle.grid.join('').replace(/[\.#]/g, '').length;
+    const answerCompletion = whiteSquareCount > 0 ? (filledSquareCount / whiteSquareCount) * 100 : 100;
+    
+    // Clues completion
+    const totalClues = puzzle.entries.length;
+    if (totalClues === 0) return answerCompletion > 99 ? 100 : 0;
+    const filledClues = puzzle.entries.filter(e => e.clue && e.clue.trim() !== '').length;
+    const clueCompletion = (filledClues / totalClues) * 100;
+
+    return (answerCompletion + clueCompletion) / 2;
+  };
+
 
   const fetchPuzzles = async (uid: string) => {
     setIsLoading(true);
@@ -102,6 +121,8 @@ export default function HomePage() {
             size: data.size,
             status: data.status || 'draft',
             grid: data.grid,
+            entries: data.entries,
+            completion: calculateCompletion(data)
           }
       }) as PuzzleListing[];
       setPuzzles(userPuzzles);
@@ -263,7 +284,7 @@ export default function HomePage() {
                     onCheckedChange={(isChecked) => handleSelectionChange(p.id, !!isChecked)}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <CardHeader className="flex-1">
+                  <CardHeader className="flex-1 pb-4">
                      {p.grid && (
                         <div 
                             className="aspect-square w-full bg-muted/20 rounded-md p-1.5 mb-4"
@@ -280,8 +301,17 @@ export default function HomePage() {
                      )}
                     <CardTitle className="truncate">{p.title || 'Untitled Puzzle'}</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="flex justify-between items-center text-sm text-muted-foreground">
+                  <CardContent className="space-y-3">
+                     {p.status === 'draft' && (
+                        <div className="space-y-1">
+                            <div className="flex justify-between items-center text-xs text-muted-foreground">
+                                <span>Completion</span>
+                                <span>{p.completion.toFixed(0)}%</span>
+                            </div>
+                            <Progress value={p.completion} className="h-2" />
+                        </div>
+                     )}
+                    <div className="flex justify-between items-center text-sm text-muted-foreground pt-1">
                       <span>{p.size} x {p.size}</span>
                        {p.status === 'draft' ? (
                           <Badge variant="outline" className="text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
@@ -330,3 +360,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
