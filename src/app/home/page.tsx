@@ -311,7 +311,7 @@ export default function HomePage() {
            {isBulkSelectMode && (
                 <div className="sticky top-[65px] z-10 bg-primary/10 border-primary/20 border rounded-lg p-2 mb-4 flex justify-between items-center animate-in fade-in-50">
                     <span className="text-sm font-medium text-primary">{selectedPuzzles.length} puzzle{selectedPuzzles.length !== 1 ? 's' : ''} selected</span>
-                    <div className="space-x-2">
+                    <div className="flex items-center space-x-2">
                         <Button variant="destructive" size="sm" onClick={() => setIsBulkDeleteAlertOpen(true)} disabled={selectedPuzzles.length === 0}>
                             <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
                         </Button>
