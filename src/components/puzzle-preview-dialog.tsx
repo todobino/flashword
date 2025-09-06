@@ -27,17 +27,16 @@ export function PuzzlePreviewDialog({ isOpen, onOpenChange, puzzle }: PuzzlePrev
           <DialogTitle>Puzzle Preview</DialogTitle>
         </DialogHeader>
         <ScrollArea className="h-full">
-            <div className="p-8 space-y-8 font-serif">
-                <header className="flex justify-between items-center">
-                    <h1 className="text-2xl font-bold">{puzzle.title}</h1>
-                    <h2 className="text-lg font-medium">@{puzzle.author}</h2>
-                </header>
-
-                <div className="grid grid-cols-2 gap-8">
-                     <div className="col-span-1 space-y-6 text-sm leading-relaxed">
+            <div className="p-8 font-serif">
+                <div className="grid grid-cols-5 gap-8">
+                     <div className="col-span-2 space-y-6 text-sm leading-relaxed">
+                        <header className="space-y-1">
+                            <h1 className="text-2xl font-bold">{puzzle.title}</h1>
+                            <h2 className="text-lg font-medium text-muted-foreground">by @{puzzle.author}</h2>
+                        </header>
                         <div>
                             <h3 className="text-base font-bold tracking-wider uppercase border-b pb-2 mb-2">Across</h3>
-                            <ol className="space-y-1.5 column-count-2 column-gap-6">
+                            <ol className="space-y-1.5 column-count-1">
                             {puzzle.clues.across.map(clue => (
                                 <li key={clue.id} className="break-inside-avoid">
                                     <span className="font-bold mr-2">{clue.number}.</span>
@@ -48,7 +47,7 @@ export function PuzzlePreviewDialog({ isOpen, onOpenChange, puzzle }: PuzzlePrev
                         </div>
                     </div>
 
-                    <div className="col-span-1 space-y-6">
+                    <div className="col-span-3 space-y-6">
                         <CrosswordGridPreview grid={puzzle.grid} size={puzzle.size} />
                         <div className="text-sm leading-relaxed">
                             <h3 className="text-base font-bold tracking-wider uppercase border-b pb-2 mb-2">Down</h3>
