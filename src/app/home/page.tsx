@@ -96,10 +96,12 @@ export default function HomePage() {
     
     // Apply sorting
     newFilteredPuzzles.sort((a, b) => {
-      const field = sortOption.field;
+      const fieldA = a[sortOption.field as keyof PuzzleListing] ?? 0;
+      const fieldB = b[sortOption.field as keyof PuzzleListing] ?? 0;
       const dir = sortOption.direction === 'asc' ? 1 : -1;
-      if (a[field] < b[field]) return -1 * dir;
-      if (a[field] > b[field]) return 1 * dir;
+      
+      if (fieldA < fieldB) return -1 * dir;
+      if (fieldA > fieldB) return 1 * dir;
       return 0;
     });
 
@@ -114,19 +116,18 @@ export default function HomePage() {
   
   const calculateCompletion = (puzzle: PuzzleDoc): number => {
     if (!puzzle.grid || !puzzle.entries) return 0;
-    
+
     const gridString = puzzle.grid.flat().join('');
-    const whiteSquareCount = gridString.split('').filter(char => char !== '#').length;
+    const whiteSquareCount = gridString.length - gridString.replace(/[^.]/g, '').length;
     if (whiteSquareCount === 0) return 100;
     
-    const filledSquareCount = gridString.split('').filter(char => char !== '#' && char !== '.').length;
-
-    const answerCompletion = (filledSquareCount / whiteSquareCount) * 100;
+    const filledSquareCount = gridString.length - gridString.replace(/[^A-Z]/gi, '').length;
+    
+    const answerCompletion = whiteSquareCount > 0 ? (filledSquareCount / whiteSquareCount) * 100 : 0;
     
     const totalClues = puzzle.entries.length;
     if (totalClues === 0) {
-      const finalCompletion = answerCompletion > 100 ? 100 : Math.round(answerCompletion);
-      return finalCompletion;
+      return Math.round(Math.min(answerCompletion, 100));
     }
     
     const filledClues = puzzle.entries.filter(e => e.clue && e.clue.trim() !== '').length;
@@ -139,7 +140,7 @@ export default function HomePage() {
   const fetchPuzzles = async (uid: string) => {
     setIsLoading(true);
     try {
-      const q = query(collection(db, 'users', uid, 'puzzles'));
+      const q = query(collection(db, 'users', uid, 'puzzles'), orderBy(sortOption.field, sortOption.direction));
       const querySnapshot = await getDocs(q);
       const userPuzzles = querySnapshot.docs.map(doc => {
           const data = doc.data() as PuzzleDoc;
@@ -365,13 +366,32 @@ export default function HomePage() {
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : (
-                        <div className="absolute top-3 right-3 z-10">
-                            <Checkbox 
+                         <div
+                            className="absolute top-3 right-3 z-10"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectPuzzle(p.id);
+                            }}
+                        >
+                            <Checkbox
                                 checked={selectedPuzzles.includes(p.id)}
-                                onCheckedChange={() => handleSelectPuzzle(p.id)}
-                                className="h-6 w-6 border-2"
+                                className={cn(
+                                    "h-8 w-8 rounded-full border-2 border-gray-400 bg-white/80 backdrop-blur-sm shadow-lg transition-opacity",
+                                    "group-hover:opacity-100",
+                                    selectedPuzzles.includes(p.id) ? 'opacity-100' : 'opacity-0',
+                                    "[&[data-state=unchecked]]:hover:border-primary"
+                                )}
                                 aria-label={`Select puzzle ${p.title}`}
-                            />
+                            >
+                                <Check
+                                    className={cn(
+                                        "h-5 w-5 transition-colors",
+                                        selectedPuzzles.includes(p.id)
+                                            ? "text-white"
+                                            : "text-gray-400/80 group-hover:text-primary"
+                                    )}
+                                />
+                            </Checkbox>
                         </div>
                     )}
 
