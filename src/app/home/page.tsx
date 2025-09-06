@@ -14,7 +14,7 @@ import { app, db } from '@/lib/firebase';
 import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
-import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown, Trash2, Share2, X, Check, MoreHorizontal, Play, ListFilter, XCircle, Rows, CheckSquare } from 'lucide-react';
+import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown, Trash2, Share2, X, Check, MoreHorizontal, Play, ListFilter, XCircle, Rows, CheckSquare, Users } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { createGrid } from '@/hooks/use-crossword';
 import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
@@ -255,6 +255,12 @@ export default function HomePage() {
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
         </div>
         <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+                <Link href="/community">
+                    <Users className="mr-2 h-4 w-4" />
+                    Community
+                </Link>
+            </Button>
             <Button variant="outline" size="sm" asChild>
                 <Link href="/home">
                     <Grid2x2 className="mr-2 h-4 w-4" />

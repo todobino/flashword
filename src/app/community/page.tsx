@@ -10,13 +10,13 @@ import { LogoIcon } from '@/components/icons';
 import { app } from '@/lib/firebase';
 import type { PlayablePuzzle } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { LoaderCircle, Grid2x2, Gamepad2, Users } from 'lucide-react';
+import { LoaderCircle, Grid2x2, Users } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { cn } from '@/lib/utils';
 import { getPublishedPuzzlesAction } from '@/app/actions';
 import { format } from 'date-fns';
 
-export default function PlayHomePage() {
+export default function CommunityPage() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [puzzles, setPuzzles] = useState<PlayablePuzzle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +49,7 @@ export default function PlayHomePage() {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-background">
         <LoaderCircle className="h-12 w-12 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">Loading puzzles...</p>
+        <p className="mt-4 text-muted-foreground">Loading community puzzles...</p>
       </div>
     );
   }
@@ -91,15 +91,15 @@ export default function PlayHomePage() {
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Published Puzzles</h2>
+            <h2 className="text-2xl font-bold">Community Puzzles</h2>
           </div>
 
           {puzzles.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {puzzles.map(p => (
                 <Link key={p.id} href={`/play/${p.id}`} className="group">
-                    <Card className="hover:shadow-md hover:border-primary/50 transition-all flex flex-col">
-                    <CardHeader className="flex-1">
+                    <Card className="hover:shadow-md hover:border-primary/50 transition-all flex flex-col h-full">
+                    <CardHeader className="flex-1 pb-4">
                         {p.grid && p.size && (
                             <div 
                                 className="aspect-square w-full bg-muted/20 rounded-md p-1.5 mb-4 border"

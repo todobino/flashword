@@ -6,7 +6,7 @@ import { getAuth, onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle, Check, Feather, Hand, User as UserIcon, Grid2x2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, LogIn, LogOut, FilePlus, RotateCw, Sparkles, LoaderCircle, Check, Feather, Hand, User as UserIcon, Grid2x2, Users } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -549,6 +549,12 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
         <div className="flex items-center gap-2">
           {user ? (
             <>
+                <Button variant="outline" size="sm" asChild>
+                    <Link href="/community">
+                        <Users className="mr-2 h-4 w-4" />
+                        Community
+                    </Link>
+                </Button>
                 <Button variant="outline" size="sm" asChild>
                     <Link href="/home">
                         <Grid2x2 className="mr-2 h-4 w-4" />

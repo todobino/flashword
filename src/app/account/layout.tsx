@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { LogoIcon } from '@/components/icons';
 import { app } from '@/lib/firebase';
 import { AccountDropdown } from '@/components/account-dropdown';
-import { LoaderCircle, UserCircle, Settings, Grid2x2 } from 'lucide-react';
+import { LoaderCircle, UserCircle, Settings, Grid2x2, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -59,6 +59,12 @@ export default function AccountLayout({
           <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
         </div>
         <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+                <Link href="/community">
+                    <Users className="mr-2 h-4 w-4" />
+                    Community
+                </Link>
+            </Button>
             <Button variant="outline" size="sm" asChild>
                 <Link href="/home">
                     <Grid2x2 className="mr-2 h-4 w-4" />
