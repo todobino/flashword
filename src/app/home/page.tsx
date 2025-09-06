@@ -296,7 +296,7 @@ export default function HomePage() {
                          "h-5 w-5",
                          selectedPuzzles.includes(p.id) 
                            ? 'text-primary-foreground' 
-                           : 'text-gray-400 opacity-0 group-hover:opacity-100'
+                           : 'text-gray-400 opacity-0 group-hover/checkbox-wrapper:opacity-100'
                        )} />
                     </Checkbox>
                   </div>
@@ -374,5 +374,7 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
 
     
