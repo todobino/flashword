@@ -284,7 +284,7 @@ export default function HomePage() {
                   <div className="relative group/checkbox-wrapper">
                     <Checkbox
                       className={cn(
-                        'absolute top-2 right-2 z-10 h-6 w-6 rounded-full border-2 border-gray-400 bg-white/80 backdrop-blur-sm shadow-lg transition-opacity',
+                        'absolute top-3 right-3 z-10 h-8 w-8 rounded-full border-2 border-gray-400 bg-white/80 backdrop-blur-sm shadow-lg transition-opacity',
                         '[&[data-state=unchecked]]:hover:border-primary',
                          selectedPuzzles.includes(p.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                       )}
@@ -293,7 +293,7 @@ export default function HomePage() {
                       onClick={(e) => e.stopPropagation()}
                     >
                        <Check className={cn(
-                         "h-4 w-4",
+                         "h-5 w-5",
                          selectedPuzzles.includes(p.id) 
                            ? 'text-primary-foreground' 
                            : 'text-gray-400 opacity-0 group-hover:opacity-100'
@@ -376,4 +376,3 @@ export default function HomePage() {
 }
 
     
-
