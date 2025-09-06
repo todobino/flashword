@@ -90,12 +90,18 @@ export default function HomePage() {
   const calculateCompletion = (puzzle: PuzzleDoc): number => {
     if (!puzzle.grid || !puzzle.entries) return 0;
     
-    // Answers completion
-    const whiteSquareCount = puzzle.grid.join('').replace(/#/g, '').length;
-    const filledSquareCount = puzzle.grid.join('').replace(/[\.#]/g, '').length;
+    const whiteSquareCount = puzzle.grid.flat().filter(cell => cell !== '#').length;
+    let filledSquareCount = 0;
+    puzzle.grid.forEach(row => {
+        for (const char of row) {
+            if (char !== '#' && char !== '.') {
+                filledSquareCount++;
+            }
+        }
+    });
+
     const answerCompletion = whiteSquareCount > 0 ? (filledSquareCount / whiteSquareCount) * 100 : 100;
     
-    // Clues completion
     const totalClues = puzzle.entries.length;
     if (totalClues === 0) return answerCompletion > 99 ? 100 : 0;
     const filledClues = puzzle.entries.filter(e => e.clue && e.clue.trim() !== '').length;
@@ -302,17 +308,8 @@ export default function HomePage() {
                     <CardTitle className="truncate">{p.title || 'Untitled Puzzle'}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                     {p.status === 'draft' && (
-                        <div className="space-y-1">
-                            <div className="flex justify-between items-center text-xs text-muted-foreground">
-                                <span>Completion</span>
-                                <span>{p.completion.toFixed(0)}%</span>
-                            </div>
-                            <Progress value={p.completion} className="h-2" />
-                        </div>
-                     )}
                     <div className="flex justify-between items-center text-sm text-muted-foreground pt-1">
-                      <span>{p.size} x {p.size}</span>
+                      <span>Size: {p.size} x {p.size}</span>
                        {p.status === 'draft' ? (
                           <Badge variant="outline" className="text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
                               Draft
@@ -322,6 +319,13 @@ export default function HomePage() {
                               Published
                           </Badge>
                       )}
+                    </div>
+                     <div className="space-y-1">
+                        <div className="flex justify-between items-center text-xs text-muted-foreground">
+                            <span>Completion</span>
+                            <span>{p.completion.toFixed(0)}%</span>
+                        </div>
+                        <Progress value={p.completion} className="h-2" />
                     </div>
                   </CardContent>
                 </Card>
