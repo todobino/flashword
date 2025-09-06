@@ -14,7 +14,7 @@ import { app, db } from '@/lib/firebase';
 import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
-import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown, Trash2, Share2, X } from 'lucide-react';
+import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown, Trash2, Share2, X, Check } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { createGrid } from '@/hooks/use-crossword';
 import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
@@ -89,8 +89,8 @@ export default function HomePage() {
   
   const calculateCompletion = (puzzle: PuzzleDoc): number => {
     if (!puzzle.grid || !puzzle.entries) return 0;
-
-    const gridString = puzzle.grid.join('');
+    
+    const gridString = puzzle.grid.flat().join('');
     const whiteSquareCount = gridString.split('').filter(char => char !== '#').length;
     if (whiteSquareCount === 0) return 100;
     
@@ -99,7 +99,10 @@ export default function HomePage() {
     const answerCompletion = (filledSquareCount / whiteSquareCount) * 100;
     
     const totalClues = puzzle.entries.length;
-    if (totalClues === 0) return answerCompletion > 100 ? 100 : Math.round(answerCompletion); // Avoid division by zero
+    if (totalClues === 0) {
+      const finalCompletion = answerCompletion > 100 ? 100 : Math.round(answerCompletion);
+      return finalCompletion;
+    }
     
     const filledClues = puzzle.entries.filter(e => e.clue && e.clue.trim() !== '').length;
     const clueCompletion = (filledClues / totalClues) * 100;
@@ -278,15 +281,28 @@ export default function HomePage() {
                   )}
                   onClick={() => handlePuzzleSelect(p.id)}
                 >
-                  <Checkbox 
-                    className={cn(
-                      "absolute top-2 right-2 z-10 h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity",
-                      selectedPuzzles.includes(p.id) && "opacity-100"
-                    )}
-                    checked={selectedPuzzles.includes(p.id)}
-                    onCheckedChange={(isChecked) => handleSelectionChange(p.id, !!isChecked)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                  <div className="relative">
+                    <Checkbox
+                      className={cn(
+                        'absolute top-2 right-2 z-10 h-6 w-6 rounded-full border-2 border-gray-300 bg-white shadow-md transition-opacity group-hover:opacity-100',
+                        '[&[data-state=unchecked]]:hover:bg-gray-100',
+                        selectedPuzzles.includes(p.id)
+                          ? 'opacity-100'
+                          : 'opacity-0'
+                      )}
+                      checked={selectedPuzzles.includes(p.id)}
+                      onCheckedChange={isChecked =>
+                        handleSelectionChange(p.id, !!isChecked)
+                      }
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <Check className={cn(
+                         'h-4 w-4 text-primary',
+                         selectedPuzzles.includes(p.id) ? 'opacity-100' : 'opacity-0',
+                         '[&[data-state=unchecked]]:group-hover/checkbox:opacity-50'
+                      )} />
+                    </Checkbox>
+                  </div>
                   <CardHeader className="flex-1 pb-4">
                      {p.grid && (
                         <div 
