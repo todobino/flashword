@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { collection, query, where, getDocs, orderBy, DocumentData, doc, getDoc, OrderByDirection, writeBatch } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, DocumentData, doc, getDoc, OrderByDirection, deleteDoc } from 'firebase/firestore';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,13 +14,12 @@ import { app, db } from '@/lib/firebase';
 import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
-import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown, Trash2, Share2, X, Check } from 'lucide-react';
+import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown, Trash2, Share2, X, Check, MoreHorizontal, Play } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { createGrid } from '@/hooks/use-crossword';
 import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
 import { cn } from '@/lib/utils';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Checkbox } from '@/components/ui/checkbox';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
 import {
   AlertDialog,
@@ -57,12 +56,10 @@ export default function HomePage() {
   const [puzzles, setPuzzles] = useState<PuzzleListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortOption, setSortOption] = useState<SortOption>(SORT_OPTIONS[0]);
-  const [selectedPuzzles, setSelectedPuzzles] = useState<string[]>([]);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [puzzleToDelete, setPuzzleToDelete] = useState<string | null>(null);
 
   const router = useRouter();
   const { toast } = useToast();
-  const setPuzzle = useCrosswordStore(state => state.setPuzzle);
 
   useEffect(() => {
     const auth = getAuth(app);
@@ -144,54 +141,27 @@ export default function HomePage() {
     }
   };
   
-  const handlePuzzleSelect = (puzzleId: string) => {
-    if (selectedPuzzles.length > 0) {
-      // If selection is active, clicking a card should also toggle selection
-      handleSelectionChange(puzzleId, !selectedPuzzles.includes(puzzleId));
-    } else {
-      if (!user) return;
-      router.push(`/edit/${puzzleId}`);
-    }
-  };
-
-  const handleSelectionChange = (puzzleId: string, isChecked: boolean) => {
-    setSelectedPuzzles(prev => 
-        isChecked 
-        ? [...prev, puzzleId] 
-        : prev.filter(id => id !== puzzleId)
-    );
-  };
-  
-  const clearSelection = () => {
-    setSelectedPuzzles([]);
-  };
-
-  const handleDeletePuzzles = async () => {
-    if (!user || selectedPuzzles.length === 0) return;
+  const handleDeletePuzzle = async () => {
+    if (!user || !puzzleToDelete) return;
     
-    const batch = writeBatch(db);
-    selectedPuzzles.forEach(id => {
-        const puzzleRef = doc(db, 'users', user.uid, 'puzzles', id);
-        batch.delete(puzzleRef);
-    });
+    const puzzleRef = doc(db, 'users', user.uid, 'puzzles', puzzleToDelete);
 
     try {
-        await batch.commit();
+        await deleteDoc(puzzleRef);
         toast({
-            title: 'Puzzles Deleted',
-            description: `${selectedPuzzles.length} puzzle(s) have been successfully deleted.`
+            title: 'Puzzle Deleted',
+            description: `The puzzle has been successfully deleted.`
         });
-        setPuzzles(puzzles.filter(p => !selectedPuzzles.includes(p.id)));
-        clearSelection();
+        setPuzzles(puzzles.filter(p => p.id !== puzzleToDelete));
     } catch (error) {
-        console.error('Error deleting puzzles:', error);
+        console.error('Error deleting puzzle:', error);
         toast({
             variant: 'destructive',
             title: 'Error',
-            description: 'Could not delete the selected puzzles.',
+            description: 'Could not delete the puzzle.',
         });
     }
-    setIsDeleteDialogOpen(false);
+    setPuzzleToDelete(null);
   };
 
 
@@ -227,46 +197,26 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">My Puzzles</h2>
             <div className="flex items-center gap-2">
-                {selectedPuzzles.length > 0 ? (
-                    <>
-                        <Button variant="outline" size="icon" onClick={clearSelection}>
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Clear Selection</span>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                            <ArrowUpDown className="mr-2 h-4 w-4" />
+                            {sortOption.label}
                         </Button>
-                        <span className="text-sm text-muted-foreground">{selectedPuzzles.length} selected</span>
-                        <div className="flex items-center gap-2 ml-4">
-                           <Button variant="outline" size="sm">
-                                <Share2 className="mr-2 h-4 w-4" /> Share
-                            </Button>
-                            <Button variant="destructive" size="sm" onClick={() => setIsDeleteDialogOpen(true)}>
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                            </Button>
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline">
-                                    <ArrowUpDown className="mr-2 h-4 w-4" />
-                                    {sortOption.label}
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                {SORT_OPTIONS.map(option => (
-                                    <DropdownMenuItem key={`${option.field}-${option.direction}`} onClick={() => setSortOption(option)}>
-                                        {option.label}
-                                    </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button asChild>
-                            <Link href="/new">
-                                <Grid2x2Plus className="h-4 w-4 mr-2" /> Create New
-                            </Link>
-                        </Button>
-                    </>
-                )}
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        {SORT_OPTIONS.map(option => (
+                            <DropdownMenuItem key={`${option.field}-${option.direction}`} onClick={() => setSortOption(option)}>
+                                {option.label}
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <Button asChild>
+                    <Link href="/new">
+                        <Grid2x2Plus className="h-4 w-4 mr-2" /> Create New
+                    </Link>
+                </Button>
             </div>
           </div>
 
@@ -275,69 +225,80 @@ export default function HomePage() {
               {puzzles.map(p => (
                 <Card 
                   key={p.id} 
-                  className={cn(
-                    "hover:shadow-md hover:border-primary/50 transition-all flex flex-col group relative",
-                    "cursor-pointer"
-                  )}
-                  onClick={() => handlePuzzleSelect(p.id)}
+                  className="hover:shadow-md hover:border-primary/50 transition-all flex flex-col group relative"
                 >
-                  <div className="relative group/checkbox-wrapper">
-                    <Checkbox
-                      className={cn(
-                        'absolute top-3 right-3 z-10 h-8 w-8 rounded-full border-2 border-gray-400 bg-white/80 backdrop-blur-sm shadow-lg transition-opacity',
-                        '[&[data-state=unchecked]]:hover:border-primary',
-                         selectedPuzzles.includes(p.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                      )}
-                      checked={selectedPuzzles.includes(p.id)}
-                      onCheckedChange={(isChecked) => handleSelectionChange(p.id, !!isChecked)}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                       <Check className={cn(
-                         "h-5 w-5",
-                         selectedPuzzles.includes(p.id) 
-                           ? 'text-primary-foreground' 
-                           : 'text-gray-400 opacity-0 group-hover/checkbox-wrapper:opacity-100'
-                       )} />
-                    </Checkbox>
-                  </div>
-                  <CardHeader className="flex-1 pb-4">
-                     {p.grid && (
-                        <div 
-                            className="aspect-square w-full bg-muted/20 rounded-md p-1.5 mb-4 border"
-                        >
-                            <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${p.size}, 1fr)`}}>
-                                {p.grid.flat().join('').split('').map((cell, i) => (
-                                    <div key={i} className={cn(
-                                        'aspect-square',
-                                        cell === '#' ? 'bg-primary' : 'bg-background'
-                                    )} />
-                                ))}
-                            </div>
-                        </div>
-                     )}
-                    <CardTitle className="truncate">{p.title || 'Untitled Puzzle'}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between items-center text-sm text-muted-foreground pt-1">
-                      <span>Size: <span className="font-semibold text-foreground">{p.size} x {p.size}</span></span>
-                       {p.status === 'draft' ? (
-                          <Badge variant="outline" className="text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
-                              Draft
-                          </Badge>
-                      ) : (
-                          <Badge variant="outline" className="text-green-600 border-green-600/50 bg-green-50 dark:bg-green-900/20">
-                              Published
-                          </Badge>
-                      )}
-                    </div>
-                     <div className="space-y-1">
-                        <div className="flex justify-between items-center text-xs text-muted-foreground">
-                            <span>Completion</span>
-                            <span>{p.completion.toFixed(0)}%</span>
-                        </div>
-                        <Progress value={p.completion} className="h-2" />
-                    </div>
-                  </CardContent>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreHorizontal className="h-5 w-5" />
+                                <span className="sr-only">Actions</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                             <DropdownMenuItem onClick={() => router.push(`/edit/${p.id}`)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Edit</span>
+                            </DropdownMenuItem>
+                            {p.status === 'published' && (
+                                <>
+                                    <DropdownMenuItem onClick={() => router.push(`/play/${p.id}`)}>
+                                        <Play className="mr-2 h-4 w-4" />
+                                        <span>Play</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => router.push(`/play/${p.id}`)}>
+                                        <Share2 className="mr-2 h-4 w-4" />
+                                        <span>Share</span>
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50" onClick={() => setPuzzleToDelete(p.id)}>
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Delete</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                  <Link href={`/edit/${p.id}`} className="flex-1 flex flex-col">
+                    <CardHeader className="flex-1 pb-4">
+                       {p.grid && (
+                          <div 
+                              className="aspect-square w-full bg-muted/20 rounded-md p-1.5 mb-4 border"
+                          >
+                              <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${p.size}, 1fr)`}}>
+                                  {p.grid.flat().join('').split('').map((cell, i) => (
+                                      <div key={i} className={cn(
+                                          'aspect-square',
+                                          cell === '#' ? 'bg-primary' : 'bg-background'
+                                      )} />
+                                  ))}
+                              </div>
+                          </div>
+                       )}
+                      <CardTitle className="truncate">{p.title || 'Untitled Puzzle'}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between items-center text-sm text-muted-foreground pt-1">
+                        <span>Size: <span className="font-semibold text-foreground">{p.size} x {p.size}</span></span>
+                         {p.status === 'draft' ? (
+                            <Badge variant="outline" className="text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
+                                Draft
+                            </Badge>
+                        ) : (
+                            <Badge variant="outline" className="text-green-600 border-green-600/50 bg-green-50 dark:bg-green-900/20">
+                                Published
+                            </Badge>
+                        )}
+                      </div>
+                       <div className="space-y-1">
+                          <div className="flex justify-between items-center text-xs text-muted-foreground">
+                              <span>Completion</span>
+                              <span>{p.completion.toFixed(0)}%</span>
+                          </div>
+                          <Progress value={p.completion} className="h-2" />
+                      </div>
+                    </CardContent>
+                  </Link>
                 </Card>
               ))}
             </div>
@@ -355,17 +316,17 @@ export default function HomePage() {
         </div>
       </main>
 
-       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+       <AlertDialog open={!!puzzleToDelete} onOpenChange={(open) => !open && setPuzzleToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete {selectedPuzzles.length} puzzle(s). This action cannot be undone.
+              This will permanently delete this puzzle. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeletePuzzles} className={buttonVariants({ variant: "destructive" })}>
+            <AlertDialogCancel onClick={() => setPuzzleToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeletePuzzle} className={buttonVariants({ variant: "destructive" })}>
                 Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -374,7 +335,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
-
-    
