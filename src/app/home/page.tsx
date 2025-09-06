@@ -89,8 +89,10 @@ export default function HomePage() {
   
   const calculateCompletion = (puzzle: PuzzleDoc): number => {
     if (!puzzle.grid || !puzzle.entries) return 0;
-    
+
     const whiteSquareCount = puzzle.grid.flat().filter(cell => cell !== '#').length;
+    if (whiteSquareCount === 0) return 100;
+    
     let filledSquareCount = 0;
     puzzle.grid.forEach(row => {
         for (const char of row) {
@@ -100,14 +102,15 @@ export default function HomePage() {
         }
     });
 
-    const answerCompletion = whiteSquareCount > 0 ? (filledSquareCount / whiteSquareCount) * 100 : 100;
+    const answerCompletion = (filledSquareCount / whiteSquareCount) * 100;
     
     const totalClues = puzzle.entries.length;
-    if (totalClues === 0) return answerCompletion > 99 ? 100 : 0;
+    if (totalClues === 0) return answerCompletion; // Avoid division by zero
+    
     const filledClues = puzzle.entries.filter(e => e.clue && e.clue.trim() !== '').length;
     const clueCompletion = (filledClues / totalClues) * 100;
 
-    return (answerCompletion + clueCompletion) / 2;
+    return Math.round((answerCompletion + clueCompletion) / 2);
   };
 
 
@@ -309,7 +312,7 @@ export default function HomePage() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex justify-between items-center text-sm text-muted-foreground pt-1">
-                      <span>Size: {p.size} x {p.size}</span>
+                      <span>Size: <span className="font-semibold text-foreground">{p.size} x {p.size}</span></span>
                        {p.status === 'draft' ? (
                           <Badge variant="outline" className="text-orange-600 border-orange-600/50 bg-orange-50 dark:bg-orange-900/20">
                               Draft
