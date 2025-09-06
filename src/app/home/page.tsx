@@ -14,7 +14,7 @@ import { app, db } from '@/lib/firebase';
 import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
-import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown, Trash2, Share2, X, Check, MoreHorizontal, Play, ListFilter, XCircle, Rows } from 'lucide-react';
+import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown, Trash2, Share2, X, Check, MoreHorizontal, Play, ListFilter, XCircle, Rows, CheckSquare } from 'lucide-react';
 import { AccountDropdown } from '@/components/account-dropdown';
 import { createGrid } from '@/hooks/use-crossword';
 import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
@@ -117,7 +117,7 @@ export default function HomePage() {
   const calculateCompletion = (puzzle: PuzzleDoc): number => {
     if (!puzzle.grid || !puzzle.entries) return 0;
 
-    const gridString = puzzle.grid.flat().join('');
+    const gridString = puzzle.grid.join('');
     const whiteSquareCount = gridString.replace(/\./g, ' ').replace(/#/g, '').length;
     if (whiteSquareCount === 0) return 100;
     
@@ -133,7 +133,7 @@ export default function HomePage() {
     const filledClues = puzzle.entries.filter(e => e.clue && e.clue.trim() !== '').length;
     const clueCompletion = (filledClues / totalClues) * 100;
 
-    return Math.round((answerCompletion + clueCompletion) / 2);
+    return Math.round(Math.min((answerCompletion + clueCompletion) / 2, 100));
   };
 
 
@@ -221,6 +221,11 @@ export default function HomePage() {
     setIsBulkDeleteAlertOpen(false);
   };
   
+  const handleStartBulkSelect = (puzzleId: string) => {
+    setIsBulkSelectMode(true);
+    setSelectedPuzzles([puzzleId]);
+  };
+  
   const toggleBulkSelectMode = () => {
     setIsBulkSelectMode(!isBulkSelectMode);
     setSelectedPuzzles([]); // Reset selection when toggling mode
@@ -295,10 +300,6 @@ export default function HomePage() {
                         ))}
                     </DropdownMenuContent>
                 </DropdownMenu>
-                <Button onClick={toggleBulkSelectMode} variant={isBulkSelectMode ? 'secondary' : 'outline'}>
-                    <Rows className="h-4 w-4 mr-2" />
-                    Bulk Select
-                </Button>
                 <Button asChild>
                     <Link href="/new">
                         <Grid2x2Plus className="h-4 w-4 mr-2" /> Create New
@@ -359,6 +360,10 @@ export default function HomePage() {
                                     </>
                                 )}
                                 <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleStartBulkSelect(p.id)}>
+                                    <CheckSquare className="mr-2 h-4 w-4" />
+                                    <span>Select</span>
+                                </DropdownMenuItem>
                                 <DropdownMenuItem className="text-red-500 focus:text-red-500 focus:bg-red-50" onClick={() => setPuzzleToDelete(p.id)}>
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     <span>Delete</span>
@@ -377,7 +382,7 @@ export default function HomePage() {
                                 checked={selectedPuzzles.includes(p.id)}
                                 className={cn(
                                     "h-8 w-8 rounded-full border-2 border-gray-400 bg-white/80 backdrop-blur-sm shadow-lg transition-opacity",
-                                    "[&[data-state=unchecked]]:hover:border-primary"
+                                    "[&[data-state=unchecked]]:hover:border-primary",
                                 )}
                                 aria-label={`Select puzzle ${p.title}`}
                             >
