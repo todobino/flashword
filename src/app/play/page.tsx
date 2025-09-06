@@ -112,7 +112,7 @@ export default function PlayHomePage() {
                     </CardHeader>
                     <CardContent>
                         <div className="flex justify-between items-center text-sm text-muted-foreground">
-                        <span>by @{p.author}</span>
+                        <span>by {p.author}</span>
                         {p.createdAt && <span>{format(new Date(p.createdAt), 'MMM d, yyyy')}</span>}
                         </div>
                     </CardContent>

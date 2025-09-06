@@ -28,11 +28,12 @@ export function PuzzlePreviewDialog({ isOpen, onOpenChange, puzzle }: PuzzlePrev
         </DialogHeader>
         <ScrollArea className="h-full">
             <div className="p-8 font-serif">
-                <div className="grid grid-cols-5 gap-8">
-                     <div className="col-span-2 space-y-6 text-sm leading-relaxed">
+                <div className="grid grid-cols-5 gap-x-8">
+                    {/* Left Column */}
+                    <div className="col-span-2 flex flex-col space-y-6 text-sm leading-relaxed">
                         <header className="space-y-1">
                             <h1 className="text-2xl font-bold">{puzzle.title}</h1>
-                            <h2 className="text-lg font-medium text-muted-foreground">by @{puzzle.author}</h2>
+                            <h2 className="text-lg font-medium text-muted-foreground">by {puzzle.author}</h2>
                         </header>
                         <div>
                             <h3 className="text-base font-bold tracking-wider uppercase border-b pb-2 mb-2">Across</h3>
@@ -47,7 +48,8 @@ export function PuzzlePreviewDialog({ isOpen, onOpenChange, puzzle }: PuzzlePrev
                         </div>
                     </div>
 
-                    <div className="col-span-3 space-y-6">
+                    {/* Right Column */}
+                    <div className="col-span-3 flex flex-col space-y-6">
                         <CrosswordGridPreview grid={puzzle.grid} size={puzzle.size} />
                         <div className="text-sm leading-relaxed">
                             <h3 className="text-base font-bold tracking-wider uppercase border-b pb-2 mb-2">Down</h3>

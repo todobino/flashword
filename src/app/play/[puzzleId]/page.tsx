@@ -13,5 +13,5 @@ export default async function PlayPuzzlePage({ params }: { params: { puzzleId: s
     notFound();
   }
 
-  return <CrosswordPlayer puzzle={puzzle} />;
+  return <CrosswordPlayer puzzle={puzzle as PlayablePuzzle} />;
 }

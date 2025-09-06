@@ -42,7 +42,7 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
 
 
   const [grid, setGrid] = useState<Grid>(initialGrid);
-  const [selectedClue, setSelectedClue] = useState<{ number: number; direction: 'across' | 'down' } | null>(null);
+  const [selectedClue, setSelectedClue] = useState<Entry | null>(null);
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'paused' | 'finished'>('idle');
   const [isPaused, setIsPaused] = useState(true);
 
@@ -119,7 +119,7 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
             </Link>
             <div>
                  <h1 className="text-xl font-bold">{puzzle.title}</h1>
-                 <p className="text-sm text-muted-foreground">by @{puzzle.author}</p>
+                 <p className="text-sm text-muted-foreground">by {puzzle.author}</p>
             </div>
         </div>
         <div className="flex items-center gap-4">
