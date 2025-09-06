@@ -249,7 +249,7 @@ export default function HomePage() {
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline">
                                     <ArrowUpDown className="mr-2 h-4 w-4" />
-                                    Sort by: {sortOption.label}
+                                    {sortOption.label}
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
