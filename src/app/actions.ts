@@ -4,9 +4,9 @@
 import { suggestClue as suggestClueFlow, type ClueSuggestionInput } from '@/ai/flows/clue-suggestion';
 import { verifyPuzzle as verifyPuzzleFlow, type VerifyPuzzleInput } from '@/ai/flows/puzzle-verification';
 import { fillThemeWords as fillThemeWordsFlow, type ThemeFillInput, type ThemeFillOutput } from '@/ai/flows/theme-fill';
-import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, limit, doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import type { PuzzleDoc, PlayablePuzzle } from '@/lib/types';
+import type { PuzzleDoc, PlayablePuzzle, Puzzle } from '@/lib/types';
 
 
 export async function suggestClueAction(input: ClueSuggestionInput) {
@@ -76,9 +76,6 @@ export async function getPuzzleAction(puzzleId: string): Promise<{ success: bool
 
         const data = docSnap.data() as PuzzleDoc;
 
-        // The query from the public collection already implicitly ensures it's published.
-        // No need for an extra status check here unless we add more complex logic later.
-        
         const puzzle: PlayablePuzzle = {
             id: docSnap.id,
             title: data.title,
@@ -97,4 +94,58 @@ export async function getPuzzleAction(puzzleId: string): Promise<{ success: bool
     }
 }
 
+
+export async function publishPuzzleAction(puzzle: Puzzle, userId: string): Promise<{ success: boolean, error?: string }> {
+    if (!puzzle.id) {
+        return { success: false, error: "Puzzle ID is missing." };
+    }
     
+    // Note: In a real app, you'd use the Firebase Admin SDK here to bypass client-side rules.
+    // For this prototype, we'll use the client SDK with batch writes, assuming rules are temporarily permissive for this action.
+    
+    const userPuzzleRef = doc(db, 'users', userId, 'puzzles', puzzle.id);
+    const publicPuzzleRef = doc(db, 'puzzles', puzzle.id);
+
+    try {
+        const userPuzzleSnap = await getDoc(userPuzzleRef);
+        if (!userPuzzleSnap.exists() || userPuzzleSnap.data().owner !== userId) {
+            return { success: false, error: "Permission denied or puzzle not found." };
+        }
+        
+        const docData = userPuzzleSnap.data() as PuzzleDoc;
+        
+        if (docData.status === 'published') {
+            // It's already published, maybe just update the public doc
+             await updateDoc(publicPuzzleRef, {
+                ...docData,
+                updatedAt: serverTimestamp(),
+            });
+             return { success: true };
+        }
+
+        const batch = writeBatch(db);
+
+        // 1. Update the user's private puzzle status to 'published'
+        batch.update(userPuzzleRef, { 
+            status: 'published',
+            updatedAt: serverTimestamp() 
+        });
+
+        // 2. Create the public version of the puzzle
+        const publicPuzzleData: PuzzleDoc = {
+           ...docData,
+           status: 'published',
+           updatedAt: serverTimestamp(),
+           publishedAt: serverTimestamp() // Add a publishedAt timestamp
+        };
+        batch.set(publicPuzzleRef, publicPuzzleData);
+
+        await batch.commit();
+        
+        return { success: true };
+
+    } catch (error) {
+        console.error("Error publishing puzzle: ", error);
+        return { success: false, error: "Failed to publish the puzzle due to a server error." };
+    }
+}

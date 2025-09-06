@@ -8,6 +8,7 @@ import { generatePattern } from '@/lib/grid-generator';
 import { User } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, orderBy, limit, setDoc, getDoc } from 'firebase/firestore';
+import { publishPuzzleAction } from '@/app/actions';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -222,7 +223,7 @@ export const useCrossword = (
   }, [grid, clues]);
 
   const savePuzzle = useCallback(async () => {
-    if (!user || !puzzleId) {
+    if (!user || !puzzleId || status === 'published') { // Don't auto-save published puzzles
         return;
     }
     
@@ -256,43 +257,35 @@ export const useCrossword = (
   }, [user, puzzleId, title, size, status, grid, clues, getWordFromGrid, toast]);
   
   const publishPuzzle = async () => {
-    if (!user || !puzzleId) return;
-
+    if (!user || !puzzleId) {
+        toast({ variant: 'destructive', title: 'Publish Failed', description: 'You must be logged in and have a puzzle to publish.' });
+        return;
+    }
+    
     setIsSaving(true);
+    const puzzleToPublish: Puzzle = {
+      id: puzzleId,
+      title,
+      size,
+      status,
+      grid,
+      clues,
+      author: user.displayName || 'Anonymous',
+      createdAt,
+    };
+    
     try {
-      const allEntries = [...clues.across, ...clues.down].map(entry => {
-        return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
-      });
-      
-      const puzzleDoc: Omit<PuzzleDoc, 'id'> = {
-            owner: user.uid,
-            author: user.displayName || 'Anonymous',
-            title: title || "Untitled Puzzle",
-            size,
-            status: "published",
-            grid: grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
-            entries: allEntries,
-            createdAt: createdAt ? createdAt : serverTimestamp(),
-            updatedAt: serverTimestamp(),
-      };
-
-      // Set the public puzzle document
-      const publicPuzzleRef = doc(db, "puzzles", puzzleId);
-      await setDoc(publicPuzzleRef, puzzleDoc);
-
-      // Update the user's private puzzle status
-      const userPuzzleRef = doc(db, "users", user.uid, "puzzles", puzzleId);
-      await updateDoc(userPuzzleRef, {
-        status: 'published',
-        updatedAt: serverTimestamp(),
-      });
-      
-      setStatus('published');
-      setLastSaved(new Date());
-      toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
-    } catch (error) {
+      const result = await publishPuzzleAction(puzzleToPublish, user.uid);
+      if (result.success) {
+        setStatus('published');
+        setLastSaved(new Date());
+        toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
+      } else {
+        throw new Error(result.error || 'An unknown error occurred.');
+      }
+    } catch (error: any) {
       console.error('Error publishing puzzle:', error);
-      toast({ variant: 'destructive', title: 'Publish Failed', description: 'Could not publish your puzzle.' });
+      toast({ variant: 'destructive', title: 'Publish Failed', description: error.message });
     } finally {
       setIsSaving(false);
     }
@@ -310,7 +303,7 @@ export const useCrossword = (
             return { ...entry, answer: getWordFromGrid(entry).replace(/_/g, ' ') };
         });
 
-        const puzzleDoc: Omit<PuzzleDoc, 'id'> = {
+        const puzzleDoc: Omit<PuzzleDoc, 'id' | 'publishedAt'> = {
             owner: user.uid,
             author: user.displayName || 'Anonymous',
             title: title || "Untitled Puzzle",
@@ -343,7 +336,7 @@ export const useCrossword = (
     const debouncedTitle = useDebounce(title, 1500);
 
     useEffect(() => {
-        if (puzzleId && user) {
+        if (puzzleId && user && status === 'draft') {
             savePuzzle();
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -559,5 +552,3 @@ export const useCrossword = (
 
   return { crossword, isSaving, lastSaved, stats };
 };
-
-    

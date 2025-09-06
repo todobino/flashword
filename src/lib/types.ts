@@ -51,6 +51,7 @@ export interface PuzzleDoc {
     // housekeeping
     createdAt: any; // serverTimestamp
     updatedAt: any; // serverTimestamp
+    publishedAt?: any; // serverTimestamp
     owner: string;
     author: string; 
 }
