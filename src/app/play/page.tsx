@@ -96,7 +96,7 @@ export default function PlayHomePage() {
                     <CardHeader className="flex-1">
                         {p.grid && p.size && (
                             <div 
-                                className="aspect-square w-full bg-muted/20 rounded-md p-1.5 mb-4"
+                                className="aspect-square w-full bg-muted/20 rounded-md p-1.5 mb-4 border"
                             >
                                 <div className="grid w-full h-full" style={{ gridTemplateColumns: `repeat(${p.size}, 1fr)`}}>
                                     {(p.grid as string[]).flat().join('').split('').map((cell, i) => (
