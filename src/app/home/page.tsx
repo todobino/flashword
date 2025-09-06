@@ -118,10 +118,10 @@ export default function HomePage() {
     if (!puzzle.grid || !puzzle.entries) return 0;
 
     const gridString = puzzle.grid.flat().join('');
-    const whiteSquareCount = gridString.length - gridString.replace(/[^.]/g, '').length;
+    const whiteSquareCount = gridString.replace(/\./g, ' ').replace(/#/g, '').length;
     if (whiteSquareCount === 0) return 100;
     
-    const filledSquareCount = gridString.length - gridString.replace(/[^A-Z]/gi, '').length;
+    const filledSquareCount = gridString.replace(/[^A-Z]/gi, '').length;
     
     const answerCompletion = whiteSquareCount > 0 ? (filledSquareCount / whiteSquareCount) * 100 : 0;
     
@@ -377,8 +377,6 @@ export default function HomePage() {
                                 checked={selectedPuzzles.includes(p.id)}
                                 className={cn(
                                     "h-8 w-8 rounded-full border-2 border-gray-400 bg-white/80 backdrop-blur-sm shadow-lg transition-opacity",
-                                    "group-hover:opacity-100",
-                                    selectedPuzzles.includes(p.id) ? 'opacity-100' : 'opacity-0',
                                     "[&[data-state=unchecked]]:hover:border-primary"
                                 )}
                                 aria-label={`Select puzzle ${p.title}`}
