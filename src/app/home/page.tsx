@@ -90,22 +90,16 @@ export default function HomePage() {
   const calculateCompletion = (puzzle: PuzzleDoc): number => {
     if (!puzzle.grid || !puzzle.entries) return 0;
 
-    const whiteSquareCount = puzzle.grid.flat().filter(cell => cell !== '#').length;
+    const gridString = puzzle.grid.join('');
+    const whiteSquareCount = gridString.split('').filter(char => char !== '#').length;
     if (whiteSquareCount === 0) return 100;
     
-    let filledSquareCount = 0;
-    puzzle.grid.forEach(row => {
-        for (const char of row) {
-            if (char !== '#' && char !== '.') {
-                filledSquareCount++;
-            }
-        }
-    });
+    const filledSquareCount = gridString.split('').filter(char => char !== '#' && char !== '.').length;
 
     const answerCompletion = (filledSquareCount / whiteSquareCount) * 100;
     
     const totalClues = puzzle.entries.length;
-    if (totalClues === 0) return answerCompletion; // Avoid division by zero
+    if (totalClues === 0) return answerCompletion > 100 ? 100 : Math.round(answerCompletion); // Avoid division by zero
     
     const filledClues = puzzle.entries.filter(e => e.clue && e.clue.trim() !== '').length;
     const clueCompletion = (filledClues / totalClues) * 100;
