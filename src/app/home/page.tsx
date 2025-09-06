@@ -328,7 +328,7 @@ export default function HomePage() {
                 <Card 
                   key={p.id} 
                   className={cn(
-                    "transition-all flex flex-col group relative",
+                    "transition-all flex flex-col group relative hover:border-primary",
                     isBulkSelectMode && "cursor-pointer",
                     selectedPuzzles.includes(p.id) && "border-primary ring-2 ring-primary"
                   )}
