@@ -314,8 +314,8 @@ export default function HomePage() {
                         <Button variant="destructive" size="sm" onClick={() => setIsBulkDeleteAlertOpen(true)} disabled={selectedPuzzles.length === 0}>
                             <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedPuzzles([])} disabled={selectedPuzzles.length === 0}>
-                            <XCircle className="h-5 w-5" />
+                         <Button variant="outline" size="sm" onClick={toggleBulkSelectMode}>
+                           Cancel
                         </Button>
                     </div>
                 </div>
