@@ -257,31 +257,21 @@ export const useCrossword = (
   }, [user, puzzleId, title, size, status, grid, clues, getWordFromGrid, toast]);
   
   const publishPuzzle = async () => {
-    if (!user || !puzzleId) {
-        toast({ variant: 'destructive', title: 'Publish Failed', description: 'You must be logged in and have a puzzle to publish.' });
+    if (!puzzleId) {
+        toast({ variant: 'destructive', title: 'Publish Failed', description: 'Cannot publish a puzzle without an ID.' });
         return;
     }
     
     setIsSaving(true);
-    const puzzleToPublish: Puzzle = {
-      id: puzzleId,
-      title,
-      size,
-      status,
-      grid,
-      clues,
-      author: user.displayName || 'Anonymous',
-      createdAt,
-    };
     
     try {
-      const result = await publishPuzzleAction(puzzleToPublish, user.uid);
+      const result = await publishPuzzleAction(puzzleId);
       if (result.success) {
         setStatus('published');
         setLastSaved(new Date());
         toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
       } else {
-        throw new Error(result.error || 'An unknown error occurred.');
+        throw new Error(result.error || 'An unknown error occurred during publish.');
       }
     } catch (error: any) {
       console.error('Error publishing puzzle:', error);
@@ -500,7 +490,7 @@ export const useCrossword = (
     const cluesCompletion = totalClues > 0 ? (filledClues / totalClues) * 100 : 0;
 
     const totalWordLetters = allClues.reduce((sum, clue) => sum + clue.length, 0);
-    const avgWordLength = totalClues > 0 ? totalWordLetters / totalClues : 0;
+    const avgWordLength = totalWordLetters > 0 ? totalWordLetters / totalClues : 0;
     
     let difficulty: PuzzleStats['difficulty'] = 'Medium';
     if (avgWordLength > 5.5 && blackSquarePercentage < 0.17) {

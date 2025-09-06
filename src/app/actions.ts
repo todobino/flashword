@@ -6,6 +6,7 @@ import { verifyPuzzle as verifyPuzzleFlow, type VerifyPuzzleInput } from '@/ai/f
 import { fillThemeWords as fillThemeWordsFlow, type ThemeFillInput, type ThemeFillOutput } from '@/ai/flows/theme-fill';
 import { collection, query, where, getDocs, orderBy, limit, doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import admin from '@/lib/firebase-admin';
 import type { PuzzleDoc, PlayablePuzzle, Puzzle } from '@/lib/types';
 
 
@@ -95,57 +96,61 @@ export async function getPuzzleAction(puzzleId: string): Promise<{ success: bool
 }
 
 
-export async function publishPuzzleAction(puzzle: Puzzle, userId: string): Promise<{ success: boolean, error?: string }> {
-    if (!puzzle.id) {
-        return { success: false, error: "Puzzle ID is missing." };
-    }
-    
-    // Note: In a real app, you'd use the Firebase Admin SDK here to bypass client-side rules.
-    // For this prototype, we'll use the client SDK with batch writes, assuming rules are temporarily permissive for this action.
-    
-    const userPuzzleRef = doc(db, 'users', userId, 'puzzles', puzzle.id);
-    const publicPuzzleRef = doc(db, 'puzzles', puzzle.id);
+// A placeholder for a secure, server-side way to get the current user's ID
+async function getServerUid(): Promise<string> {
+    // In a real application, you would derive this from the session,
+    // e.g., using NextAuth, Firebase session cookies, or by verifying an ID token.
+    // For this prototype, we'll simulate a logged-in user. This is NOT secure for production.
+    const SIMULATED_LOGGED_IN_USER_ID = "6AGnO1mCg9beYmXm1q2P1lJ07v42";
+    if (!SIMULATED_LOGGED_IN_USER_ID) throw new Error('Unauthorized');
+    return SIMULATED_LOGGED_IN_USER_ID;
+}
 
-    try {
-        const userPuzzleSnap = await getDoc(userPuzzleRef);
-        if (!userPuzzleSnap.exists() || userPuzzleSnap.data().owner !== userId) {
-            return { success: false, error: "Permission denied or puzzle not found." };
-        }
-        
-        const docData = userPuzzleSnap.data() as PuzzleDoc;
-        
-        if (docData.status === 'published') {
-            // It's already published, maybe just update the public doc
-             await updateDoc(publicPuzzleRef, {
-                ...docData,
-                updatedAt: serverTimestamp(),
-            });
-             return { success: true };
-        }
 
-        const batch = writeBatch(db);
+export async function publishPuzzleAction(puzzleId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const uid = await getServerUid();
+    const db = admin.firestore();
 
-        // 1. Update the user's private puzzle status to 'published'
-        batch.update(userPuzzleRef, { 
-            status: 'published',
-            updatedAt: serverTimestamp() 
-        });
+    const userPuzzleRef = db.doc(`users/${uid}/puzzles/${puzzleId}`);
+    const publicPuzzleRef = db.doc(`puzzles/${puzzleId}`);
 
-        // 2. Create the public version of the puzzle
-        const publicPuzzleData: PuzzleDoc = {
-           ...docData,
-           status: 'published',
-           updatedAt: serverTimestamp(),
-           publishedAt: serverTimestamp() // Add a publishedAt timestamp
-        };
-        batch.set(publicPuzzleRef, publicPuzzleData);
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(userPuzzleRef);
+      if (!snap.exists) throw new Error('Puzzle not found or you do not have permission to publish it.');
+      const data = snap.data() as PuzzleDoc;
 
-        await batch.commit();
-        
-        return { success: true };
+      if (data.owner !== uid) throw new Error('Forbidden: You are not the owner of this puzzle.');
 
-    } catch (error) {
-        console.error("Error publishing puzzle: ", error);
-        return { success: false, error: "Failed to publish the puzzle due to a server error." };
-    }
+      const now = admin.firestore.FieldValue.serverTimestamp();
+      const isAlreadyPublished = data.status === 'published';
+
+      // Whitelist the fields for the public payload to prevent leaking private data
+      const publicPayload: Omit<PuzzleDoc, 'id'> = {
+        title: data.title || 'Untitled Puzzle',
+        status: 'published',
+        size: data.size,
+        grid: data.grid,
+        entries: data.entries,
+        createdAt: data.createdAt ?? now,
+        updatedAt: now,
+        publishedAt: data.publishedAt ?? now,
+        owner: uid,
+        author: data.author || 'Anonymous',
+      };
+
+      // Use set with merge to create or update the public document
+      tx.set(publicPuzzleRef, publicPayload, { merge: true });
+      
+      // Only update the user's private doc if it's the first time publishing
+      if (!isAlreadyPublished) {
+        tx.update(userPuzzleRef, { status: 'published', updatedAt: now, publishedAt: now });
+      }
+    });
+
+    return { success: true };
+  } catch (e: any) {
+    console.error('publishPuzzleAction error', e);
+    return { success: false, error: e.message || 'Publish failed due to a server error.' };
+  }
 }
