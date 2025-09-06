@@ -277,7 +277,7 @@ export default function HomePage() {
                   key={p.id} 
                   className={cn(
                     "hover:shadow-md hover:border-primary/50 transition-all flex flex-col group relative",
-                    selectedPuzzles.length > 0 ? "cursor-pointer" : "cursor-pointer"
+                    "cursor-pointer"
                   )}
                   onClick={() => handlePuzzleSelect(p.id)}
                 >
@@ -286,7 +286,7 @@ export default function HomePage() {
                       className={cn(
                         'absolute top-2 right-2 z-10 h-6 w-6 rounded-full border-2 border-gray-400 bg-white/80 backdrop-blur-sm shadow-lg transition-opacity',
                         '[&[data-state=unchecked]]:hover:border-primary',
-                        selectedPuzzles.includes(p.id) ? 'opacity-100' : 'opacity-0 group-hover/checkbox-wrapper:opacity-100'
+                         selectedPuzzles.includes(p.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                       )}
                       checked={selectedPuzzles.includes(p.id)}
                       onCheckedChange={(isChecked) => handleSelectionChange(p.id, !!isChecked)}
@@ -296,7 +296,7 @@ export default function HomePage() {
                          "h-4 w-4",
                          selectedPuzzles.includes(p.id) 
                            ? 'text-primary-foreground' 
-                           : 'text-gray-400 opacity-0 group-hover/checkbox-wrapper:opacity-100'
+                           : 'text-gray-400 opacity-0 group-hover:opacity-100'
                        )} />
                     </Checkbox>
                   </div>
@@ -376,3 +376,4 @@ export default function HomePage() {
 }
 
     
+
