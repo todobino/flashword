@@ -281,26 +281,23 @@ export default function HomePage() {
                   )}
                   onClick={() => handlePuzzleSelect(p.id)}
                 >
-                  <div className="relative">
+                  <div className="relative group/checkbox-wrapper">
                     <Checkbox
                       className={cn(
-                        'absolute top-2 right-2 z-10 h-6 w-6 rounded-full border-2 border-gray-300 bg-white shadow-md transition-opacity group-hover:opacity-100',
-                        '[&[data-state=unchecked]]:hover:bg-gray-100',
-                        selectedPuzzles.includes(p.id)
-                          ? 'opacity-100'
-                          : 'opacity-0'
+                        'absolute top-2 right-2 z-10 h-6 w-6 rounded-full border-2 border-gray-400 bg-white/80 backdrop-blur-sm shadow-lg transition-opacity',
+                        '[&[data-state=unchecked]]:hover:border-primary',
+                        selectedPuzzles.includes(p.id) ? 'opacity-100' : 'opacity-0 group-hover/checkbox-wrapper:opacity-100'
                       )}
                       checked={selectedPuzzles.includes(p.id)}
-                      onCheckedChange={isChecked =>
-                        handleSelectionChange(p.id, !!isChecked)
-                      }
-                      onClick={e => e.stopPropagation()}
+                      onCheckedChange={(isChecked) => handleSelectionChange(p.id, !!isChecked)}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <Check className={cn(
-                         'h-4 w-4 text-primary',
-                         selectedPuzzles.includes(p.id) ? 'opacity-100' : 'opacity-0',
-                         '[&[data-state=unchecked]]:group-hover/checkbox:opacity-50'
-                      )} />
+                       <Check className={cn(
+                         "h-4 w-4",
+                         selectedPuzzles.includes(p.id) 
+                           ? 'text-primary-foreground' 
+                           : 'text-gray-400 opacity-0 group-hover/checkbox-wrapper:opacity-100'
+                       )} />
                     </Checkbox>
                   </div>
                   <CardHeader className="flex-1 pb-4">
