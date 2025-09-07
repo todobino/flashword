@@ -9,15 +9,11 @@ import { collection, query, where, getDocs, orderBy, DocumentData, doc, getDoc, 
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { LogoIcon } from '@/components/icons';
 import { app, db } from '@/lib/firebase';
 import type { Puzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useCrosswordStore } from '@/store/crossword-store';
-import { Grid2x2Plus, LoaderCircle, LogOut, User, CheckCircle, Edit, Grid2x2, ArrowUpDown, Trash2, Share2, X, Check, MoreHorizontal, Play, ListFilter, XCircle, Rows, CheckSquare, Users } from 'lucide-react';
-import { AccountDropdown } from '@/components/account-dropdown';
-import { createGrid } from '@/hooks/use-crossword';
-import { NewPuzzleWizard } from '@/components/new-puzzle-wizard';
+import { Grid2x2Plus, LoaderCircle, Edit, ArrowUpDown, Trash2, Share2, MoreHorizontal, Play, ListFilter, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuCheckboxItem, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
@@ -32,6 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { AppHeader } from '@/components/app-header';
 
 // A type for the puzzles listed on the home page, which might have less data
 type PuzzleListing = Pick<PuzzleDoc, 'title' | 'size' | 'status' | 'grid' | 'entries'> & { id: string, completion: number };
@@ -249,27 +246,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-20 bg-card">
-        <div className="flex items-center gap-3">
-          <LogoIcon className="h-8 w-8 text-primary" />
-          <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
-        </div>
-        <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-                <Link href="/community">
-                    <Users className="mr-2 h-4 w-4" />
-                    Community
-                </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-                <Link href="/home">
-                    <Grid2x2 className="mr-2 h-4 w-4" />
-                    My Puzzles
-                </Link>
-            </Button>
-            <AccountDropdown user={user} />
-        </div>
-      </header>
+      <AppHeader variant="default" />
 
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="max-w-6xl mx-auto">
@@ -391,16 +368,7 @@ export default function HomePage() {
                                     "[&[data-state=unchecked]]:hover:border-primary",
                                 )}
                                 aria-label={`Select puzzle ${p.title}`}
-                            >
-                                <Check
-                                    className={cn(
-                                        "h-5 w-5 transition-colors",
-                                        selectedPuzzles.includes(p.id)
-                                            ? "text-white"
-                                            : "text-gray-400/80 group-hover:text-primary"
-                                    )}
-                                />
-                            </Checkbox>
+                            />
                         </div>
                     )}
 

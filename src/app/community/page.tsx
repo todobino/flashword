@@ -4,17 +4,15 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogoIcon } from '@/components/icons';
 import { app } from '@/lib/firebase';
 import type { PlayablePuzzle } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { LoaderCircle, Grid2x2, Users } from 'lucide-react';
-import { AccountDropdown } from '@/components/account-dropdown';
+import { LoaderCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getPublishedPuzzlesAction } from '@/app/actions';
 import { format } from 'date-fns';
+import { AppHeader } from '@/components/app-header';
 
 export default function CommunityPage() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -56,37 +54,7 @@ export default function CommunityPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-card">
-        <div className="flex items-center gap-3">
-          <LogoIcon className="h-8 w-8 text-primary" />
-          <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
-        </div>
-        <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-                <Link href="/community">
-                    <Users className="mr-2 h-4 w-4" />
-                    Community
-                </Link>
-            </Button>
-            {user && (
-                <Button variant="outline" size="sm" asChild>
-                    <Link href="/home">
-                        <Grid2x2 className="mr-2 h-4 w-4" />
-                        My Puzzles
-                    </Link>
-                </Button>
-            )}
-            {user ? (
-                <AccountDropdown user={user} />
-            ) : (
-                 <Button size="sm" asChild>
-                    <Link href="/home">
-                        Login to Create
-                    </Link>
-                </Button>
-            )}
-        </div>
-      </header>
+      <AppHeader variant="default" />
 
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="max-w-6xl mx-auto">

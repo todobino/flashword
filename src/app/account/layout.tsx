@@ -6,11 +6,9 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
-import { LogoIcon } from '@/components/icons';
 import { app } from '@/lib/firebase';
-import { AccountDropdown } from '@/components/account-dropdown';
-import { LoaderCircle, UserCircle, Settings, Grid2x2, Users } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { LoaderCircle, UserCircle, Settings } from 'lucide-react';
+import { AppHeader } from '@/components/app-header';
 
 
 export default function AccountLayout({
@@ -53,27 +51,7 @@ export default function AccountLayout({
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-card h-16">
-        <div className="flex items-center gap-3">
-          <LogoIcon className="h-8 w-8 text-primary" />
-          <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
-        </div>
-        <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-                <Link href="/community">
-                    <Users className="mr-2 h-4 w-4" />
-                    Community
-                </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-                <Link href="/home">
-                    <Grid2x2 className="mr-2 h-4 w-4" />
-                    My Puzzles
-                </Link>
-            </Button>
-            <AccountDropdown user={user} />
-        </div>
-      </header>
+      <AppHeader variant="default" />
 
       <div className="flex-1 md:grid md:grid-cols-[220px_1fr]">
         <aside className="hidden md:block border-r bg-muted/20 p-4 sticky top-16 h-[calc(100vh-4rem)]">

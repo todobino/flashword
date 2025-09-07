@@ -6,13 +6,12 @@ import { createGrid } from '@/hooks/use-crossword';
 import { CrosswordGridPlay } from '@/components/crossword-grid-play';
 import { Timer } from '@/components/timer';
 import { Button } from '@/components/ui/button';
-import { LogoIcon } from '@/components/icons';
 import type { PlayablePuzzle, Grid, Entry } from '@/lib/types';
 import { Play, Pause } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
-import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { AppHeader } from './app-header';
 
 interface CrosswordPlayerProps {
   puzzle: PlayablePuzzle;
@@ -113,15 +112,7 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
   return (
     <div className="flex h-screen flex-col bg-background font-body text-foreground">
       <header className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b bg-card p-4">
-        <div className="flex items-center gap-4">
-            <Link href="/play">
-              <LogoIcon className="h-8 w-8 text-primary" />
-            </Link>
-            <div>
-                 <h1 className="text-xl font-bold">{puzzle.title}</h1>
-                 <p className="text-sm text-muted-foreground">by {puzzle.author}</p>
-            </div>
-        </div>
+        <AppHeader variant="player" puzzleTitle={puzzle.title} puzzleAuthor={puzzle.author} />
         <div className="flex items-center gap-4">
             <div className="text-center">
                 <Timer isPaused={isPaused} />

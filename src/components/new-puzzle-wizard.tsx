@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogoIcon } from '@/components/icons';
 import { useCrossword } from '@/hooks/use-crossword';
 import { CrosswordGridNew } from './crossword-grid-new';
 import { cn } from '@/lib/utils';
@@ -27,7 +26,7 @@ import { fillThemeWordsAction } from '@/app/actions';
 import { ClassicPatternIcon } from './icons/classic-pattern-icon';
 import { CondensedPatternIcon } from './icons/condensed-pattern-icon';
 import { ClearPatternIcon } from './icons/clear-pattern-icon';
-import { AccountDropdown } from './account-dropdown';
+import { AppHeader } from './app-header';
 
 
 interface NewPuzzleWizardProps {
@@ -541,39 +540,8 @@ export function NewPuzzleWizard({ onStartBuilder, onLoad }: NewPuzzleWizardProps
   
   return (
     <div className="flex flex-col h-screen font-body text-foreground bg-background">
-      <header className="flex items-center justify-between p-4 border-b shrink-0 sticky top-0 z-10 bg-card">
-        <div className="flex items-center gap-3">
-          <LogoIcon className="h-8 w-8 text-primary" />
-          <h1 className="text-xl font-bold tracking-tight text-primary">FlashWord</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {user ? (
-            <>
-                <Button variant="outline" size="sm" asChild>
-                    <Link href="/community">
-                        <Users className="mr-2 h-4 w-4" />
-                        Community
-                    </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                    <Link href="/home">
-                        <Grid2x2 className="mr-2 h-4 w-4" />
-                        My Puzzles
-                    </Link>
-                </Button>
-                <AccountDropdown user={user} />
-            </>
-          ) : (
-            <Button size="sm" onClick={() => setIsAuthDialogOpen(true)} title="Login / Sign Up" variant="default">
-                <LogIn className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:ml-2">Login / Sign Up</span>
-            </Button>
-          )}
-        </div>
-      </header>
-
+      <AppHeader variant="default" />
       {renderStepContent()}
-      
       <AuthDialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen} />
     </div>
   )
