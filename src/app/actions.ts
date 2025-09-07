@@ -6,7 +6,8 @@ import { verifyPuzzle as verifyPuzzleFlow, type VerifyPuzzleInput } from '@/ai/f
 import { fillThemeWords as fillThemeWordsFlow, type ThemeFillInput, type ThemeFillOutput } from '@/ai/flows/theme-fill';
 import { collection, query, where, getDocs, orderBy, limit, doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import admin from '@/lib/firebase-admin';
+import { adminDb } from '@/lib/firebase-admin';
+import { FieldValue, FieldPath } from 'firebase-admin/firestore';
 import type { PuzzleDoc, PlayablePuzzle, Puzzle } from '@/lib/types';
 
 
@@ -108,9 +109,6 @@ async function getServerUid(): Promise<string> {
 
 
 export async function publishPuzzleAction(puzzleId: string): Promise<{ success: boolean; error?: string }> {
-  const adminDb = admin.firestore();
-  const { FieldValue, FieldPath } = await import('firebase-admin/firestore');
-
   try {
     const uid = await getServerUid();
 
