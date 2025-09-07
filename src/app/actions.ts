@@ -108,49 +108,75 @@ async function getServerUid(): Promise<string> {
 
 
 export async function publishPuzzleAction(puzzleId: string): Promise<{ success: boolean; error?: string }> {
+  const adminDb = admin.firestore();
+  const { FieldValue, FieldPath } = await import('firebase-admin/firestore');
+
   try {
     const uid = await getServerUid();
-    const db = admin.firestore();
 
-    const userPuzzleRef = db.doc(`users/${uid}/puzzles/${puzzleId}`);
-    const publicPuzzleRef = db.doc(`puzzles/${puzzleId}`);
+    // 1) Find the draft by ID across all users (for diagnostics & correctness)
+    const cg = await adminDb
+      .collectionGroup('puzzles')
+      .where(FieldPath.documentId(), '==', puzzleId)
+      .limit(1)
+      .get();
 
-    await db.runTransaction(async (tx) => {
-      const snap = await tx.get(userPuzzleRef);
-      if (!snap.exists) throw new Error('Puzzle not found or you do not have permission to publish it.');
-      const data = snap.data() as PuzzleDoc;
+    if (cg.empty) throw new Error('Draft not found');
 
-      if (data.owner !== uid) throw new Error('Forbidden: You are not the owner of this puzzle.');
+    const draftSnap = cg.docs[0];
+    const parentUserId = draftSnap.ref.parent.parent?.id; // users/{uid}/puzzles/{id}
+    if (!parentUserId) throw new Error('Bad parent path');
 
-      const now = admin.firestore.FieldValue.serverTimestamp();
-      const isAlreadyPublished = data.status === 'published';
+    // 2) Ownership check
+    if (parentUserId !== uid) {
+      throw new Error(`Forbidden: puzzle belongs to ${parentUserId}`);
+    }
 
-      // Whitelist the fields for the public payload to prevent leaking private data
-      const publicPayload: Omit<PuzzleDoc, 'id'> = {
-        title: data.title || 'Untitled Puzzle',
-        status: 'published',
-        size: data.size,
-        grid: data.grid,
-        entries: data.entries,
-        createdAt: data.createdAt ?? now,
-        updatedAt: now,
-        publishedAt: data.publishedAt ?? now,
-        owner: uid,
-        author: data.author || 'Anonymous',
-      };
+    const data = draftSnap.data() as PuzzleDoc;
 
-      // Use set with merge to create or update the public document
-      tx.set(publicPuzzleRef, publicPayload, { merge: true });
-      
-      // Only update the user's private doc if it's the first time publishing
-      if (!isAlreadyPublished) {
-        tx.update(userPuzzleRef, { status: 'published', updatedAt: now, publishedAt: now });
+    // 3) Validate minimal shape
+    if (!Array.isArray(data.grid) || !Array.isArray(data.entries)) {
+      throw new Error('Invalid puzzle payload');
+    }
+
+    // 4) Idempotent publish
+    const now = FieldValue.serverTimestamp();
+    const publicRef = adminDb.doc(`puzzles/${puzzleId}`);
+    const privateRef = adminDb.doc(`users/${uid}/puzzles/${puzzleId}`);
+
+    await adminDb.runTransaction(async (tx) => {
+      const fresh = await tx.get(privateRef);
+      if (!fresh.exists) throw new Error('Draft vanished');
+      const doc = fresh.data() as PuzzleDoc;
+
+      if (doc.owner && doc.owner !== uid) throw new Error('Forbidden');
+      const createdAt = doc.createdAt ?? now;
+
+      tx.set(
+        publicRef,
+        {
+          title: doc.title || 'Untitled Puzzle',
+          status: 'published',
+          size: doc.size,
+          grid: doc.grid,
+          entries: doc.entries,
+          createdAt,
+          updatedAt: now,
+          publishedAt: now,
+          owner: uid,
+          author: doc.author || 'Anonymous',
+        },
+        { merge: true }
+      );
+
+      if (doc.status !== 'published') {
+        tx.update(privateRef, { status: 'published', updatedAt: now, owner: uid });
       }
     });
 
     return { success: true };
   } catch (e: any) {
-    console.error('publishPuzzleAction error', e);
-    return { success: false, error: e.message || 'Publish failed due to a server error.' };
+    console.error('publishPuzzleAction', { puzzleId, err: e?.message });
+    return { success: false, error: e?.message || 'Publish failed' };
   }
 }
