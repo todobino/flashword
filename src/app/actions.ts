@@ -4,7 +4,7 @@
 import { suggestClue as suggestClueFlow, type ClueSuggestionInput } from '@/ai/flows/clue-suggestion';
 import { verifyPuzzle as verifyPuzzleFlow, type VerifyPuzzleInput } from '@/ai/flows/puzzle-verification';
 import { fillThemeWords as fillThemeWordsFlow, type ThemeFillInput, type ThemeFillOutput } from '@/ai/flows/theme-fill';
-import { collection, query, where, getDocs, orderBy, limit, doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue, FieldPath } from 'firebase-admin/firestore';
