@@ -95,7 +95,7 @@ export function ClueLists({
 
   return (
     <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'across' | 'down')} className="h-full flex flex-col bg-card rounded-xl shadow-sm border overflow-hidden">
-      <TabsList className="grid w-full grid-cols-2 rounded-none bg-primary/10 p-2">
+      <TabsList className="grid w-full grid-cols-2 rounded-none bg-primary/10 p-2 border-b">
         <TabsTrigger value="across">
           Across <ArrowRightCircle className="h-4 w-4 ml-2" />
         </TabsTrigger>
