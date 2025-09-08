@@ -30,5 +30,9 @@ export function Timer({ isPaused }: TimerProps) {
     return `${minutes}:${seconds}`;
   };
 
-  return <div className="text-2xl font-mono font-bold">{formatTime(seconds)}</div>;
+  return (
+    <div className="text-2xl font-mono font-bold bg-muted text-muted-foreground rounded-md h-10 w-28 flex items-center justify-center">
+      {formatTime(seconds)}
+    </div>
+  );
 }
