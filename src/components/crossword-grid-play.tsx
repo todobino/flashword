@@ -31,10 +31,7 @@ export function CrosswordGridPlay({
   }, [size]);
 
   
-  const handleCellClick = (row: number, col: number) => {
-    const cell = grid[row][col];
-    if (cell.isBlack) return;
-    
+  const findCluesForCell = (row: number, col: number) => {
     const allClues = [...clues.across, ...clues.down];
     
     const acrossClue = allClues.find(c => 
@@ -50,6 +47,14 @@ export function CrosswordGridPlay({
         row >= c.row &&
         row < c.row + c.length
     );
+    return { acrossClue, downClue };
+  };
+
+  const handleCellClick = (row: number, col: number) => {
+    const cell = grid[row][col];
+    if (cell.isBlack) return;
+    
+    const { acrossClue, downClue } = findCluesForCell(row, col);
 
     if (acrossClue && downClue) {
       // If clicking the same cell, toggle direction. Otherwise, default to across.
@@ -94,9 +99,7 @@ export function CrosswordGridPlay({
 
     if (e.key === ' ') {
       e.preventDefault();
-      const allClues = [...clues.across, ...clues.down];
-       const acrossClue = allClues.find(c => c.direction === 'across' && c.row === row && col >= c.col && col < c.col + c.length);
-       const downClue = allClues.find(c => c.direction === 'down' && c.col === col && row >= c.row && row < c.row + c.length);
+       const { acrossClue, downClue } = findCluesForCell(row, col);
 
        if (acrossClue && downClue) {
         if (selectedClue?.direction === 'across') {
@@ -108,18 +111,22 @@ export function CrosswordGridPlay({
       return;
     }
 
-
     let nextRow = row;
     let nextCol = col;
+    let direction = selectedClue?.direction || 'across';
 
     if (e.key === "ArrowRight") {
       nextCol = col + 1;
+      direction = 'across';
     } else if (e.key === "ArrowLeft") {
       nextCol = col - 1;
+      direction = 'across';
     } else if (e.key === "ArrowDown") {
       nextRow = row + 1;
+      direction = 'down';
     } else if (e.key === "ArrowUp") {
       nextRow = row - 1;
+      direction = 'down';
     } else if (e.key === 'Backspace' && grid[row][col].char === '') {
         if (selectedClue?.direction === 'across') {
             nextCol = col - 1;
@@ -135,6 +142,17 @@ export function CrosswordGridPlay({
     // Move to the next valid cell
     while(nextRow >= 0 && nextRow < size && nextCol >= 0 && nextCol < size) {
         if (!grid[nextRow][nextCol].isBlack) {
+            const { acrossClue, downClue } = findCluesForCell(nextRow, nextCol);
+            if (direction === 'across' && acrossClue) {
+                onSelectClue(acrossClue);
+            } else if (direction === 'down' && downClue) {
+                onSelectClue(downClue);
+            } else if (acrossClue) {
+                onSelectClue(acrossClue);
+            } else if (downClue) {
+                onSelectClue(downClue);
+            }
+
             inputRefs.current[nextRow]?.[nextCol]?.focus();
             return;
         }
@@ -142,6 +160,10 @@ export function CrosswordGridPlay({
          if (e.key === 'ArrowLeft') nextCol--;
          if (e.key === 'ArrowDown') nextRow++;
          if (e.key === 'ArrowUp') nextRow--;
+         if (e.key === 'Backspace') {
+            if (selectedClue?.direction === 'across') nextCol--;
+            else nextRow--;
+         }
     }
   };
 
