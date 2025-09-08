@@ -25,19 +25,23 @@ export function ClueListPlay({
   const [activeTab, setActiveTab] = useState<'across' | 'down'>('across');
   const clueRefs = useRef<Map<string, HTMLLIElement | null>>(new Map());
 
+  // Effect to switch tab when selected clue's direction changes
   useEffect(() => {
     if (selectedClue) {
       setActiveTab(selectedClue.direction);
-      const clueKey = `${selectedClue.number}-${selectedClue.direction}`;
-      // Timeout to allow tab content to render before scrolling
-      setTimeout(() => {
-        const clueElement = clueRefs.current.get(clueKey);
-        if (clueElement) {
-          clueElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 50);
     }
   }, [selectedClue]);
+
+  // Effect to scroll to the selected clue when it changes or when tab changes
+  useEffect(() => {
+    if (selectedClue) {
+      const clueKey = `${selectedClue.number}-${selectedClue.direction}`;
+      const clueElement = clueRefs.current.get(clueKey);
+      if (clueElement) {
+        clueElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [selectedClue, activeTab]);
 
 
   const renderClueList = (direction: 'across' | 'down') => (

@@ -125,6 +125,7 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
                     selectedClue={selectedClue}
                     currentClueDetails={currentClueDetails}
                     onSelectClue={setSelectedClue}
+                    clues={clues}
                 />
             </div>
            </>

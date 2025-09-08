@@ -11,7 +11,8 @@ interface CrosswordGridPlayProps {
   onCharChange: (row: number, col: number, char: string, direction?: Direction) => void;
   selectedClue: { number: number; direction: 'across' | 'down' } | null;
   currentClueDetails: Entry | null;
-  onSelectClue: (clue: { number: number; direction: 'across' | 'down' } | null) => void;
+  onSelectClue: (clue: Entry) => void;
+  clues: { across: Entry[], down: Entry[] };
 }
 
 export function CrosswordGridPlay({
@@ -21,6 +22,7 @@ export function CrosswordGridPlay({
   selectedClue,
   currentClueDetails,
   onSelectClue,
+  clues
 }: CrosswordGridPlayProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
 
@@ -32,45 +34,39 @@ export function CrosswordGridPlay({
   const handleCellClick = (row: number, col: number) => {
     const cell = grid[row][col];
     if (cell.isBlack) return;
-
-    let acrossClueNum: number | null = null;
-    let downClueNum: number | null = null;
     
-    // Find the start of the across word for this cell
-    let tempCol = col;
-    while(tempCol >= 0 && !grid[row][tempCol].isBlack) {
-        if(grid[row][tempCol].number !== null && (tempCol === 0 || grid[row][tempCol - 1].isBlack)) {
-            acrossClueNum = grid[row][tempCol].number;
-            break;
-        }
-        tempCol--;
-    }
+    const allClues = [...clues.across, ...clues.down];
     
-    // Find the start of the down word for this cell
-    let tempRow = row;
-     while(tempRow >= 0 && !grid[tempRow][col].isBlack) {
-        if(grid[tempRow][col].number !== null && (tempRow === 0 || grid[tempRow - 1][col].isBlack)) {
-            downClueNum = grid[tempRow][col].number;
-            break;
-        }
-        tempRow--;
-    }
+    const acrossClue = allClues.find(c => 
+        c.direction === 'across' && 
+        c.row === row && 
+        col >= c.col && 
+        col < c.col + c.length
+    );
+    
+    const downClue = allClues.find(c => 
+        c.direction === 'down' &&
+        c.col === col &&
+        row >= c.row &&
+        row < c.row + c.length
+    );
 
-
-    if (acrossClueNum && downClueNum) {
-      if (selectedClue && selectedClue.number === acrossClueNum && selectedClue.direction === 'across') {
-        onSelectClue({ number: downClueNum, direction: 'down' });
+    if (acrossClue && downClue) {
+      // If clicking the same cell, toggle direction. Otherwise, default to across.
+      if (selectedClue?.number === acrossClue.number && selectedClue.direction === 'across') {
+        onSelectClue(downClue);
       } else {
-        onSelectClue({ number: acrossClueNum, direction: 'across' });
+        onSelectClue(acrossClue);
       }
-    } else if (acrossClueNum) {
-      onSelectClue({ number: acrossClueNum, direction: 'across' });
-    } else if (downClueNum) {
-      onSelectClue({ number: downClueNum, direction: 'down' });
+    } else if (acrossClue) {
+      onSelectClue(acrossClue);
+    } else if (downClue) {
+      onSelectClue(downClue);
     }
 
     inputRefs.current[row][col]?.focus();
   };
+
 
   const handleCharChange = (row: number, col: number, char: string) => {
     onCharChange(row, col, char, selectedClue?.direction);
