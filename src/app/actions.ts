@@ -6,8 +6,6 @@ import { verifyPuzzle as verifyPuzzleFlow, type VerifyPuzzleInput } from '@/ai/f
 import { fillThemeWords as fillThemeWordsFlow, type ThemeFillInput, type ThemeFillOutput } from '@/ai/flows/theme-fill';
 import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { adminDb } from '@/lib/firebase-admin';
-import { FieldValue, FieldPath } from 'firebase-admin/firestore';
 import type { PuzzleDoc, PlayablePuzzle, Puzzle } from '@/lib/types';
 
 
@@ -78,6 +76,11 @@ export async function getPuzzleAction(puzzleId: string): Promise<{ success: bool
 
         const data = docSnap.data() as PuzzleDoc;
 
+        // Ensure status is published before returning
+        if (data.status !== 'published') {
+             return { success: false, error: 'Puzzle is not published.' };
+        }
+
         const puzzle: PlayablePuzzle = {
             id: docSnap.id,
             title: data.title,
@@ -94,87 +97,4 @@ export async function getPuzzleAction(puzzleId: string): Promise<{ success: bool
         console.error("Error fetching puzzle: ", error);
         return { success: false, error: 'Failed to fetch the puzzle.' };
     }
-}
-
-
-// A placeholder for a secure, server-side way to get the current user's ID
-async function getServerUid(): Promise<string> {
-    // In a real application, you would derive this from the session,
-    // e.g., using NextAuth, Firebase session cookies, or by verifying an ID token.
-    // For this prototype, we'll simulate a logged-in user. This is NOT secure for production.
-    const SIMULATED_LOGGED_IN_USER_ID = "6AGnO1mCg9beYmXm1q2P1lJ07v42";
-    if (!SIMULATED_LOGGED_IN_USER_ID) throw new Error('Unauthorized');
-    return SIMULATED_LOGGED_IN_USER_ID;
-}
-
-
-export async function publishPuzzleAction(puzzleId: string): Promise<{ success: boolean; error?: string }> {
-  try {
-    const uid = await getServerUid();
-
-    // 1) Find the draft by ID across all users (for diagnostics & correctness)
-    const cg = await adminDb
-      .collectionGroup('puzzles')
-      .where(FieldPath.documentId(), '==', puzzleId)
-      .limit(1)
-      .get();
-
-    if (cg.empty) throw new Error('Draft not found');
-
-    const draftSnap = cg.docs[0];
-    const parentUserId = draftSnap.ref.parent.parent?.id; // users/{uid}/puzzles/{id}
-    if (!parentUserId) throw new Error('Bad parent path');
-
-    // 2) Ownership check
-    if (parentUserId !== uid) {
-      throw new Error(`Forbidden: puzzle belongs to ${parentUserId}`);
-    }
-
-    const data = draftSnap.data() as PuzzleDoc;
-
-    // 3) Validate minimal shape
-    if (!Array.isArray(data.grid) || !Array.isArray(data.entries)) {
-      throw new Error('Invalid puzzle payload');
-    }
-
-    // 4) Idempotent publish
-    const now = FieldValue.serverTimestamp();
-    const publicRef = adminDb.doc(`puzzles/${puzzleId}`);
-    const privateRef = adminDb.doc(`users/${uid}/puzzles/${puzzleId}`);
-
-    await adminDb.runTransaction(async (tx) => {
-      const fresh = await tx.get(privateRef);
-      if (!fresh.exists) throw new Error('Draft vanished');
-      const doc = fresh.data() as PuzzleDoc;
-
-      if (doc.owner && doc.owner !== uid) throw new Error('Forbidden');
-      const createdAt = doc.createdAt ?? now;
-
-      tx.set(
-        publicRef,
-        {
-          title: doc.title || 'Untitled Puzzle',
-          status: 'published',
-          size: doc.size,
-          grid: doc.grid,
-          entries: doc.entries,
-          createdAt,
-          updatedAt: now,
-          publishedAt: now,
-          owner: uid,
-          author: doc.author || 'Anonymous',
-        },
-        { merge: true }
-      );
-
-      if (doc.status !== 'published') {
-        tx.update(privateRef, { status: 'published', updatedAt: now, owner: uid });
-      }
-    });
-
-    return { success: true };
-  } catch (e: any) {
-    console.error('publishPuzzleAction', { puzzleId, err: e?.message });
-    return { success: false, error: e?.message || 'Publish failed' };
-  }
 }

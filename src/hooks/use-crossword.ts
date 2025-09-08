@@ -8,7 +8,6 @@ import { generatePattern } from '@/lib/grid-generator';
 import { User } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, orderBy, limit, setDoc, getDoc } from 'firebase/firestore';
-import { publishPuzzleAction } from '@/app/actions';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -257,25 +256,78 @@ export const useCrossword = (
   }, [user, puzzleId, title, size, status, grid, clues, getWordFromGrid, toast]);
   
   const publishPuzzle = async () => {
-    if (!puzzleId) {
-        toast({ variant: 'destructive', title: 'Publish Failed', description: 'Cannot publish a puzzle without an ID.' });
+    if (!puzzleId || !user) {
+        toast({ variant: 'destructive', title: 'Publish Failed', description: 'Cannot publish without a puzzle ID and user.' });
         return;
     }
     
     setIsSaving(true);
-    
     try {
-      const result = await publishPuzzleAction(puzzleId);
-      if (result.success) {
+        // 1) Flip private draft -> published (owner-only; rules allow)
+        const userPuzzleRef = doc(db, 'users', user!.uid, 'puzzles', puzzleId!);
+        await updateDoc(userPuzzleRef, {
+          status: 'published',
+          updatedAt: serverTimestamp(),
+          publishedAt: serverTimestamp(),
+        });
         setStatus('published');
+
+        // 2) Create the public copy (rules: owner-only "create" allowed)
+        const publicData = {
+          title,
+          status: 'published',
+          size,
+          grid: grid.map(row => row.map(c => c.isBlack ? '#' : (c.char || '.')).join('')),
+          entries: [...clues.across, ...clues.down].map(e => ({
+            ...e, answer: getWordFromGrid(e).replace(/_/g, ' ')
+          })),
+          createdAt: createdAt ? createdAt : serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          publishedAt: serverTimestamp(),
+          owner: user!.uid,
+          author: user!.displayName || 'Anonymous',
+        };
+        await setDoc(doc(db, 'puzzles', puzzleId!), publicData, { merge: false });
+
+        // 3) Allocate a friendly slug (create-only; retry on conflict)
+        function randSlug() {
+          const ADJ = ['brisk','quiet','lucky','clever','mellow','vivid']; // keep small
+          const NOUN = ['otter','falcon','maple','nebula','canyon','beacon'];
+          const a = ADJ[Math.floor(Math.random()*ADJ.length)];
+          const n = NOUN[Math.floor(Math.random()*NOUN.length)];
+          const sfx = Math.floor(Math.random()*100).toString().padStart(2,'0');
+          return `${a}-${n}-${sfx}`;
+        }
+
+        for (let i = 0; i < 20; i++) {
+          const slug = randSlug();
+          try {
+            await setDoc(
+              doc(db, 'slugs', slug),
+              { uid: user!.uid, puzzleId, createdAt: serverTimestamp() },
+              { merge: false }
+            );
+            await updateDoc(doc(db,'puzzles', puzzleId!), { slug, updatedAt: serverTimestamp() });
+            toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
+            break;
+          } catch (err: any) {
+            if (String(err.code || err.message).toLowerCase().includes('permission-denied')) {
+                // This means the slug likely exists already, so we continue the loop to try a new one.
+                if (i === 19) { // Last attempt failed
+                    throw new Error("Failed to allocate a unique slug after multiple attempts.");
+                }
+                continue;
+            }
+            throw err; // Rethrow other errors
+          }
+        }
         setLastSaved(new Date());
-        toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
-      } else {
-        throw new Error(result.error || 'An unknown error occurred during publish.');
-      }
+
     } catch (error: any) {
       console.error('Error publishing puzzle:', error);
       toast({ variant: 'destructive', title: 'Publish Failed', description: error.message });
+       // Revert status if publish fails
+       setStatus('draft');
     } finally {
       setIsSaving(false);
     }
