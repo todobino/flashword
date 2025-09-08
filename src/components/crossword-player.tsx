@@ -111,15 +111,12 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
   return (
     <div className="flex flex-1 flex-col">
        <header className="sticky top-16 z-10 flex shrink-0 items-center justify-between border-b bg-card p-4">
-            <div>
+            <div className="flex items-baseline gap-3">
                 <h1 className="text-xl font-bold">{puzzle.title}</h1>
                 <p className="text-sm text-muted-foreground">by {puzzle.author}</p>
             </div>
             <div className="flex items-center gap-4">
-                <div className="text-center">
-                    <Timer isPaused={isPaused} />
-                    <p className="text-xs text-muted-foreground">Time</p>
-                </div>
+                <Timer isPaused={isPaused} />
             {gameState === 'idle' && (
                 <Button onClick={handleStart}><Play className="mr-2 h-4 w-4" /> Start</Button>
             )}
