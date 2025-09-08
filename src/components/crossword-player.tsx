@@ -11,7 +11,6 @@ import { Play, Pause } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { AppHeader } from './app-header';
 
 interface CrosswordPlayerProps {
   puzzle: PlayablePuzzle;
@@ -110,24 +109,27 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
   );
 
   return (
-    <div className="flex h-screen flex-col bg-background font-body text-foreground">
-      <header className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b bg-card p-4">
-        <AppHeader variant="player" puzzleTitle={puzzle.title} puzzleAuthor={puzzle.author} />
-        <div className="flex items-center gap-4">
-            <div className="text-center">
-                <Timer isPaused={isPaused} />
-                <p className="text-xs text-muted-foreground">Time</p>
+    <div className="flex flex-1 flex-col">
+       <header className="sticky top-16 z-10 flex shrink-0 items-center justify-between border-b bg-card p-4">
+            <div>
+                <h1 className="text-xl font-bold">{puzzle.title}</h1>
+                <p className="text-sm text-muted-foreground">by {puzzle.author}</p>
             </div>
-          {gameState === 'idle' && (
-            <Button onClick={handleStart}><Play className="mr-2 h-4 w-4" /> Start</Button>
-          )}
-          {gameState === 'playing' && (
-            <Button onClick={handlePause} variant="outline"><Pause className="mr-2 h-4 w-4" /> Pause</Button>
-          )}
-           {gameState === 'paused' && (
-            <Button onClick={handleResume}><Play className="mr-2 h-4 w-4" /> Resume</Button>
-          )}
-        </div>
+            <div className="flex items-center gap-4">
+                <div className="text-center">
+                    <Timer isPaused={isPaused} />
+                    <p className="text-xs text-muted-foreground">Time</p>
+                </div>
+            {gameState === 'idle' && (
+                <Button onClick={handleStart}><Play className="mr-2 h-4 w-4" /> Start</Button>
+            )}
+            {gameState === 'playing' && (
+                <Button onClick={handlePause} variant="outline"><Pause className="mr-2 h-4 w-4" /> Pause</Button>
+            )}
+            {gameState === 'paused' && (
+                <Button onClick={handleResume}><Play className="mr-2 h-4 w-4" /> Resume</Button>
+            )}
+            </div>
       </header>
        <main className="flex-1 grid md:grid-cols-3 gap-6 p-4 md:p-6 overflow-hidden">
         {gameState !== 'idle' ? (

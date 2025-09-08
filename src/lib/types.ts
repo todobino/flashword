@@ -1,4 +1,5 @@
 
+
 export interface Cell {
   row: number;
   col: number;
@@ -37,6 +38,7 @@ export interface Puzzle {
   status: 'draft' | 'published';
   author: string;
   createdAt?: Date;
+  puzzleType: 'crossword';
 }
 
 // This represents the Firestore document schema
@@ -48,6 +50,7 @@ export interface PuzzleDoc {
     grid: string[]; // rows strings, use "#" for black, "." for empty
     entries: Entry[]; // all across/downs in one array
     slug?: string;
+    puzzleType: 'crossword';
     
     // housekeeping
     createdAt: any; // serverTimestamp
@@ -67,4 +70,5 @@ export interface PlayablePuzzle {
     entries: Entry[];
     createdAt: Date;
     slug?: string;
+    puzzleType: 'crossword';
 }

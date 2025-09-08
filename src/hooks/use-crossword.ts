@@ -239,6 +239,7 @@ export const useCrossword = (
             title,
             size,
             status: status,
+            puzzleType: 'crossword',
             grid: grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
             entries: allEntries
         };
@@ -303,9 +304,10 @@ export const useCrossword = (
         if (!slug) throw new Error('Failed to allocate slug');
 
         // 3) create the public copy WITH slug (no update later)
-        const publicData = {
+        const publicData: Omit<PuzzleDoc, 'id'> = {
           title,
           status: 'published',
+          puzzleType: 'crossword',
           size,
           grid: grid.map(row => row.map(c => c.isBlack ? '#' : (c.char || '.')).join('')),
           entries: [...clues.across, ...clues.down].map(e => ({
@@ -329,20 +331,20 @@ export const useCrossword = (
         router.push(`/play/${slug}`);
 
     } catch (error: any) {
-      console.error('Error publishing puzzle:', error);
-      toast({ variant: 'destructive', title: 'Publish Failed', description: error.message });
+        console.error('Error publishing puzzle:', error);
+        toast({ variant: 'destructive', title: 'Publish Failed', description: error.message });
        
-      if (!publicCreated) {
-        await updateDoc(userPuzzleRef, { 
-            status: 'draft',
-            publishedAt: deleteField(),
-            updatedAt: serverTimestamp() 
-        });
-        if (slug) {
-            await deleteDoc(doc(db, 'slugs', slug));
+        if (!publicCreated) {
+            await updateDoc(userPuzzleRef, { 
+                status: 'draft',
+                publishedAt: deleteField(),
+                updatedAt: serverTimestamp() 
+            });
+            if (slug) {
+                await deleteDoc(doc(db, 'slugs', slug));
+            }
+            setStatus('draft');
         }
-        setStatus('draft');
-      }
     } finally {
       setIsSaving(false);
     }
@@ -366,6 +368,7 @@ export const useCrossword = (
             title: title || "Untitled Puzzle",
             size,
             status: "draft",
+            puzzleType: 'crossword',
             grid: grid.map(row => row.map(cell => cell.isBlack ? '#' : (cell.char || '.')).join('')),
             entries: allEntries,
             createdAt: serverTimestamp(),
@@ -443,6 +446,7 @@ export const useCrossword = (
             status: docData.status,
             author: docData.author,
             createdAt: docData.createdAt?.toDate(),
+            puzzleType: 'crossword',
         };
         
         resetGrid(loadedPuzzle.size, loadedPuzzle.grid, loadedPuzzle.clues, loadedPuzzle.title, loadedPuzzle.id, loadedPuzzle.status, loadedPuzzle.createdAt, loadedPuzzle.author);
@@ -605,6 +609,7 @@ export const useCrossword = (
     fillWord,
     batchFillWords,
     createAndSaveDraft,
+    puzzleType: 'crossword' as const,
   };
 
   return { crossword, isSaving, lastSaved, stats };
