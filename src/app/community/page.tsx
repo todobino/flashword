@@ -3,9 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { app, db } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import type { PlayablePuzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
@@ -30,6 +29,7 @@ async function getPublishedPuzzlesAction(): Promise<{ success: boolean, data?: P
                 createdAt: data.createdAt.toDate(),
                 grid: data.grid, // For preview on the card
                 entries: [], // Not needed for listing
+                slug: data.slug,
             };
         });
         
@@ -42,18 +42,9 @@ async function getPublishedPuzzlesAction(): Promise<{ success: boolean, data?: P
 
 
 export default function CommunityPage() {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
   const [puzzles, setPuzzles] = useState<PlayablePuzzle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const auth = getAuth(app);
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     const fetchPuzzles = async () => {
@@ -91,8 +82,8 @@ export default function CommunityPage() {
 
           {puzzles.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {puzzles.map(p => (
-                <Link key={p.id} href={`/play/${p.id}`} className="group">
+              {puzzles.map(p => p.slug && (
+                <Link key={p.id} href={`/play/${p.slug}`} className="group">
                     <Card className="hover:shadow-md hover:border-primary/50 transition-all flex flex-col h-full">
                     <CardHeader className="flex-1 pb-4">
                         {p.grid && p.size && (

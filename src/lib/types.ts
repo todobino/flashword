@@ -66,4 +66,5 @@ export interface PlayablePuzzle {
     grid: string[] | Grid; // Grid for client, string[] from server
     entries: Entry[];
     createdAt: Date;
+    slug?: string;
 }

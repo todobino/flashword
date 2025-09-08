@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { generatePattern } from '@/lib/grid-generator';
 import { User } from 'firebase/auth';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, updateDoc, doc, query, orderBy, limit, setDoc, getDocs, deleteField } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, query, orderBy, limit, setDoc, getDocs, deleteField, getDoc, where, deleteDoc } from 'firebase/firestore';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -265,6 +265,7 @@ export const useCrossword = (
     
     setIsSaving(true);
     const userPuzzleRef = doc(db, 'users', user.uid, 'puzzles', puzzleId);
+    let slug: string | null = null;
 
     try {
         // 1) private -> published
@@ -284,7 +285,7 @@ export const useCrossword = (
           const sfx = Math.floor(Math.random()*100).toString().padStart(2,'0');
           return `${a}-${n}-${sfx}`;
         }
-        let slug: string | null = null;
+        
         for (let i = 0; i < 20; i++) {
           const candidate = randSlug();
           try {
@@ -334,6 +335,9 @@ export const useCrossword = (
            publishedAt: deleteField(),
            updatedAt: serverTimestamp() 
         });
+       if (slug) {
+         await deleteDoc(doc(db, 'slugs', slug));
+       }
        setStatus('draft');
     } finally {
       setIsSaving(false);
