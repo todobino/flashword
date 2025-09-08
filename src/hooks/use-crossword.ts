@@ -263,16 +263,40 @@ export const useCrossword = (
     
     setIsSaving(true);
     try {
-        // 1) Flip private draft -> published (owner-only; rules allow)
-        const userPuzzleRef = doc(db, 'users', user!.uid, 'puzzles', puzzleId!);
-        await updateDoc(userPuzzleRef, {
+        // 1) private -> published
+        await updateDoc(doc(db,'users', user!.uid, 'puzzles', puzzleId!), {
           status: 'published',
           updatedAt: serverTimestamp(),
           publishedAt: serverTimestamp(),
         });
         setStatus('published');
 
-        // 2) Create the public copy (rules: owner-only "create" allowed)
+        // 2) allocate slug (retry on conflict)
+        function randSlug() {
+          const ADJ = ['brisk','quiet','lucky','clever','mellow','vivid'];
+          const NOUN = ['otter','falcon','maple','nebula','canyon','beacon'];
+          const a = ADJ[Math.floor(Math.random()*ADJ.length)];
+          const n = NOUN[Math.floor(Math.random()*NOUN.length)];
+          const sfx = Math.floor(Math.random()*100).toString().padStart(2,'0');
+          return `${a}-${n}-${sfx}`;
+        }
+        let slug: string | null = null;
+        for (let i = 0; i < 20; i++) {
+          const candidate = randSlug();
+          try {
+            await setDoc(doc(db,'slugs', candidate), {
+              uid: user!.uid, puzzleId, createdAt: serverTimestamp()
+            }, { merge: false });
+            slug = candidate;
+            break;
+          } catch (err: any) {
+            if (String(err.code || err.message).toLowerCase().includes('permission')) continue;
+            throw err;
+          }
+        }
+        if (!slug) throw new Error('Failed to allocate slug');
+
+        // 3) create the public copy WITH slug (no update later)
         const publicData = {
           title,
           status: 'published',
@@ -286,41 +310,11 @@ export const useCrossword = (
           publishedAt: serverTimestamp(),
           owner: user!.uid,
           author: user!.displayName || 'Anonymous',
+          slug, // ✅ set on create
         };
-        await setDoc(doc(db, 'puzzles', puzzleId!), publicData, { merge: false });
+        await setDoc(doc(db,'puzzles', puzzleId!), publicData, { merge: false });
 
-        // 3) Allocate a friendly slug (create-only; retry on conflict)
-        function randSlug() {
-          const ADJ = ['brisk','quiet','lucky','clever','mellow','vivid']; // keep small
-          const NOUN = ['otter','falcon','maple','nebula','canyon','beacon'];
-          const a = ADJ[Math.floor(Math.random()*ADJ.length)];
-          const n = NOUN[Math.floor(Math.random()*NOUN.length)];
-          const sfx = Math.floor(Math.random()*100).toString().padStart(2,'0');
-          return `${a}-${n}-${sfx}`;
-        }
-
-        for (let i = 0; i < 20; i++) {
-          const slug = randSlug();
-          try {
-            await setDoc(
-              doc(db, 'slugs', slug),
-              { uid: user!.uid, puzzleId, createdAt: serverTimestamp() },
-              { merge: false }
-            );
-            await updateDoc(doc(db,'puzzles', puzzleId!), { slug, updatedAt: serverTimestamp() });
-            toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
-            break;
-          } catch (err: any) {
-            if (String(err.code || err.message).toLowerCase().includes('permission-denied')) {
-                // This means the slug likely exists already, so we continue the loop to try a new one.
-                if (i === 19) { // Last attempt failed
-                    throw new Error("Failed to allocate a unique slug after multiple attempts.");
-                }
-                continue;
-            }
-            throw err; // Rethrow other errors
-          }
-        }
+        toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
         setLastSaved(new Date());
 
     } catch (error: any) {
