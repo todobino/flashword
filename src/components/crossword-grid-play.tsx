@@ -92,6 +92,23 @@ export function CrosswordGridPlay({
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, row: number, col: number) => {
     if (grid[row][col].isBlack) return;
 
+    if (e.key === ' ') {
+      e.preventDefault();
+      const allClues = [...clues.across, ...clues.down];
+       const acrossClue = allClues.find(c => c.direction === 'across' && c.row === row && col >= c.col && col < c.col + c.length);
+       const downClue = allClues.find(c => c.direction === 'down' && c.col === col && row >= c.row && row < c.row + c.length);
+
+       if (acrossClue && downClue) {
+        if (selectedClue?.direction === 'across') {
+          onSelectClue(downClue);
+        } else {
+          onSelectClue(acrossClue);
+        }
+      }
+      return;
+    }
+
+
     let nextRow = row;
     let nextCol = col;
 
