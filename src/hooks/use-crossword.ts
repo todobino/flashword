@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { generatePattern } from '@/lib/grid-generator';
 import { User } from 'firebase/auth';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, updateDoc, doc, query, orderBy, limit, setDoc, getDocs, deleteField, getDoc, where, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, query, orderBy, limit, setDoc, getDocs, deleteField, deleteDoc } from 'firebase/firestore';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -266,6 +266,7 @@ export const useCrossword = (
     setIsSaving(true);
     const userPuzzleRef = doc(db, 'users', user.uid, 'puzzles', puzzleId);
     let slug: string | null = null;
+    let publicCreated = false;
 
     try {
         // 1) private -> published
@@ -310,16 +311,17 @@ export const useCrossword = (
           entries: [...clues.across, ...clues.down].map(e => ({
             ...e, answer: getWordFromGrid(e).replace(/_/g, ' ')
           })),
-          createdAt: createdAt ? createdAt : serverTimestamp(),
+          createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
           publishedAt: serverTimestamp(),
           owner: user!.uid,
           author: user!.displayName || 'Anonymous',
-          slug, // ✅ set on create
+          slug, // set on create
         };
         await setDoc(doc(db,'puzzles', puzzleId!), publicData, { merge: false });
+        publicCreated = true;
 
-        // 4) [optional] add slug to private doc
+        // 4) add slug to private doc
         await updateDoc(userPuzzleRef, { slug, updatedAt: serverTimestamp() });
 
         toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
@@ -329,16 +331,18 @@ export const useCrossword = (
     } catch (error: any) {
       console.error('Error publishing puzzle:', error);
       toast({ variant: 'destructive', title: 'Publish Failed', description: error.message });
-       // Revert status if publish fails
-       await updateDoc(userPuzzleRef, { 
-           status: 'draft',
-           publishedAt: deleteField(),
-           updatedAt: serverTimestamp() 
+       
+      if (!publicCreated) {
+        await updateDoc(userPuzzleRef, { 
+            status: 'draft',
+            publishedAt: deleteField(),
+            updatedAt: serverTimestamp() 
         });
-       if (slug) {
-         await deleteDoc(doc(db, 'slugs', slug));
-       }
-       setStatus('draft');
+        if (slug) {
+            await deleteDoc(doc(db, 'slugs', slug));
+        }
+        setStatus('draft');
+      }
     } finally {
       setIsSaving(false);
     }

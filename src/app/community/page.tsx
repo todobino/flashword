@@ -16,7 +16,7 @@ import { collection, query, where, getDocs, orderBy, limit } from 'firebase/fire
 async function getPublishedPuzzlesAction(): Promise<{ success: boolean, data?: PlayablePuzzle[], error?: string }> {
     try {
         const puzzlesRef = collection(db, 'puzzles');
-        const q = query(puzzlesRef, where('status', '==', 'published'), orderBy('createdAt', 'desc'), limit(12));
+        const q = query(puzzlesRef, where('status', '==', 'published'), orderBy('publishedAt', 'desc'), limit(12));
         const querySnapshot = await getDocs(q);
         
         const puzzles = querySnapshot.docs.map(doc => {
@@ -26,7 +26,7 @@ async function getPublishedPuzzlesAction(): Promise<{ success: boolean, data?: P
                 title: data.title,
                 size: data.size,
                 author: data.author,
-                createdAt: data.createdAt.toDate(),
+                createdAt: data.publishedAt.toDate(),
                 grid: data.grid, // For preview on the card
                 entries: [], // Not needed for listing
                 slug: data.slug,
