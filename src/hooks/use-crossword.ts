@@ -2,12 +2,13 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Grid, Cell, Entry, Puzzle, PuzzleDoc, TemplateName, Direction, PlayablePuzzle } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { generatePattern } from '@/lib/grid-generator';
 import { User } from 'firebase/auth';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, updateDoc, doc, query, where, getDocs, orderBy, limit, setDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, query, orderBy, limit, setDoc, getDocs } from 'firebase/firestore';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -73,6 +74,7 @@ export const useCrossword = (
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   const { toast } = useToast();
+  const router = useRouter();
 
   const updateClues = useCallback((currentGrid: Grid, currentSize: number, currentClues: { across: Entry[], down: Entry[] }) => {
     const newGrid = JSON.parse(JSON.stringify(currentGrid));
@@ -262,9 +264,11 @@ export const useCrossword = (
     }
     
     setIsSaving(true);
+    const userPuzzleRef = doc(db, 'users', user.uid, 'puzzles', puzzleId);
+
     try {
         // 1) private -> published
-        await updateDoc(doc(db,'users', user!.uid, 'puzzles', puzzleId!), {
+        await updateDoc(userPuzzleRef, {
           status: 'published',
           updatedAt: serverTimestamp(),
           publishedAt: serverTimestamp(),
@@ -316,11 +320,13 @@ export const useCrossword = (
 
         toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
         setLastSaved(new Date());
+        router.push(`/play/${slug}`);
 
     } catch (error: any) {
       console.error('Error publishing puzzle:', error);
       toast({ variant: 'destructive', title: 'Publish Failed', description: error.message });
        // Revert status if publish fails
+       await updateDoc(userPuzzleRef, { status: 'draft' });
        setStatus('draft');
     } finally {
       setIsSaving(false);
