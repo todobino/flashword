@@ -8,9 +8,8 @@ import { Timer } from '@/components/timer';
 import { Button } from '@/components/ui/button';
 import type { PlayablePuzzle, Grid, Entry } from '@/lib/types';
 import { Play, Pause } from 'lucide-react';
-import { ScrollArea } from './ui/scroll-area';
-import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { ClueListPlay } from './clue-list-play';
 
 interface CrosswordPlayerProps {
   puzzle: PlayablePuzzle;
@@ -40,7 +39,7 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
 
 
   const [grid, setGrid] = useState<Grid>(initialGrid);
-  const [selectedClue, setSelectedClue] = useState<Entry | null>(null);
+  const [selectedClue, setSelectedClue] = useState<Entry | null>(clues.across[0] || clues.down[0] || null);
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'paused' | 'finished'>('idle');
   const [isPaused, setIsPaused] = useState(true);
 
@@ -84,30 +83,6 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
     return puzzle.entries.find(c => c.number === selectedClue.number && c.direction === selectedClue.direction) || null;
   }, [selectedClue, puzzle.entries]);
 
-
-  const renderClueList = (direction: 'across' | 'down') => (
-    <div className="space-y-3">
-        <h3 className="font-bold text-lg border-b pb-2">{direction.charAt(0).toUpperCase() + direction.slice(1)}</h3>
-        <ScrollArea className="h-64">
-             <ol className="space-y-2 pr-4">
-                {clues[direction].map((clue) => (
-                <li
-                    key={clue.id}
-                    className={cn(
-                        "p-2 rounded-md cursor-pointer transition-colors",
-                        selectedClue?.id === clue.id && 'bg-orange-100 dark:bg-orange-900/40'
-                    )}
-                    onClick={() => setSelectedClue(clue)}
-                >
-                    <span className="font-bold mr-2">{clue.number}.</span>
-                    <span>{clue.clue}</span>
-                </li>
-                ))}
-            </ol>
-        </ScrollArea>
-    </div>
-  );
-
   return (
     <div className="flex flex-1 flex-col">
        <header className="sticky top-16 z-10 flex shrink-0 items-center justify-between border-b bg-card p-4">
@@ -131,9 +106,12 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
        <main className="flex-1 grid md:grid-cols-3 gap-6 p-4 md:p-6 overflow-hidden">
         {gameState !== 'idle' ? (
            <>
-            <div className="md:col-span-1 h-full overflow-y-auto space-y-6">
-                {renderClueList('across')}
-                {renderClueList('down')}
+            <div className="md:col-span-1 h-full overflow-y-auto">
+                <ClueListPlay
+                    clues={clues}
+                    selectedClue={selectedClue}
+                    onSelectClue={setSelectedClue}
+                />
             </div>
             <div className="md:col-span-2 flex items-center justify-center">
                 <CrosswordGridPlay
