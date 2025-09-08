@@ -27,7 +27,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 type AppHeaderProps = 
-  | { variant: 'editor'; title: string; onTitleChange: (t: string) => void; puzzleId: string; status: 'draft' | 'published'; onPublish: () => void; canPublish: boolean; saveStatus: React.ReactNode; }
+  | { variant: 'editor'; title: string; onTitleChange: (t: string) => void; puzzleId: string; slug?: string; status: 'draft' | 'published'; onPublish: () => void; canPublish: boolean; saveStatus: React.ReactNode; }
   | { variant: 'player'; puzzleTitle: string; puzzleAuthor: string; }
   | { variant: 'default'; };
 
@@ -80,9 +80,9 @@ export function AppHeader(props: AppHeaderProps) {
       return (
           <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                  {props.status === 'published' && (
+                  {props.status === 'published' && props.slug && (
                       <Button variant="outline" size="sm" asChild>
-                          <Link href={`/play/${props.puzzleId}`}>
+                          <Link href={`/play/${props.slug}`}>
                               <Play className="h-4 w-4" />
                               <span className="sr-only sm:not-sr-only sm:ml-2">Play</span>
                           </Link>
@@ -173,7 +173,7 @@ export function AppHeader(props: AppHeaderProps) {
                 <SharePuzzleDialog 
                     isOpen={isShareOpen} 
                     onOpenChange={setIsShareOpen}
-                    puzzleId={props.puzzleId}
+                    puzzleSlug={props.slug}
                 />
             </>
            )}

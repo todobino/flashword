@@ -36,6 +36,7 @@ export interface Puzzle {
   };
   size: number;
   status: 'draft' | 'published';
+  slug?: string;
   author: string;
   createdAt?: Date;
   puzzleType: 'crossword';

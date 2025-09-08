@@ -77,6 +77,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             grid: newGrid,
             clues: newClues,
             status: docData.status,
+            slug: docData.slug,
             createdAt: docData.createdAt?.toDate(),
             author: user.displayName || 'Anonymous'
           });
@@ -106,6 +107,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
     initialPuzzle?.status,
     initialPuzzle?.createdAt,
     initialPuzzle?.author,
+    initialPuzzle?.slug,
   );
 
   const handlePublish = async () => {
@@ -147,6 +149,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
         title={crossword.title}
         onTitleChange={crossword.setTitle}
         puzzleId={puzzleId}
+        slug={crossword.slug}
         status={crossword.status}
         onPublish={handlePublish}
         canPublish={canPublish}
@@ -173,7 +176,7 @@ export function CrosswordEditor({ puzzleId }: CrosswordEditorProps) {
             onSelectClue={crossword.setSelectedClue}
           />
         </div>
-         <div className="md:col-span-1 h-full overflow-y-auto">
+         <div className="md:col-span-1 h-full overflow-y-a_uto">
             <PuzzleStatsCard 
                 title={crossword.title}
                 status={crossword.status}

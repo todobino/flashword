@@ -31,7 +31,7 @@ import {
 import { AppHeader } from '@/components/app-header';
 
 // A type for the puzzles listed on the home page, which might have less data
-type PuzzleListing = Pick<PuzzleDoc, 'title' | 'size' | 'status' | 'grid' | 'entries'> & { id: string, completion: number };
+type PuzzleListing = Pick<PuzzleDoc, 'title' | 'size' | 'status' | 'grid' | 'entries' | 'slug'> & { id: string, completion: number };
 
 type SortOption = {
     field: 'updatedAt' | 'createdAt' | 'title' | 'size';
@@ -148,6 +148,7 @@ export default function HomePage() {
             status: data.status || 'draft',
             grid: data.grid,
             entries: data.entries,
+            slug: data.slug,
             createdAt: data.createdAt?.toDate(),
             updatedAt: data.updatedAt?.toDate(),
             completion: calculateCompletion(data)
@@ -330,13 +331,13 @@ export default function HomePage() {
                                     <Edit className="mr-2 h-4 w-4" />
                                     <span>Edit</span>
                                 </DropdownMenuItem>
-                                {p.status === 'published' && (
+                                {p.status === 'published' && p.slug && (
                                     <>
-                                        <DropdownMenuItem onClick={() => router.push(`/play/${p.id}`)}>
+                                        <DropdownMenuItem onClick={() => router.push(`/play/${p.slug}`)}>
                                             <Play className="mr-2 h-4 w-4" />
                                             <span>Play</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => router.push(`/play/${p.id}`)}>
+                                        <DropdownMenuItem onClick={() => router.push(`/play/${p.slug}`)}>
                                             <Share2 className="mr-2 h-4 w-4" />
                                             <span>Share</span>
                                         </DropdownMenuItem>

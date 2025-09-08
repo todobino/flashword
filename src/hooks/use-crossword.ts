@@ -60,6 +60,7 @@ export const useCrossword = (
     initialStatus?: 'draft' | 'published',
     initialCreatedAt?: Date,
     initialAuthor?: string,
+    initialSlug?: string,
 ) => {
   const [size, setSize] = useState(initialSize);
   const [grid, setGrid] = useState<Grid>(() => initialGrid || createGrid(initialSize));
@@ -68,6 +69,7 @@ export const useCrossword = (
   const [title, setTitle] = useState(initialTitle || '');
   const [puzzleId, setPuzzleId] = useState<string | undefined>(initialId);
   const [status, setStatus] = useState<'draft' | 'published'>(initialStatus || 'draft');
+  const [slug, setSlug] = useState<string | undefined>(initialSlug);
   const [createdAt, setCreatedAt] = useState<Date | undefined>(initialCreatedAt);
   const [author, setAuthor] = useState<string>(initialAuthor || 'Anonymous');
   const [isSaving, setIsSaving] = useState(false);
@@ -150,7 +152,7 @@ export const useCrossword = (
     });
   }, []);
 
-  const resetGrid = useCallback((newSize: number, newGrid?: Grid, newClues?: {across: Entry[], down: Entry[]}, newTitle?: string, newId?: string, newStatus?: 'draft' | 'published', newCreatedAt?: Date, newAuthor?: string) => {
+  const resetGrid = useCallback((newSize: number, newGrid?: Grid, newClues?: {across: Entry[], down: Entry[]}, newTitle?: string, newId?: string, newStatus?: 'draft' | 'published', newCreatedAt?: Date, newAuthor?: string, newSlug?: string) => {
     setSize(newSize);
     const gridToUpdate = newGrid || createGrid(newSize);
     setGrid(gridToUpdate);
@@ -159,15 +161,16 @@ export const useCrossword = (
     setTitle(newTitle || '');
     setPuzzleId(newId);
     setStatus(newStatus || 'draft');
+    setSlug(newSlug);
     setCreatedAt(newCreatedAt);
     setAuthor(newAuthor || user?.displayName || 'Anonymous');
     updateClues(gridToUpdate, newSize, cluesToUpdate);
   }, [updateClues, user]);
 
   useEffect(() => {
-    resetGrid(initialSize, initialGrid, initialClues, initialTitle, initialId, initialStatus, initialCreatedAt, initialAuthor);
+    resetGrid(initialSize, initialGrid, initialClues, initialTitle, initialId, initialStatus, initialCreatedAt, initialAuthor, initialSlug);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialGrid, initialClues, initialTitle, initialId, initialSize, initialStatus, initialCreatedAt, initialAuthor]);
+  }, [initialGrid, initialClues, initialTitle, initialId, initialSize, initialStatus, initialCreatedAt, initialAuthor, initialSlug]);
 
 
   const toggleCellBlack = (row: number, col: number) => {
@@ -292,7 +295,7 @@ export const useCrossword = (
           const candidate = randSlug();
           try {
             await setDoc(doc(db,'slugs', candidate), {
-              uid: user!.uid, puzzleId, createdAt: serverTimestamp()
+              puzzleId, createdAt: serverTimestamp()
             }, { merge: false });
             slug = candidate;
             break;
@@ -325,6 +328,7 @@ export const useCrossword = (
 
         // 4) add slug to private doc
         await updateDoc(userPuzzleRef, { slug, updatedAt: serverTimestamp() });
+        setSlug(slug);
 
         toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
         setLastSaved(new Date());
@@ -444,12 +448,13 @@ export const useCrossword = (
             grid: newGrid,
             clues: newClues,
             status: docData.status,
+            slug: docData.slug,
             author: docData.author,
             createdAt: docData.createdAt?.toDate(),
             puzzleType: 'crossword',
         };
         
-        resetGrid(loadedPuzzle.size, loadedPuzzle.grid, loadedPuzzle.clues, loadedPuzzle.title, loadedPuzzle.id, loadedPuzzle.status, loadedPuzzle.createdAt, loadedPuzzle.author);
+        resetGrid(loadedPuzzle.size, loadedPuzzle.grid, loadedPuzzle.clues, loadedPuzzle.title, loadedPuzzle.id, loadedPuzzle.status, loadedPuzzle.createdAt, loadedPuzzle.author, loadedPuzzle.slug);
 
         toast({ title: "Puzzle Loaded!", description: `Loaded "${loadedPuzzle.title}".` });
         return loadedPuzzle;
@@ -591,6 +596,7 @@ export const useCrossword = (
     setTitle,
     puzzleId,
     status,
+    slug,
     createdAt,
     author,
     publishPuzzle,

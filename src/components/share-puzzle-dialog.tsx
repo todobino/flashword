@@ -18,19 +18,19 @@ import { Download, Copy, Check } from 'lucide-react';
 interface SharePuzzleDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  puzzleId?: string;
+  puzzleSlug?: string;
 }
 
-export function SharePuzzleDialog({ isOpen, onOpenChange, puzzleId }: SharePuzzleDialogProps) {
+export function SharePuzzleDialog({ isOpen, onOpenChange, puzzleSlug }: SharePuzzleDialogProps) {
   const [playUrl, setPlayUrl] = useState('');
   const [hasCopied, setHasCopied] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (puzzleId && typeof window !== 'undefined') {
-      setPlayUrl(`${window.location.origin}/play/${puzzleId}`);
+    if (puzzleSlug && typeof window !== 'undefined') {
+      setPlayUrl(`${window.location.origin}/play/${puzzleSlug}`);
     }
-  }, [puzzleId]);
+  }, [puzzleSlug]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(playUrl).then(() => {
