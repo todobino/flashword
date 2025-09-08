@@ -88,7 +88,7 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
   }, [selectedClue, puzzle.entries]);
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <>
        <header className="sticky top-16 z-10 flex shrink-0 items-center justify-between border-b bg-card p-2 px-4">
             <div className="flex items-baseline gap-3">
                 <h1 className="text-lg font-bold">{puzzle.title}</h1>
@@ -136,6 +136,6 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
             </div>
         )}
       </main>
-    </div>
+    </>
   );
 }
