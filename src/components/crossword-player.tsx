@@ -28,12 +28,16 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
         }
       }
     });
+    // Add numbers to grid based on entries
+    puzzle.entries.forEach(entry => {
+        newGrid[entry.row][entry.col].number = entry.number;
+    });
     return newGrid;
   }, [puzzle]);
 
   const clues = useMemo(() => {
-    const across = puzzle.entries.filter((e) => e.direction === 'across');
-    const down = puzzle.entries.filter((e) => e.direction === 'down');
+    const across = puzzle.entries.filter((e) => e.direction === 'across').sort((a,b) => a.number - b.number);
+    const down = puzzle.entries.filter((e) => e.direction === 'down').sort((a,b) => a.number - b.number);
     return { across, down };
   }, [puzzle.entries]);
 
@@ -84,29 +88,29 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
   }, [selectedClue, puzzle.entries]);
 
   return (
-    <div className="flex flex-1 flex-col">
-       <header className="sticky top-16 z-10 flex shrink-0 items-center justify-between border-b bg-card p-4">
+    <div className="flex flex-1 flex-col overflow-hidden">
+       <header className="sticky top-16 z-10 flex shrink-0 items-center justify-between border-b bg-card p-2 px-4">
             <div className="flex items-baseline gap-3">
-                <h1 className="text-xl font-bold">{puzzle.title}</h1>
+                <h1 className="text-lg font-bold">{puzzle.title}</h1>
                 <p className="text-sm text-muted-foreground">by {puzzle.author}</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
                 <Timer isPaused={isPaused} />
             {gameState === 'idle' && (
-                <Button onClick={handleStart}><Play className="mr-2 h-4 w-4" /> Start</Button>
+                <Button onClick={handleStart} size="sm"><Play className="mr-2 h-4 w-4" /> Start</Button>
             )}
             {gameState === 'playing' && (
-                <Button onClick={handlePause} variant="outline"><Pause className="mr-2 h-4 w-4" /> Pause</Button>
+                <Button onClick={handlePause} variant="outline" size="sm"><Pause className="mr-2 h-4 w-4" /> Pause</Button>
             )}
             {gameState === 'paused' && (
-                <Button onClick={handleResume}><Play className="mr-2 h-4 w-4" /> Resume</Button>
+                <Button onClick={handleResume} size="sm"><Play className="mr-2 h-4 w-4" /> Resume</Button>
             )}
             </div>
       </header>
-       <main className="flex-1 grid md:grid-cols-3 gap-6 p-4 md:p-6 overflow-hidden">
+       <main className="flex-1 grid md:grid-cols-3 gap-4 p-4 overflow-hidden">
         {gameState !== 'idle' ? (
            <>
-            <div className="md:col-span-1 h-full overflow-y-auto">
+            <div className="md:col-span-1 h-full overflow-hidden">
                 <ClueListPlay
                     clues={clues}
                     selectedClue={selectedClue}
