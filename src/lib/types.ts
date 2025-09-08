@@ -47,6 +47,7 @@ export interface PuzzleDoc {
     size: number;
     grid: string[]; // rows strings, use "#" for black, "." for empty
     entries: Entry[]; // all across/downs in one array
+    slug?: string;
     
     // housekeeping
     createdAt: any; // serverTimestamp

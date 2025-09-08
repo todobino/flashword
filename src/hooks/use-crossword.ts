@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { generatePattern } from '@/lib/grid-generator';
 import { User } from 'firebase/auth';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, updateDoc, doc, query, orderBy, limit, setDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, query, orderBy, limit, setDoc, getDocs, deleteField } from 'firebase/firestore';
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -294,7 +294,7 @@ export const useCrossword = (
             slug = candidate;
             break;
           } catch (err: any) {
-            if (String(err.code || err.message).toLowerCase().includes('permission')) continue;
+            if ((err as any).code === 'permission-denied') continue;
             throw err;
           }
         }
@@ -318,6 +318,9 @@ export const useCrossword = (
         };
         await setDoc(doc(db,'puzzles', puzzleId!), publicData, { merge: false });
 
+        // 4) [optional] add slug to private doc
+        await updateDoc(userPuzzleRef, { slug, updatedAt: serverTimestamp() });
+
         toast({ title: 'Puzzle Published!', description: 'Your puzzle is now public and can be shared.' });
         setLastSaved(new Date());
         router.push(`/play/${slug}`);
@@ -326,7 +329,11 @@ export const useCrossword = (
       console.error('Error publishing puzzle:', error);
       toast({ variant: 'destructive', title: 'Publish Failed', description: error.message });
        // Revert status if publish fails
-       await updateDoc(userPuzzleRef, { status: 'draft' });
+       await updateDoc(userPuzzleRef, { 
+           status: 'draft',
+           publishedAt: deleteField(),
+           updatedAt: serverTimestamp() 
+        });
        setStatus('draft');
     } finally {
       setIsSaving(false);

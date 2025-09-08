@@ -5,14 +5,41 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAuth, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { app } from '@/lib/firebase';
-import type { PlayablePuzzle } from '@/lib/types';
+import { app, db } from '@/lib/firebase';
+import type { PlayablePuzzle, PuzzleDoc } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { LoaderCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getPublishedPuzzlesAction } from '@/app/actions';
 import { format } from 'date-fns';
 import { AppHeader } from '@/components/app-header';
+import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+
+async function getPublishedPuzzlesAction(): Promise<{ success: boolean, data?: PlayablePuzzle[], error?: string }> {
+    try {
+        const puzzlesRef = collection(db, 'puzzles');
+        const q = query(puzzlesRef, where('status', '==', 'published'), orderBy('createdAt', 'desc'), limit(12));
+        const querySnapshot = await getDocs(q);
+        
+        const puzzles = querySnapshot.docs.map(doc => {
+            const data = doc.data() as PuzzleDoc;
+            return {
+                id: doc.id,
+                title: data.title,
+                size: data.size,
+                author: data.author,
+                createdAt: data.createdAt.toDate(),
+                grid: data.grid, // For preview on the card
+                entries: [], // Not needed for listing
+            };
+        });
+        
+        return { success: true, data: puzzles };
+    } catch (error) {
+        console.error("Error fetching published puzzles: ", error);
+        return { success: false, error: 'Failed to fetch published puzzles.' };
+    }
+}
+
 
 export default function CommunityPage() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
