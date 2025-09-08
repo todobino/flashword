@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
-import { Share2, LogIn, Grid2x2, Play, Users, Rocket } from 'lucide-react';
+import { Share2, LogIn, Grid2x2, Play, Earth, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LogoIcon } from '@/components/icons';
 import { AccountDropdown } from './account-dropdown';
@@ -134,7 +134,7 @@ export function AppHeader(props: AppHeaderProps) {
                   <>
                       <Button variant="outline" size="sm" asChild>
                           <Link href="/community">
-                              <Users className="mr-2 h-4 w-4" />
+                              <Earth className="mr-2 h-4 w-4" />
                               Community
                           </Link>
                       </Button>
