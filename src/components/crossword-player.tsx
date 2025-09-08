@@ -52,8 +52,6 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
 
 
   const handleStart = () => {
-    setGameState('playing');
-    setIsPaused(false);
     // Auto-select the first clue
     if (clues.across.length > 0) {
       const firstClue = clues.across[0];
@@ -64,6 +62,8 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
       setSelectedClue(firstClue);
       setFocusedCell({ row: firstClue.row, col: firstClue.col });
     }
+    setGameState('playing');
+    setIsPaused(false);
   };
 
   const handlePause = () => {
@@ -142,6 +142,7 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
                     clues={clues}
                     focusedCell={focusedCell}
                     setFocusedCell={setFocusedCell}
+                    gameState={gameState}
                 />
             </div>
            </>

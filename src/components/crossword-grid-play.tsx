@@ -15,6 +15,7 @@ interface CrosswordGridPlayProps {
   clues: { across: Entry[], down: Entry[] };
   focusedCell: {row: number, col: number} | null;
   setFocusedCell: (cell: {row: number, col: number} | null) => void;
+  gameState: 'idle' | 'playing' | 'paused' | 'finished';
 }
 
 export function CrosswordGridPlay({
@@ -26,13 +27,26 @@ export function CrosswordGridPlay({
   onSelectClue,
   clues,
   focusedCell,
-  setFocusedCell
+  setFocusedCell,
+  gameState,
 }: CrosswordGridPlayProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
 
   useEffect(() => {
     inputRefs.current = Array(size).fill(null).map(() => Array(size).fill(null));
   }, [size]);
+
+  useEffect(() => {
+    // This effect handles focusing the cell when the game starts
+    if (gameState === 'playing' && focusedCell && currentClueDetails) {
+        const inputToFocus = inputRefs.current[currentClueDetails.row]?.[currentClueDetails.col];
+        if (inputToFocus) {
+            inputToFocus.focus();
+        }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState]);
+
 
   useEffect(() => {
     if (focusedCell) {
