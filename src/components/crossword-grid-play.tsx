@@ -79,8 +79,6 @@ export function CrosswordGridPlay({
     } else if (downClue) {
       onSelectClue(downClue);
     }
-
-    inputRefs.current[row][col]?.focus();
   };
 
 
@@ -104,7 +102,6 @@ export function CrosswordGridPlay({
 
       if (nextRow >= 0 && nextRow < size && nextCol >= 0 && nextCol < size && !grid[nextRow][nextCol].isBlack) {
         setFocusedCell({ row: nextRow, col: nextCol });
-        inputRefs.current[nextRow]?.[nextCol]?.focus();
       }
     }
   };
@@ -131,18 +128,23 @@ export function CrosswordGridPlay({
     let direction = selectedClue?.direction || 'across';
 
     if (e.key === "ArrowRight") {
+      e.preventDefault();
       nextCol = col + 1;
       direction = 'across';
     } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
       nextCol = col - 1;
       direction = 'across';
     } else if (e.key === "ArrowDown") {
+      e.preventDefault();
       nextRow = row + 1;
       direction = 'down';
     } else if (e.key === "ArrowUp") {
+      e.preventDefault();
       nextRow = row - 1;
       direction = 'down';
     } else if (e.key === 'Backspace' && grid[row][col].char === '') {
+        e.preventDefault();
         if (selectedClue?.direction === 'across') {
             nextCol = col - 1;
         } else {
@@ -152,29 +154,20 @@ export function CrosswordGridPlay({
         return; // Don't prevent default for character input
     }
     
-    e.preventDefault();
-    
     // Move to the next valid cell
-    while(nextRow >= 0 && nextRow < size && nextCol >= 0 && nextCol < size) {
-        if (!grid[nextRow][nextCol].isBlack) {
-            setFocusedCell({ row: nextRow, col: nextCol });
-            const { acrossClue, downClue } = findCluesForCell(nextRow, nextCol);
-            
-            const currentDirectionClue = direction === 'across' ? acrossClue : downClue;
-            const otherDirectionClue = direction === 'across' ? downClue : acrossClue;
+    if (nextRow >= 0 && nextRow < size && nextCol >= 0 && nextCol < size && !grid[nextRow][nextCol].isBlack) {
+        setFocusedCell({ row: nextRow, col: nextCol });
+        const { acrossClue, downClue } = findCluesForCell(nextRow, nextCol);
+        
+        const currentDirectionClue = direction === 'across' ? acrossClue : downClue;
+        const otherDirectionClue = direction === 'across' ? downClue : acrossClue;
 
-            if (currentDirectionClue && selectedClue?.id !== currentDirectionClue.id) {
-                onSelectClue(currentDirectionClue);
-            } else if (otherDirectionClue && selectedClue?.id !== otherDirectionClue.id) {
-                 onSelectClue(otherDirectionClue);
-            }
-            inputRefs.current[nextRow]?.[nextCol]?.focus();
-            return;
+        if (currentDirectionClue && selectedClue?.id !== currentDirectionClue.id) {
+            onSelectClue(currentDirectionClue);
+        } else if (otherDirectionClue && selectedClue?.id !== otherDirectionClue.id) {
+                onSelectClue(otherDirectionClue);
         }
-         if (e.key === 'ArrowRight' || (e.key === 'Backspace' && direction === 'across')) nextCol++;
-         if (e.key === 'ArrowLeft') nextCol--;
-         if (e.key === 'ArrowDown' || (e.key === 'Backspace' && direction === 'down')) nextRow++;
-         if (e.key === 'ArrowUp') nextRow--;
+        return;
     }
   };
 
