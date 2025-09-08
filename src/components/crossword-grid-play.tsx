@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useRef, useEffect, KeyboardEvent, useState } from 'react';
+import { useRef, useEffect, KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
 import type { Grid, Entry, Direction } from '@/lib/types';
 
@@ -13,6 +13,8 @@ interface CrosswordGridPlayProps {
   currentClueDetails: Entry | null;
   onSelectClue: (clue: Entry) => void;
   clues: { across: Entry[], down: Entry[] };
+  focusedCell: {row: number, col: number} | null;
+  setFocusedCell: (cell: {row: number, col: number} | null) => void;
 }
 
 export function CrosswordGridPlay({
@@ -22,27 +24,21 @@ export function CrosswordGridPlay({
   selectedClue,
   currentClueDetails,
   onSelectClue,
-  clues
+  clues,
+  focusedCell,
+  setFocusedCell
 }: CrosswordGridPlayProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
-  const [focusedCell, setFocusedCell] = useState<{row: number, col: number} | null>(null);
 
   useEffect(() => {
     inputRefs.current = Array(size).fill(null).map(() => Array(size).fill(null));
   }, [size]);
 
   useEffect(() => {
-    if (selectedClue && currentClueDetails) {
-      if (!focusedCell) {
-        const newFocusedCell = { row: currentClueDetails.row, col: currentClueDetails.col };
-        setFocusedCell(newFocusedCell);
-        inputRefs.current[newFocusedCell.row]?.[newFocusedCell.col]?.focus();
-      } else {
+    if (focusedCell) {
         inputRefs.current[focusedCell.row]?.[focusedCell.col]?.focus();
-      }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedClue]);
+  }, [focusedCell]);
 
   
   const findCluesForCell = (row: number, col: number) => {
@@ -73,7 +69,7 @@ export function CrosswordGridPlay({
 
     if (acrossClue && downClue) {
       // If clicking the same cell, toggle direction. Otherwise, default to across.
-      if (selectedClue?.number === acrossClue.number && selectedClue.direction === 'across') {
+      if (selectedClue?.id === acrossClue.id) {
         onSelectClue(downClue);
       } else {
         onSelectClue(acrossClue);
@@ -94,12 +90,15 @@ export function CrosswordGridPlay({
     // After updating the character, move to the next cell
     let nextRow = row;
     let nextCol = col;
-    if (char.length > 0) {
-      if (selectedClue?.direction === 'across') {
-        nextCol = Math.min(size - 1, col + 1);
+    if (char.length > 0 && currentClueDetails) {
+        const {direction, length} = currentClueDetails;
+      if (direction === 'across') {
+        nextCol = col + 1;
+        if (nextCol >= currentClueDetails.col + length) return;
         while(nextCol < size && grid[row][nextCol].isBlack) nextCol++;
       } else {
-        nextRow = Math.min(size - 1, row + 1);
+        nextRow = row + 1;
+        if (nextRow >= currentClueDetails.row + length) return;
         while(nextRow < size && grid[nextRow][col].isBlack) nextRow++;
       }
 
@@ -164,22 +163,18 @@ export function CrosswordGridPlay({
             const currentDirectionClue = direction === 'across' ? acrossClue : downClue;
             const otherDirectionClue = direction === 'across' ? downClue : acrossClue;
 
-            if (currentDirectionClue) {
+            if (currentDirectionClue && selectedClue?.id !== currentDirectionClue.id) {
                 onSelectClue(currentDirectionClue);
-            } else if (otherDirectionClue) {
+            } else if (otherDirectionClue && selectedClue?.id !== otherDirectionClue.id) {
                  onSelectClue(otherDirectionClue);
             }
             inputRefs.current[nextRow]?.[nextCol]?.focus();
             return;
         }
-         if (e.key === 'ArrowRight') nextCol++;
+         if (e.key === 'ArrowRight' || (e.key === 'Backspace' && direction === 'across')) nextCol++;
          if (e.key === 'ArrowLeft') nextCol--;
-         if (e.key === 'ArrowDown') nextRow++;
+         if (e.key === 'ArrowDown' || (e.key === 'Backspace' && direction === 'down')) nextRow++;
          if (e.key === 'ArrowUp') nextRow--;
-         if (e.key === 'Backspace') {
-            if (selectedClue?.direction === 'across') nextCol--;
-            else nextRow--;
-         }
     }
   };
 

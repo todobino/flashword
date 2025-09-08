@@ -30,7 +30,9 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
     });
     // Add numbers to grid based on entries
     puzzle.entries.forEach(entry => {
-        newGrid[entry.row][entry.col].number = entry.number;
+        if(newGrid[entry.row] && newGrid[entry.row][entry.col]) {
+            newGrid[entry.row][entry.col].number = entry.number;
+        }
     });
     return newGrid;
   }, [puzzle]);
@@ -46,15 +48,21 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
   const [selectedClue, setSelectedClue] = useState<Entry | null>(null);
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'paused' | 'finished'>('idle');
   const [isPaused, setIsPaused] = useState(true);
+  const [focusedCell, setFocusedCell] = useState<{row: number, col: number} | null>(null);
+
 
   const handleStart = () => {
     setGameState('playing');
     setIsPaused(false);
     // Auto-select the first clue
     if (clues.across.length > 0) {
-      setSelectedClue(clues.across[0]);
+      const firstClue = clues.across[0];
+      setSelectedClue(firstClue);
+      setFocusedCell({ row: firstClue.row, col: firstClue.col });
     } else if (clues.down.length > 0) {
-      setSelectedClue(clues.down[0]);
+      const firstClue = clues.down[0];
+      setSelectedClue(firstClue);
+      setFocusedCell({ row: firstClue.row, col: firstClue.col });
     }
   };
 
@@ -132,6 +140,8 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
                     currentClueDetails={currentClueDetails}
                     onSelectClue={setSelectedClue}
                     clues={clues}
+                    focusedCell={focusedCell}
+                    setFocusedCell={setFocusedCell}
                 />
             </div>
            </>
