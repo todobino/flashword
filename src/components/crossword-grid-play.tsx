@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useRef, useEffect, KeyboardEvent } from 'react';
+import { useRef, useEffect, KeyboardEvent, useState } from 'react';
 import { cn } from '@/lib/utils';
 import type { Grid, Entry, Direction } from '@/lib/types';
 
@@ -25,10 +25,19 @@ export function CrosswordGridPlay({
   clues
 }: CrosswordGridPlayProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
+  const [focusedCell, setFocusedCell] = useState<{row: number, col: number} | null>(null);
 
   useEffect(() => {
     inputRefs.current = Array(size).fill(null).map(() => Array(size).fill(null));
   }, [size]);
+
+  useEffect(() => {
+    if (selectedClue && currentClueDetails) {
+        setFocusedCell({ row: currentClueDetails.row, col: currentClueDetails.col });
+        inputRefs.current[currentClueDetails.row]?.[currentClueDetails.col]?.focus();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClue]);
 
   
   const findCluesForCell = (row: number, col: number) => {
@@ -54,6 +63,7 @@ export function CrosswordGridPlay({
     const cell = grid[row][col];
     if (cell.isBlack) return;
     
+    setFocusedCell({ row, col });
     const { acrossClue, downClue } = findCluesForCell(row, col);
 
     if (acrossClue && downClue) {
@@ -89,6 +99,7 @@ export function CrosswordGridPlay({
       }
 
       if (nextRow >= 0 && nextRow < size && nextCol >= 0 && nextCol < size && !grid[nextRow][nextCol].isBlack) {
+        setFocusedCell({ row: nextRow, col: nextCol });
         inputRefs.current[nextRow]?.[nextCol]?.focus();
       }
     }
@@ -142,17 +153,17 @@ export function CrosswordGridPlay({
     // Move to the next valid cell
     while(nextRow >= 0 && nextRow < size && nextCol >= 0 && nextCol < size) {
         if (!grid[nextRow][nextCol].isBlack) {
+            setFocusedCell({ row: nextRow, col: nextCol });
             const { acrossClue, downClue } = findCluesForCell(nextRow, nextCol);
-            if (direction === 'across' && acrossClue) {
-                onSelectClue(acrossClue);
-            } else if (direction === 'down' && downClue) {
-                onSelectClue(downClue);
-            } else if (acrossClue) {
-                onSelectClue(acrossClue);
-            } else if (downClue) {
-                onSelectClue(downClue);
-            }
+            
+            const currentDirectionClue = direction === 'across' ? acrossClue : downClue;
+            const otherDirectionClue = direction === 'across' ? downClue : acrossClue;
 
+            if (currentDirectionClue) {
+                onSelectClue(currentDirectionClue);
+            } else if (otherDirectionClue) {
+                 onSelectClue(otherDirectionClue);
+            }
             inputRefs.current[nextRow]?.[nextCol]?.focus();
             return;
         }
@@ -176,17 +187,6 @@ export function CrosswordGridPlay({
       return col === startCol && row >= startRow && row < startRow + length;
     }
   };
-  
-  const activeCell = inputRefs.current.flat().find(ref => ref === document.activeElement);
-  let activeRow = -1;
-  let activeCol = -1;
-  if(activeCell) {
-    const coords = activeCell.getAttribute('data-coords')?.split('-');
-    if(coords) {
-        activeRow = parseInt(coords[0]);
-        activeCol = parseInt(coords[1]);
-    }
-  }
 
 
   return (
@@ -198,7 +198,7 @@ export function CrosswordGridPlay({
         {grid.map((row, rowIndex) =>
           row.map((cell, colIndex) => {
             const isSelected = selectedClue && currentClueDetails && isCellInClue(rowIndex, colIndex);
-            const isFocused = isSelected && rowIndex === activeRow && colIndex === activeCol;
+            const isFocused = isSelected && focusedCell?.row === rowIndex && focusedCell?.col === colIndex;
 
             return (
               <div
@@ -223,6 +223,7 @@ export function CrosswordGridPlay({
                         inputRefs.current[rowIndex][colIndex] = el;
                       }
                     }}
+                    onFocus={() => setFocusedCell({ row: rowIndex, col: colIndex })}
                     data-coords={`${rowIndex}-${colIndex}`}
                     type="text"
                     maxLength={1}
