@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { createGrid } from '@/hooks/use-crossword';
 import { CrosswordGridPlay } from '@/components/crossword-grid-play';
 import { Timer } from '@/components/timer';
@@ -43,13 +43,19 @@ export function CrosswordPlayer({ puzzle }: CrosswordPlayerProps) {
 
 
   const [grid, setGrid] = useState<Grid>(initialGrid);
-  const [selectedClue, setSelectedClue] = useState<Entry | null>(clues.across[0] || clues.down[0] || null);
+  const [selectedClue, setSelectedClue] = useState<Entry | null>(null);
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'paused' | 'finished'>('idle');
   const [isPaused, setIsPaused] = useState(true);
 
   const handleStart = () => {
     setGameState('playing');
     setIsPaused(false);
+    // Auto-select the first clue
+    if (clues.across.length > 0) {
+      setSelectedClue(clues.across[0]);
+    } else if (clues.down.length > 0) {
+      setSelectedClue(clues.down[0]);
+    }
   };
 
   const handlePause = () => {

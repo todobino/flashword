@@ -33,8 +33,13 @@ export function CrosswordGridPlay({
 
   useEffect(() => {
     if (selectedClue && currentClueDetails) {
-        setFocusedCell({ row: currentClueDetails.row, col: currentClueDetails.col });
-        inputRefs.current[currentClueDetails.row]?.[currentClueDetails.col]?.focus();
+      if (!focusedCell) {
+        const newFocusedCell = { row: currentClueDetails.row, col: currentClueDetails.col };
+        setFocusedCell(newFocusedCell);
+        inputRefs.current[newFocusedCell.row]?.[newFocusedCell.col]?.focus();
+      } else {
+        inputRefs.current[focusedCell.row]?.[focusedCell.col]?.focus();
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClue]);
